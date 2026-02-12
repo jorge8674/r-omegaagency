@@ -1,14 +1,30 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TrendingUp, CalendarDays, Wifi } from "lucide-react";
-
-const stats = [
-  { label: "Clientes Activos", value: "0", icon: Users, change: "+0%" },
-  { label: "Engagement Rate", value: "0%", icon: TrendingUp, change: "+0%" },
-  { label: "Posts Programados", value: "0", icon: CalendarDays, change: "0 hoy" },
-  { label: "Cuentas Conectadas", value: "0", icon: Wifi, change: "0 redes" },
-];
+import { Users, TrendingUp, CalendarDays, Wifi, Loader2 } from "lucide-react";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { FollowersByPlatformChart, AccountDistributionChart } from "@/components/dashboard/PlatformCharts";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { PlatformStatus } from "@/components/dashboard/PlatformStatus";
 
 export default function Dashboard() {
+  const {
+    loading,
+    activeClients,
+    totalFollowers,
+    connectedAccounts,
+    totalAccounts,
+    platformCounts,
+    recentClients,
+    recentAccounts,
+  } = useDashboardData();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -16,49 +32,44 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Resumen general de tu plataforma</p>
       </div>
 
+      {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="border-border/50 bg-card/80 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.label}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <StatsCard
+          title="Clientes Activos"
+          value={activeClients}
+          icon={Users}
+          subtitle={`${activeClients} de ${activeClients} activos`}
+        />
+        <StatsCard
+          title="Seguidores Totales"
+          value={totalFollowers.toLocaleString()}
+          icon={TrendingUp}
+          subtitle="Todas las plataformas"
+        />
+        <StatsCard
+          title="Posts Programados"
+          value="0"
+          icon={CalendarDays}
+          subtitle="Próximamente"
+        />
+        <StatsCard
+          title="Cuentas Conectadas"
+          value={`${connectedAccounts}/${totalAccounts}`}
+          icon={Wifi}
+          subtitle={`${totalAccounts} cuentas registradas`}
+        />
       </div>
 
+      {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">Actividad Reciente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-              <CalendarDays className="h-10 w-10 mb-2 opacity-30" />
-              <p className="text-sm">No hay actividad reciente</p>
-              <p className="text-xs mt-1">Comienza agregando clientes y cuentas sociales</p>
-            </div>
-          </CardContent>
-        </Card>
+        <FollowersByPlatformChart data={platformCounts} />
+        <AccountDistributionChart data={platformCounts} />
+      </div>
 
-        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">Cuentas por Red Social</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-              <Wifi className="h-10 w-10 mb-2 opacity-30" />
-              <p className="text-sm">Sin cuentas conectadas</p>
-              <p className="text-xs mt-1">Conecta las cuentas de tus clientes para empezar</p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Activity + Platform Status */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ActivityFeed recentClients={recentClients} recentAccounts={recentAccounts} />
+        <PlatformStatus data={platformCounts} />
       </div>
     </div>
   );

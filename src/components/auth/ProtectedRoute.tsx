@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Zap } from "lucide-react";
+import { RaisenLogo } from "@/components/brand/RaisenLogo";
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
@@ -9,10 +9,8 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary animate-pulse">
-            <Zap className="h-6 w-6 text-primary-foreground" />
-          </div>
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <RaisenLogo size="xl" />
           <p className="text-sm text-muted-foreground">Cargando...</p>
         </div>
       </div>

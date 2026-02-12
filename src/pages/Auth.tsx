@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User } from "lucide-react";
+import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 
@@ -76,13 +77,10 @@ export default function Auth() {
 
       <Card className="relative w-full max-w-md border-border/50 bg-card/80 backdrop-blur-xl">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl gradient-primary shadow-lg shadow-primary/25">
-            <Zap className="h-7 w-7 text-primary-foreground" />
-          </div>
           <div>
-            <CardTitle className="text-2xl font-bold tracking-tight">Raisen Omega</CardTitle>
-            <CardDescription className="mt-1">Plataforma de gestión de redes sociales</CardDescription>
+            <RaisenLogo size="xl" />
           </div>
+          <CardDescription>Plataforma de gestión de redes sociales</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">

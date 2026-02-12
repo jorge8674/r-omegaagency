@@ -5,9 +5,9 @@ import {
   CalendarDays,
   BarChart3,
   Settings,
-  Zap,
   ImageIcon,
 } from "lucide-react";
+import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -40,16 +40,14 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg gradient-primary">
-            <Zap className="h-5 w-5 text-primary-foreground" />
-          </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-bold text-sidebar-accent-foreground tracking-tight">
-              Raisen Omega
-            </span>
-            <span className="text-xs text-sidebar-foreground">
+            <RaisenLogo size="md" className="text-sidebar-accent-foreground" />
+            <span className="text-xs text-sidebar-foreground mt-0.5">
               Social Manager
             </span>
+          </div>
+          <div className="hidden group-data-[collapsible=icon]:block">
+            <span className="font-display font-bold text-lg text-sidebar-accent-foreground">R<span className="text-primary">.</span></span>
           </div>
         </div>
       </SidebarHeader>

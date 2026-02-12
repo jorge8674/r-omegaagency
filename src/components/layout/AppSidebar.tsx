@@ -42,8 +42,8 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
             <RaisenLogo size="md" className="text-sidebar-accent-foreground" />
-            <span className="text-xs text-sidebar-foreground mt-0.5">
-              Social Manager
+            <span className="text-[10px] text-sidebar-foreground mt-0.5 uppercase tracking-widest">
+              OMEGA
             </span>
           </div>
           <div className="hidden group-data-[collapsible=icon]:block">

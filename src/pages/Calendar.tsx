@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { Post } from "@/types/post";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,15 +36,15 @@ const STATUS_COLORS: Record<string, string> = {
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const { data: posts, isLoading } = useQuery({
+  const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["posts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("posts")
+        .from("posts" as any)
         .select("*")
         .order("scheduled_at", { ascending: true });
       if (error) throw error;
-      return data;
+      return data as unknown as Post[];
     },
   });
 

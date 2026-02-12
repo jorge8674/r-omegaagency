@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { Post } from "@/types/post";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,15 +82,15 @@ export default function Content() {
   });
 
   // Fetch posts
-  const { data: posts, isLoading } = useQuery({
+  const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["posts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("posts")
+        .from("posts" as any)
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data as unknown as Post[];
     },
   });
 
@@ -97,7 +98,7 @@ export default function Content() {
     mutationFn: async () => {
       if (!profile?.organization_id) throw new Error("No organization");
       const status = scheduledAt ? "scheduled" : "draft";
-      const { error } = await supabase.from("posts").insert({
+      const { error } = await (supabase.from("posts" as any) as any).insert({
         organization_id: profile.organization_id,
         title,
         body,

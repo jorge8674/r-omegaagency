@@ -1,21 +1,63 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { BarChart3 } from "lucide-react";
+import { Loader2, TrendingUp, Heart, Clock } from "lucide-react";
+import { useAnalyticsData } from "@/hooks/useAnalyticsData";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { GrowthChart } from "@/components/analytics/GrowthChart";
+import { EngagementChart } from "@/components/analytics/EngagementChart";
+import { ScheduleHeatmap } from "@/components/analytics/ScheduleHeatmap";
+import { TopPostsTable } from "@/components/analytics/TopPostsTable";
 
 export default function Analytics() {
+  const { loading, growthData, engagementData, heatmapData, topPosts, avgEngagement, totalFollowers } =
+    useAnalyticsData();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
+        <h1 className="text-2xl font-display font-bold tracking-tight">Analytics</h1>
         <p className="text-muted-foreground">Métricas y reportes de rendimiento</p>
       </div>
 
-      <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-        <CardContent className="flex flex-col items-center justify-center py-16">
-          <BarChart3 className="h-12 w-12 text-muted-foreground/30 mb-4" />
-          <h3 className="text-lg font-medium mb-1">Analytics</h3>
-          <p className="text-sm text-muted-foreground">Los datos analíticos aparecerán cuando conectes cuentas sociales</p>
-        </CardContent>
-      </Card>
+      {/* KPI row */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatsCard
+          title="Seguidores Totales"
+          value={totalFollowers.toLocaleString()}
+          icon={TrendingUp}
+          subtitle="Todas las plataformas"
+        />
+        <StatsCard
+          title="Engagement Promedio"
+          value={`${avgEngagement}%`}
+          icon={Heart}
+          subtitle="Likes + comentarios + shares"
+        />
+        <StatsCard
+          title="Mejor Horario"
+          value="19:00 – 21:00"
+          icon={Clock}
+          subtitle="Mayor interacción"
+        />
+      </div>
+
+      {/* Charts row */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <GrowthChart data={growthData} />
+        <EngagementChart data={engagementData} />
+      </div>
+
+      {/* Heatmap */}
+      <ScheduleHeatmap data={heatmapData} />
+
+      {/* Top Posts */}
+      <TopPostsTable posts={topPosts} />
     </div>
   );
 }

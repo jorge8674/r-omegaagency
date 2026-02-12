@@ -80,7 +80,8 @@ export default function Auth() {
           <div>
             <RaisenLogo size="xl" />
           </div>
-          <CardDescription>Plataforma de gestión de redes sociales</CardDescription>
+          <div className="text-xs uppercase tracking-widest text-muted-foreground">OMEGA</div>
+          <CardDescription className="mt-2">Plataforma de gestión de redes sociales</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">

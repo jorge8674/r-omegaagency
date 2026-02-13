@@ -63,7 +63,8 @@ export default function Competitive() {
   const handleBenchmark = async () => {
     setBenchmarking(true);
     try {
-      const result = await api.generateBenchmark({ competitor: competitorResult, platform: competitorPlatform });
+      const cr = competitorResult?.data || competitorResult;
+      const result = await api.generateBenchmark(cr);
       setBenchmarkResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -75,7 +76,8 @@ export default function Competitive() {
   const handleGaps = async () => {
     setIdentifyingGaps(true);
     try {
-      const result = await api.identifyGaps({ competitor: competitorResult, platform: competitorPlatform });
+      const cr = competitorResult?.data || competitorResult;
+      const result = await api.identifyGaps(cr, trendNiche || undefined);
       setGapsResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -87,7 +89,7 @@ export default function Competitive() {
   const handleAnalyzeTrends = async () => {
     setAnalyzingTrends(true);
     try {
-      const result = await api.analyzeTrends({ niche: trendNiche, platform: trendPlatform });
+      const result = await api.analyzeTrends(trendNiche, trendPlatform);
       setTrendsResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -111,7 +113,7 @@ export default function Competitive() {
   const handleFindOpportunities = async () => {
     setFindingOpps(true);
     try {
-      const result = await api.findOpportunities({ niche: trendNiche || "social media", platform: trendPlatform });
+      const result = await api.findOpportunities(trendNiche || "social media", trendPlatform);
       setOppsResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });

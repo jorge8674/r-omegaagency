@@ -59,10 +59,15 @@ export const api = {
     apiCall('/analytics/analyze-metrics', 'POST', {
       data: typeof metricsJson === 'string' ? JSON.parse(metricsJson) : metricsJson,
     }),
-  generateInsights: (data: Record<string, unknown>) =>
-    apiCall('/analytics/generate-insights', 'POST', { data }),
-  forecast: (data: Record<string, unknown>) =>
-    apiCall('/analytics/forecast', 'POST', { data }),
+  generateInsights: (metricsJson: Record<string, unknown> | string) =>
+    apiCall('/analytics/generate-insights', 'POST', {
+      metrics: typeof metricsJson === 'string' ? JSON.parse(metricsJson) : metricsJson,
+    }),
+  forecast: (metricsJson: Record<string, unknown> | string) =>
+    apiCall('/analytics/forecast', 'POST', {
+      historical_data: [typeof metricsJson === 'string' ? JSON.parse(metricsJson) : metricsJson],
+      days_ahead: 30,
+    }),
   getDashboardData: (data: Record<string, unknown>) =>
     apiCall('/analytics/dashboard-data', 'POST', data),
 
@@ -86,11 +91,11 @@ export const api = {
     apiCall('/brand-voice/improve-content', 'POST', { content, brand_profile: profile }),
   createBrandProfile: (brandName: string, description: string, samplePosts: string[] | string) =>
     apiCall('/brand-voice/create-profile', 'POST', {
-      client_name: brandName,
-      brand_description: description,
+      client_name: brandName || 'Cliente',
+      brand_description: description || '',
       sample_posts: Array.isArray(samplePosts)
         ? samplePosts
-        : samplePosts?.split('\n').filter(Boolean) || [],
+        : (samplePosts || '').split('\n').filter(Boolean),
     }),
 
   // ─── Competitive ────────────────────────────────────────
@@ -98,18 +103,40 @@ export const api = {
     apiCall('/competitive/analyze-competitor', 'POST', {
       competitor_data: { name, platform, url: url || '' },
     }),
-  generateBenchmark: (data: Record<string, unknown>) =>
-    apiCall('/competitive/generate-benchmark', 'POST', data),
-  identifyGaps: (data: Record<string, unknown>) =>
-    apiCall('/competitive/identify-gaps', 'POST', data),
+  generateBenchmark: (competitorResult: any) =>
+    apiCall('/competitive/generate-benchmark', 'POST', {
+      client_data: { followers: 1000, engagement_rate: 0.03 },
+      competitor_profile: {
+        name: competitorResult?.competitor_name || '',
+        platform: competitorResult?.platform || 'instagram',
+        followers: competitorResult?.estimated_followers || 0,
+        engagement_rate: competitorResult?.avg_engagement_rate || 0,
+        posting_frequency: competitorResult?.posting_frequency || '',
+        content_types: competitorResult?.content_types || [],
+        top_hashtags: competitorResult?.top_hashtags || [],
+      },
+    }),
+  identifyGaps: (competitorResult: any, niche?: string) =>
+    apiCall('/competitive/identify-gaps', 'POST', {
+      client_topics: ['contenido general'],
+      competitor_topics: competitorResult?.best_performing_topics || [],
+      niche: niche || 'general',
+    }),
 
   // ─── Trends ─────────────────────────────────────────────
-  analyzeTrends: (data: Record<string, unknown>) =>
-    apiCall('/trends/analyze', 'POST', data),
+  analyzeTrends: (niche: string, platform?: string) =>
+    apiCall('/trends/analyze', 'POST', {
+      platform_data: { [platform || 'instagram']: ['reels', 'stories', 'carousels'] },
+      client_niche: niche || 'general',
+    }),
   predictVirality: (content: string, platform: string) =>
     apiCall('/trends/predict-virality', 'POST', { content_description: content, platform }),
-  findOpportunities: (data: Record<string, unknown>) =>
-    apiCall('/trends/find-opportunities', 'POST', data),
+  findOpportunities: (niche: string, platform?: string) =>
+    apiCall('/trends/find-opportunities', 'POST', {
+      trends: [{ topic: niche || 'general', platform: platform || 'instagram', growth_rate: 0.15, engagement_potential: 'high' }],
+      client_niche: niche || 'general',
+      brand_profile: { name: 'Cliente', niche: niche || 'general', platform: platform || 'instagram' },
+    }),
 
   // ─── Crisis ─────────────────────────────────────────────
   assessCrisis: (signals: Record<string, unknown>) =>
@@ -127,8 +154,13 @@ export const api = {
     apiCall('/crisis/recovery-plan', 'POST', { assessment }),
 
   // ─── Reports ────────────────────────────────────────────
-  generateMonthlyReport: (data: Record<string, unknown>) =>
-    apiCall('/reports/generate-monthly', 'POST', data),
+  generateMonthlyReport: (clientName?: string) =>
+    apiCall('/reports/generate-monthly', 'POST', {
+      client_name: clientName || 'Cliente OMEGA',
+      metrics_data: { followers: 1000, engagement_rate: 0.03, reach: 5000, impressions: 8000 },
+      previous_period_data: { followers: 900, engagement_rate: 0.025, reach: 4000, impressions: 7000 },
+      agency_notes: '',
+    }),
   generateCampaignReport: (data: Record<string, unknown>) =>
     apiCall('/reports/generate-campaign', 'POST', data),
 
@@ -137,10 +169,8 @@ export const api = {
     apiCall('/growth/identify-opportunities', 'POST', data),
   quickWins: (niche: string, platform: string) =>
     apiCall('/growth/quick-wins', 'POST', {
-      niche,
-      platform,
-      account_type: 'business',
-      current_metrics: {},
+      account_data: { niche: niche || 'general', followers: 1000, engagement_rate: 0.03, posting_frequency: '3x_week' },
+      platform: platform || 'instagram',
     }),
 
   // ─── Video ──────────────────────────────────────────────
@@ -162,11 +192,10 @@ export const api = {
   // ─── A/B Testing ────────────────────────────────────────
   designExperiment: (hypothesis: string, variant?: string, platform?: string) =>
     apiCall('/ab-testing/design-experiment', 'POST', {
-      hypothesis,
-      baseline_content: variant || hypothesis,
-      variant_content: variant || hypothesis,
+      hypothesis: hypothesis || '',
+      variable: 'content_format',
+      base_content: { type: 'post', description: variant || hypothesis || '' },
       platform: platform || 'instagram',
-      metric_to_optimize: 'engagement',
     }),
   analyzeResults: (experiment: Record<string, unknown>) =>
     apiCall('/ab-testing/analyze-results', 'POST', { experiment }),

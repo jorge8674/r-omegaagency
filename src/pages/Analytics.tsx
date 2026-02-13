@@ -56,7 +56,7 @@ export default function Analytics() {
   const handleGenerateInsights = async () => {
     setGeneratingInsights(true);
     try {
-      const data = JSON.parse(metricsInput);
+      const data = metricsInput;
       const result = await api.generateInsights(data);
       setInsightsResult(result);
       toast({ title: "✅ Insights generados" });
@@ -70,7 +70,7 @@ export default function Analytics() {
   const handleForecast = async () => {
     setForecasting(true);
     try {
-      const data = JSON.parse(metricsInput);
+      const data = metricsInput;
       const result = await api.forecast(data);
       setForecastResult(result);
       toast({ title: "✅ Forecast generado" });
@@ -84,7 +84,7 @@ export default function Analytics() {
   const handleMonthlyReport = async () => {
     setGeneratingReport(true);
     try {
-      const result = await api.generateMonthlyReport({ client_id: "default", period: "last_30_days" });
+      const result = await api.generateMonthlyReport("default");
       setReportResult(result);
       toast({ title: "✅ Reporte generado" });
     } catch (e: any) {

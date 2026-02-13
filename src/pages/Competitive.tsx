@@ -425,7 +425,27 @@ export default function Competitive() {
                 {findingOpps && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Encontrar Oportunidades
               </Button>
-              {oppsResult && <ResultBlock data={oppsResult} />}
+              {oppsResult && (() => {
+                const items = oppsResult?.data || oppsResult || [];
+                const list = Array.isArray(items) ? items : [];
+                return list.length > 0 ? (
+                  <div className="space-y-3 mt-4">
+                    {list.map((o: any, i: number) => (
+                      <div key={i} className="bg-secondary/30 rounded-lg p-3">
+                        <p className="font-medium">{o.topic || o.title || o.opportunity || JSON.stringify(o)}</p>
+                        {o.description && <p className="text-xs text-muted-foreground mt-1">{o.description}</p>}
+                        {o.score && <p className="text-xs text-primary mt-1">Score: {((o.score || 0) * 100).toFixed(0)}%</p>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-secondary/30 rounded-lg p-3 mt-4 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      {oppsResult?.message || 'No se encontraron oportunidades. Prueba analizar trends primero para obtener mejores resultados.'}
+                    </p>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>

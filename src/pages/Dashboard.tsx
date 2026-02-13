@@ -61,8 +61,9 @@ export default function Dashboard() {
       : [];
   const agentsOnline = agentsList.filter((a) => a.status === "operational" || a.status === "online" || a.status === "active").length;
   const totalAgents = agentsList.length || systemState?.total_agents || 15;
-  const alertCount = Array.isArray(alerts) ? alerts.length : alerts?.count ?? 0;
-  const activeWorkflows = systemState?.active_workflows ?? 0;
+  const alertsList = alerts?.data?.alerts ?? (Array.isArray(alerts) ? alerts : []);
+  const alertCount = alertsList.length || alerts?.data?.active_count || 0;
+  const activeWorkflows = systemState?.data?.active_workflows ?? systemState?.active_workflows ?? 0;
 
   const handleExecuteWorkflow = async (workflowName: string) => {
     setExecutingWorkflow(workflowName);
@@ -76,11 +77,12 @@ export default function Dashboard() {
     }
   };
 
-  const refreshAll = () => {
-    refetchHealth();
-    refetchState();
-    refetchAgents();
-    refetchAlerts();
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshAll = async () => {
+    setRefreshing(true);
+    await Promise.all([refetchHealth(), refetchState(), refetchAgents(), refetchAlerts()]);
+    setRefreshing(false);
+    toast({ title: "✅ Actualizado", description: "Datos del sistema refrescados" });
   };
 
   if (loading) {
@@ -106,8 +108,8 @@ export default function Dashboard() {
             <div className={`h-2 w-2 rounded-full ${isOnline ? 'bg-success' : 'bg-destructive'}`} />
             <span className="text-xs">{isOnline ? 'Sistema Online' : 'Sin conexión'}</span>
           </div>
-          <Button variant="outline" size="sm" onClick={refreshAll}>
-            <RefreshCw className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={refreshAll} disabled={refreshing}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             Actualizar
           </Button>
         </div>
@@ -234,7 +236,7 @@ export default function Dashboard() {
       </div>
 
       {/* Alerts */}
-      {Array.isArray(alerts) && alerts.length > 0 && (
+      {alertsList.length > 0 && (
         <Card className="border-destructive/30 bg-destructive/5 backdrop-blur-sm">
           <CardHeader className="pb-3">
             <CardTitle className="font-display text-lg flex items-center gap-2 text-destructive">
@@ -244,7 +246,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {alerts.map((alert: any, i: number) => (
+              {alertsList.map((alert: any, i: number) => (
                 <div key={i} className="rounded-lg bg-background/50 px-3 py-2 border border-destructive/20">
                   <p className="text-sm font-medium">{alert.title || alert.message || JSON.stringify(alert)}</p>
                   {alert.description && <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>}

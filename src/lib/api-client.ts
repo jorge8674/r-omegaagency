@@ -103,7 +103,14 @@ export const api = {
 
   // ─── Crisis ─────────────────────────────────────────────
   assessCrisis: (signals: Record<string, unknown>) =>
-    apiCall('/crisis/assess', 'POST', { signals }),
+    apiCall('/crisis/assess', 'POST', {
+      platform: signals.platform || 'instagram',
+      negative_comment_percentage: signals.negative_comment_percentage,
+      complaint_velocity: signals.complaint_velocity,
+      reach_of_negative_content: signals.reach_of_negative_content,
+      media_involvement: signals.media_involvement || false,
+      influencer_involvement: signals.influencer_involvement || false,
+    }),
   draftStatement: (data: Record<string, unknown>) =>
     apiCall('/crisis/draft-statement', 'POST', data),
   recoveryPlan: (assessment: Record<string, unknown>) =>

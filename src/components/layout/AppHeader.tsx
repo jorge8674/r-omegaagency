@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Moon, Sun, LogOut, User, Play, Loader2 } from "lucide-react";
+import { Bell, Moon, Sun, LogOut, User, Play, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useTheme } from "@/hooks/useTheme";
@@ -14,6 +14,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 
@@ -39,7 +44,16 @@ export function AppHeader() {
     retry: 1,
   });
 
+  const { data: alerts } = useQuery({
+    queryKey: ["alerts"],
+    queryFn: () => api.alerts(),
+    refetchInterval: 30000,
+    retry: 1,
+  });
+
   const isOnline = health?.status === "healthy";
+  const alertsList = alerts?.data?.alerts ?? (Array.isArray(alerts) ? alerts : []);
+  const alertCount = alertsList.length || alerts?.data?.active_count || 0;
 
   const handleExecuteWorkflow = async (workflowName: string) => {
     setExecutingWorkflow(workflowName);
@@ -100,12 +114,38 @@ export function AppHeader() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Button variant="ghost" size="icon" className="relative h-9 w-9">
-        <Bell className="h-4 w-4" />
-        <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full gradient-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
-          3
-        </span>
-      </Button>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative h-9 w-9">
+            <Bell className="h-4 w-4" />
+            {alertCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full gradient-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
+                {alertCount}
+              </span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-80 p-0">
+          <div className="px-4 py-3 border-b border-border">
+            <p className="text-sm font-semibold">Notificaciones</p>
+          </div>
+          <div className="max-h-64 overflow-y-auto">
+            {alertsList.length > 0 ? (
+              alertsList.map((alert: any, i: number) => (
+                <div key={i} className="px-4 py-3 border-b border-border/50 last:border-0 hover:bg-secondary/50 transition-colors">
+                  <p className="text-sm font-medium">{alert.title || alert.message || JSON.stringify(alert)}</p>
+                  {alert.description && <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>}
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
+                <CheckCircle2 className="h-6 w-6 text-success" />
+                <p className="text-sm">Sin alertas activas</p>
+              </div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
 
       <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme}>
         {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}

@@ -233,6 +233,69 @@ export default function Growth() {
     );
   };
 
+  const ValidationCard = ({ data }: { data: any }) => {
+    const raw = data?.data || data;
+    if (!raw?.compliance_score && raw?.compliance_score !== 0) return <ResultBlock data={data} />;
+    const score = Math.round((raw.compliance_score || 0) * 100);
+    return (
+      <div className="mt-3 border border-border/50 rounded-lg p-4 bg-secondary/30 space-y-3">
+        <div className="flex justify-between items-center">
+          <h4 className="font-medium text-sm">Resultado de Validación</h4>
+          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+            raw.is_compliant ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+          }`}>{raw.is_compliant ? '✅ Cumple' : '❌ No Cumple'}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+            <div className={`h-full rounded-full ${score >= 80 ? 'bg-green-500' : score >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${score}%` }} />
+          </div>
+          <span className="text-xs font-medium">{score}%</span>
+        </div>
+        {raw.violations?.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">⚠️ Violaciones:</p>
+            {raw.violations.map((v: string, i: number) => (
+              <p key={i} className="text-sm text-red-400">• {v}</p>
+            ))}
+          </div>
+        )}
+        {raw.suggestions?.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">💡 Sugerencias:</p>
+            {raw.suggestions.map((s: string, i: number) => (
+              <p key={i} className="text-sm whitespace-pre-line">{s}</p>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const ImproveCard = ({ data }: { data: any }) => {
+    const raw = data?.data || data;
+    if (!raw?.improved && !raw?.original) return <ResultBlock data={data} />;
+    const score = Math.round((raw.tone_alignment_score || 0) * 100);
+    return (
+      <div className="mt-3 border border-border/50 rounded-lg p-4 bg-secondary/30 space-y-3">
+        <div className="flex justify-between items-center">
+          <h4 className="font-medium text-sm">Contenido Mejorado</h4>
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary/20 text-primary">Alineación: {score}%</span>
+        </div>
+        <div className="rounded-lg bg-muted/50 p-3">
+          <p className="text-sm whitespace-pre-line">{raw.improved}</p>
+        </div>
+        {raw.changes_made?.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">📝 Cambios realizados:</p>
+            {raw.changes_made.map((c: string, i: number) => (
+              <p key={i} className="text-sm">• {c}</p>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const ResultBlock = ({ data }: { data: any }) => (
     <div className="rounded-lg bg-secondary/50 p-3 mt-3">
       <pre className="text-sm whitespace-pre-wrap overflow-x-auto">{typeof data === "string" ? data : JSON.stringify(data, null, 2)}</pre>
@@ -316,14 +379,14 @@ export default function Growth() {
                     {validating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Validar Contenido
                   </Button>
-                  {validationResult && <ResultBlock data={validationResult} />}
+                  {validationResult && <ValidationCard data={validationResult} />}
 
                   <Textarea placeholder="Contenido a mejorar..." value={improveText} onChange={(e) => setImproveText(e.target.value)} rows={2} />
                   <Button variant="outline" className="w-full" onClick={handleImprove} disabled={improving || !improveText}>
                     {improving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Mejorar Contenido
                   </Button>
-                  {improvedResult && <ResultBlock data={improvedResult} />}
+                  {improvedResult && <ImproveCard data={improvedResult} />}
                 </div>
               )}
             </CardContent>

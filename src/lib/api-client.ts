@@ -36,8 +36,8 @@ export const api = {
   // ─── Content ────────────────────────────────────────────
   generateCaption: (prompt: string, platform: string, tone: string) =>
     apiCall('/content/generate-caption', 'POST', { topic: prompt, platform, tone }),
-  generateImage: (prompt: string) =>
-    apiCall('/content/generate-image', 'POST', { topic: prompt }),
+  generateImage: (topic: string) =>
+    apiCall('/content/generate-image', 'POST', { prompt: topic }),
   generateHashtags: (content: string, platform: string) =>
     apiCall('/content/generate-hashtags', 'POST', { topic: content, platform }),
   generateVideoScript: (topic: string, duration: number, platform: string) =>

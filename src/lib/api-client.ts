@@ -34,14 +34,14 @@ export const api = {
   health: () => checkBackendHealth(),
 
   // ─── Content ────────────────────────────────────────────
-  generateCaption: (prompt: string) =>
-    apiCall('/content/generate-caption', 'POST', { prompt }),
+  generateCaption: (prompt: string, platform: string, tone: string) =>
+    apiCall('/content/generate-caption', 'POST', { topic: prompt, platform, tone }),
   generateImage: (prompt: string) =>
-    apiCall('/content/generate-image', 'POST', { prompt }),
+    apiCall('/content/generate-image', 'POST', { topic: prompt }),
   generateHashtags: (content: string, platform: string) =>
-    apiCall('/content/generate-hashtags', 'POST', { content, platform }),
+    apiCall('/content/generate-hashtags', 'POST', { topic: content, platform }),
   generateVideoScript: (topic: string, duration: number, platform: string) =>
-    apiCall('/content/generate-video-script', 'POST', { topic, duration, platform }),
+    apiCall('/content/generate-video-script', 'POST', { topic, duration_seconds: duration, platform }),
   contentAgentStatus: () => apiCall('/content/agent-status'),
 
   // ─── Strategy ───────────────────────────────────────────

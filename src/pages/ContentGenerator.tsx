@@ -59,7 +59,7 @@ export default function ContentGenerator() {
   const handleGenerateCaption = async () => {
     setGeneratingCaption(true);
     try {
-      const result = await api.generateCaption(`${prompt} (plataforma: ${platform}, tono: ${tone})`);
+      const result = await api.generateCaption(prompt, platform, tone);
       setCaption(typeof result === "string" ? result : result?.caption || result?.content || JSON.stringify(result));
       toast({ title: "✅ Caption generada" });
     } catch (e: any) {

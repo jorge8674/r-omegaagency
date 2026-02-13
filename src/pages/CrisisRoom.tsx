@@ -117,13 +117,7 @@ export default function CrisisRoom() {
       const result = await api.detectCrisis(comments);
       console.log('bulk result full:', JSON.stringify(result, null, 2));
       const data = result?.data || result;
-      const list = data?.analyses 
-        || data?.results
-        || data?.comments_analysis
-        || Object.values(data || {}).find(v => Array.isArray(v))
-        || [];
-      console.log('list found:', list);
-      setSentimentResults(list);
+      setSentimentResults(data);
       toast({ title: "✅ Análisis completado" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -341,7 +335,7 @@ export default function CrisisRoom() {
               {responding ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Generar Respuesta'}
             </Button>
             {response && (() => {
-              const respText = response?.response || response?.suggested_response || (typeof response === "string" ? response : "");
+              const respText = response?.suggested_response || response?.response || (typeof response === "string" ? response : "");
               const sentiment = response?.sentiment;
               const tips = response?.handling_tips || [];
               const alts = response?.suggested_alternatives || [];
@@ -383,28 +377,37 @@ export default function CrisisRoom() {
             <Button className="w-full" onClick={handleBulkAnalyze} disabled={analyzing || !bulkComments}>
               {analyzing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Analizar Sentimiento'}
             </Button>
-            {sentimentResults && (() => {
-              const analyses = sentimentResults?.analyses || (Array.isArray(sentimentResults) ? sentimentResults : []);
-              const allText = analyses.map((a: any) => `${a.comment}: ${a.sentiment} (${Math.round((a.score || 0) * 100)}%)`).join("\n");
-              const sentColor = (s: string) => s === "negative" ? "destructive" : s === "positive" ? "default" : "secondary";
-              const sentLabel = (s: string) => s === "negative" ? "NEGATIVO" : s === "positive" ? "POSITIVO" : "NEUTRAL";
-              return (
-                <div className="mt-2 border-t border-border/30 pt-3 space-y-2">
-                  <div className="flex justify-end">
-                    <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { navigator.clipboard.writeText(allText); toast({ title: "Copiado" }); }}>Copiar todo</Button>
-                  </div>
-                  {analyses.length > 0 ? analyses.map((a: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 border-b border-border/30 gap-3">
-                      <span className="text-sm flex-1">{a.comment}</span>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Progress value={(a.score || 0) * 100} className="h-2 w-16" />
-                        <Badge variant={sentColor(a.sentiment)}>{sentLabel(a.sentiment)}</Badge>
-                      </div>
-                    </div>
-                  )) : <p className="text-sm text-muted-foreground">No se encontraron análisis.</p>}
+            {sentimentResults && (
+              <div className="mt-2 border-t border-border/30 pt-3 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant={sentimentResults.is_crisis ? "destructive" : "default"}>
+                    {sentimentResults.is_crisis ? '⚠️ CRISIS DETECTADA' : '✅ SIN CRISIS'}
+                  </Badge>
+                  {sentimentResults.severity && (
+                    <span className="text-sm text-muted-foreground">
+                      Severidad: <span className="font-medium capitalize">{sentimentResults.severity}</span>
+                    </span>
+                  )}
                 </div>
-              );
-            })()}
+                {sentimentResults.affected_comments != null && (
+                  <p className="text-sm text-muted-foreground">Comentarios afectados: {sentimentResults.affected_comments}</p>
+                )}
+                {sentimentResults.recommended_action && (
+                  <p className="text-sm">
+                    <span className="font-medium">Acción recomendada:</span> {sentimentResults.recommended_action}
+                  </p>
+                )}
+                {sentimentResults.suggested_response && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground font-medium">Respuesta sugerida:</p>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { navigator.clipboard.writeText(sentimentResults.suggested_response); toast({ title: "Copiado" }); }}>Copiar</Button>
+                    </div>
+                    <Textarea value={sentimentResults.suggested_response} readOnly rows={4} className="text-sm bg-secondary/50" />
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

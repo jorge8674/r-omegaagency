@@ -64,6 +64,7 @@ export default function Competitive() {
     setBenchmarking(true);
     try {
       const cr = competitorResult?.data || competitorResult;
+      console.log('competitor_data:', cr);
       const result = await api.generateBenchmark(cr);
       setBenchmarkResult(result);
     } catch (e: any) {
@@ -217,7 +218,35 @@ export default function Competitive() {
                 );
               })()}
               {benchmarkResult && <ResultBlock data={benchmarkResult} />}
-              {gapsResult && <ResultBlock data={gapsResult} />}
+              {gapsResult && (() => {
+                const g = gapsResult?.data || gapsResult;
+                return (
+                  <div className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-primary mb-2">✅ Oportunidades sin explotar</p>
+                        {g.untapped_opportunities?.map((o: string, i: number) => (
+                          <p key={i} className="text-sm">• {o}</p>
+                        ))}
+                      </div>
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-primary mb-2">📌 Pilares recomendados</p>
+                        {g.recommended_content_pillars?.map((p: string, i: number) => (
+                          <p key={i} className="text-sm">• {p}</p>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-secondary/30 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground">
+                        Tamaño de oportunidad:{" "}
+                        <span className="text-primary ml-1 font-bold">
+                          {g.estimated_opportunity_size?.toUpperCase()}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
@@ -250,7 +279,34 @@ export default function Competitive() {
                 {analyzingTrends && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Analizar Trends
               </Button>
-              {trendsResult && <ResultBlock data={trendsResult} />}
+              {trendsResult && (
+                <div className="space-y-3 mt-4">
+                  {(trendsResult.data || trendsResult || []).map((t: any, i: number) => (
+                    <div key={i} className="bg-secondary/30 rounded-lg p-3 flex items-start justify-between">
+                      <div>
+                        <p className="font-medium capitalize">{t.topic}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t.content_angle}</p>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          {t.relevant_hashtags?.map((h: string, j: number) => (
+                            <span key={j} className="text-xs text-primary">{h}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0 ml-3">
+                        <span className={`px-2 py-1 rounded text-xs font-bold text-primary-foreground ${
+                          t.velocity === 'rising' ? 'bg-green-600' :
+                          t.velocity === 'peak' ? 'bg-yellow-600' : 'bg-muted'
+                        }`}>
+                          {t.velocity?.toUpperCase()}
+                        </span>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Score: {(t.trend_score * 100).toFixed(0)}%
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="border-t border-border pt-3 space-y-3">
                 <Label className="text-sm">Predecir Viralidad</Label>

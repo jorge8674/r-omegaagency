@@ -61,7 +61,7 @@ export default function ContentGenerator() {
     try {
       const result = await api.generateCaption(`${prompt} (plataforma: ${platform}, tono: ${tone})`);
       setCaption(typeof result === "string" ? result : result?.caption || result?.content || JSON.stringify(result));
-      toast({ title: "Caption generada" });
+      toast({ title: "✅ Caption generada" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
@@ -74,7 +74,7 @@ export default function ContentGenerator() {
     try {
       const result = await api.generateImage(prompt);
       setImageResult(result);
-      toast({ title: "Imagen generada" });
+      toast({ title: "✅ Imagen generada" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
@@ -88,7 +88,7 @@ export default function ContentGenerator() {
       const result = await api.generateHashtags(prompt || caption, platform);
       const tags = Array.isArray(result) ? result : result?.hashtags || [];
       setHashtags(tags);
-      toast({ title: "Hashtags generados" });
+      toast({ title: "✅ Hashtags generados" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
@@ -101,7 +101,7 @@ export default function ContentGenerator() {
     try {
       const result = await api.generateVideoScript(scriptTopic || prompt, scriptDuration, platform);
       setScript(result);
-      toast({ title: "Script generado" });
+      toast({ title: "✅ Script generado" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {

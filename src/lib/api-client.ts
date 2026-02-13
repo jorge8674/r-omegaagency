@@ -17,7 +17,22 @@ async function apiCall<T = any>(
   return response.json();
 }
 
+// Health check (root, not under /api/v1)
+export async function checkBackendHealth(): Promise<{ status: string }> {
+  try {
+    const base = API_BASE.replace('/api/v1', '');
+    const res = await fetch(`${base}/health`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+    if (!res.ok) throw new Error('unhealthy');
+    return res.json();
+  } catch {
+    return { status: 'unhealthy' };
+  }
+}
+
 export const api = {
+  // ─── Health ─────────────────────────────────────────────
+  health: () => checkBackendHealth(),
+
   // ─── Content ────────────────────────────────────────────
   generateCaption: (prompt: string) =>
     apiCall('/content/generate-caption', 'POST', { prompt }),
@@ -27,6 +42,7 @@ export const api = {
     apiCall('/content/generate-hashtags', 'POST', { content, platform }),
   generateVideoScript: (topic: string, duration: number, platform: string) =>
     apiCall('/content/generate-video-script', 'POST', { topic, duration, platform }),
+  contentAgentStatus: () => apiCall('/content/agent-status'),
 
   // ─── Strategy ───────────────────────────────────────────
   createCalendar: (data: Record<string, unknown>) =>
@@ -35,6 +51,7 @@ export const api = {
     apiCall('/strategy/optimize-timing', 'POST', data),
   analyzeStrategy: (data: Record<string, unknown>) =>
     apiCall('/strategy/analyze-strategy', 'POST', data),
+  strategyAgentStatus: () => apiCall('/strategy/agent-status'),
 
   // ─── Analytics ──────────────────────────────────────────
   analyzeMetrics: (data: Record<string, unknown>) =>
@@ -114,6 +131,8 @@ export const api = {
     apiCall('/scheduling/schedule-post', 'POST', data),
   getQueue: (clientId: string) =>
     apiCall(`/scheduling/queue/${clientId}`),
+  approvePost: (postId: string) =>
+    apiCall('/scheduling/approve-post', 'POST', { post_id: postId }),
   optimalTimes: (platform: string, timezone: string) =>
     apiCall('/scheduling/optimal-times', 'POST', { platform, audience_timezone: timezone, content_type: 'post' }),
 

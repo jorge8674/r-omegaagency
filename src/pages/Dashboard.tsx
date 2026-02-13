@@ -1,21 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api-client";
+import { api, checkBackendHealth } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Activity,
-  Bot,
-  AlertTriangle,
-  Workflow,
-  Loader2,
-  Play,
-  RefreshCw,
-  CheckCircle2,
-  XCircle,
-  Server,
+  Activity, Bot, AlertTriangle, Workflow, Loader2, Play, RefreshCw,
+  CheckCircle2, XCircle, Server,
 } from "lucide-react";
 
 const WORKFLOWS = [
@@ -30,28 +22,40 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [executingWorkflow, setExecutingWorkflow] = useState<string | null>(null);
 
+  const { data: health, isLoading: healthLoading, refetch: refetchHealth } = useQuery({
+    queryKey: ["backend-health"],
+    queryFn: () => checkBackendHealth(),
+    refetchInterval: 30000,
+  });
+
   const { data: systemState, isLoading: stateLoading, refetch: refetchState } = useQuery({
     queryKey: ["system-state"],
     queryFn: () => api.systemState(),
     refetchInterval: 30000,
+    retry: 1,
   });
 
-  const { data: health, isLoading: healthLoading, refetch: refetchHealth } = useQuery({
-    queryKey: ["system-health"],
-    queryFn: () => api.systemHealth(),
+  const { data: agentsData, isLoading: agentsLoading, refetch: refetchAgents } = useQuery({
+    queryKey: ["agents-status"],
+    queryFn: () => api.agentsStatus(),
     refetchInterval: 30000,
+    retry: 1,
   });
 
   const { data: alerts, isLoading: alertsLoading, refetch: refetchAlerts } = useQuery({
     queryKey: ["alerts"],
     queryFn: () => api.alerts(),
     refetchInterval: 30000,
+    retry: 1,
   });
 
-  const loading = stateLoading || healthLoading || alertsLoading;
+  const loading = stateLoading && agentsLoading && alertsLoading && healthLoading;
+  const isOnline = health?.status === "healthy";
 
-  const agentsOnline = health?.agents?.filter((a: any) => a.status === "online" || a.status === "active")?.length ?? health?.total_agents ?? 0;
-  const totalAgents = health?.agents?.length ?? health?.total_agents ?? 15;
+  const agents = agentsData?.agents ?? agentsData ?? [];
+  const agentsList = Array.isArray(agents) ? agents : [];
+  const agentsOnline = agentsList.filter((a: any) => a.status === "online" || a.status === "active").length;
+  const totalAgents = agentsList.length || systemState?.total_agents || 15;
   const alertCount = Array.isArray(alerts) ? alerts.length : alerts?.count ?? 0;
   const activeWorkflows = systemState?.active_workflows ?? 0;
 
@@ -59,7 +63,7 @@ export default function Dashboard() {
     setExecutingWorkflow(workflowName);
     try {
       await api.executeWorkflow(workflowName, "default", {});
-      toast({ title: "Workflow iniciado", description: `${workflowName} ejecutándose...` });
+      toast({ title: "✅ Workflow iniciado", description: `${workflowName} ejecutándose...` });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
@@ -68,8 +72,9 @@ export default function Dashboard() {
   };
 
   const refreshAll = () => {
-    refetchState();
     refetchHealth();
+    refetchState();
+    refetchAgents();
     refetchAlerts();
   };
 
@@ -91,10 +96,16 @@ export default function Dashboard() {
           <h1 className="text-2xl font-display font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">Centro de control OmegaRaisen</p>
         </div>
-        <Button variant="outline" size="sm" onClick={refreshAll}>
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Actualizar
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-lg bg-secondary/50 px-3 py-1.5">
+            <div className={`h-2 w-2 rounded-full ${isOnline ? 'bg-success' : 'bg-destructive'}`} />
+            <span className="text-xs">{isOnline ? 'Sistema Online' : 'Sin conexión'}</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={refreshAll}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -146,18 +157,18 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* System Health - Agents list */}
+        {/* Agents list */}
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader className="pb-3">
             <CardTitle className="font-display text-lg flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
-              System Health
+              Agentes del Sistema
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
-              {health?.agents ? (
-                health.agents.map((agent: any, i: number) => (
+              {agentsList.length > 0 ? (
+                agentsList.map((agent: any, i: number) => (
                   <div key={i} className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2">
                     <div className="flex items-center gap-2">
                       {agent.status === "online" || agent.status === "active" ? (
@@ -174,14 +185,14 @@ export default function Dashboard() {
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  {health ? "Sistema operativo" : "Sin datos de agentes"}
+                  {isOnline ? "Sistema operativo — sin datos de agentes" : "Backend no disponible"}
                 </p>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Active Workflows */}
+        {/* Workflows */}
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader className="pb-3">
             <CardTitle className="font-display text-lg flex items-center gap-2">

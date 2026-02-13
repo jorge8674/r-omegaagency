@@ -63,7 +63,7 @@ export default function Growth() {
   const handleQuickWins = async () => {
     setFindingQuickWins(true);
     try {
-      const result = await api.quickWins({ niche, platform });
+      const result = await api.quickWins(niche, platform);
       setQuickWinsResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -75,11 +75,11 @@ export default function Growth() {
   const handleCreateProfile = async () => {
     setCreatingProfile(true);
     try {
-      const result = await api.createBrandProfile({
-        brand_name: brandName,
-        description: brandDesc,
-        sample_posts: samplePosts.split("\n").filter(Boolean),
-      });
+      const result = await api.createBrandProfile(
+        brandName,
+        brandDesc,
+        samplePosts,
+      );
       setBrandProfile(result);
       toast({ title: "Perfil de marca creado" });
     } catch (e: any) {
@@ -116,7 +116,7 @@ export default function Growth() {
   const handleDesignExperiment = async () => {
     setDesigning(true);
     try {
-      const result = await api.designExperiment({ hypothesis, variable, platform });
+      const result = await api.designExperiment(hypothesis, variable, platform);
       setExperimentResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });

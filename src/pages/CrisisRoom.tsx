@@ -6,11 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { AlertTriangle, Shield, FileText, Heart, Loader2, MessageSquare } from "lucide-react";
+import { AlertTriangle, Shield, FileText, Heart, Loader2, MessageSquare, Zap } from "lucide-react";
 
 const PLATFORMS = ["instagram", "tiktok", "facebook", "twitter", "linkedin"];
 
@@ -53,6 +55,7 @@ export default function CrisisRoom() {
       console.log('Crisis payload:', JSON.stringify({ signals: signalsPayload }, null, 2));
       console.log('platform value:', signalsPayload.platform);
       const result = await api.assessCrisis(signalsPayload);
+      console.log('Crisis assessment result:', JSON.stringify(result, null, 2));
       setAssessment(result);
       toast({ title: "✅ Crisis evaluada" });
     } catch (e: any) {
@@ -115,7 +118,25 @@ export default function CrisisRoom() {
     }
   };
 
-  const crisisLevel = assessment?.level || assessment?.crisis_level;
+  // Extract nested data from API response
+  const assessmentData = assessment?.data || assessment;
+  const crisisLevelObj = assessmentData?.crisis_level;
+  const crisisLevel = crisisLevelObj?.level || assessmentData?.level || assessmentData?.crisis_level;
+  const crisisScore = crisisLevelObj?.score ?? assessmentData?.score;
+  const triggers = crisisLevelObj?.triggers || assessmentData?.triggers || [];
+  const estimatedDamage = assessmentData?.estimated_reputation_damage || assessmentData?.estimated_damage;
+  const recoveryTime = assessmentData?.estimated_recovery_time;
+  const requiresAction = assessmentData?.requires_immediate_action;
+
+  const levelColor = (level: string) => {
+    switch (level) {
+      case "emergency": return { border: "border-destructive/50", bg: "bg-destructive/10", text: "text-destructive" };
+      case "crisis": return { border: "border-orange-500/50", bg: "bg-orange-500/10", text: "text-orange-500" };
+      case "alert": return { border: "border-yellow-500/50", bg: "bg-yellow-500/10", text: "text-yellow-500" };
+      case "monitoring": default: return { border: "border-blue-500/50", bg: "bg-blue-500/10", text: "text-blue-500" };
+    }
+  };
+  const colors = crisisLevel ? levelColor(crisisLevel) : null;
 
   return (
     <div className="space-y-6">
@@ -124,21 +145,18 @@ export default function CrisisRoom() {
         <p className="text-muted-foreground">Evaluación y respuesta ante crisis de reputación</p>
       </div>
 
-      {assessment && (
-        <div className={`rounded-xl border p-4 flex items-center gap-3 ${
-          crisisLevel === "critical" || crisisLevel === "high"
-            ? "border-destructive/50 bg-destructive/10"
-            : crisisLevel === "medium"
-            ? "border-warning/50 bg-warning/10"
-            : "border-success/50 bg-success/10"
-        }`}>
-          <AlertTriangle className={`h-5 w-5 ${
-            crisisLevel === "critical" || crisisLevel === "high" ? "text-destructive" : crisisLevel === "medium" ? "text-warning" : "text-success"
-          }`} />
+      {assessment && colors && (
+        <div className={`rounded-xl border p-4 flex items-center gap-3 ${colors.border} ${colors.bg}`}>
+          <AlertTriangle className={`h-5 w-5 ${colors.text}`} />
           <div>
-            <p className="font-medium text-sm">Nivel de crisis: <span className="uppercase">{crisisLevel || "evaluado"}</span></p>
-            {assessment.estimated_damage && <p className="text-xs text-muted-foreground">Daño estimado: {assessment.estimated_damage}</p>}
+            <p className="font-medium text-sm">Nivel de crisis: <span className={`uppercase font-bold ${colors.text}`}>{crisisLevel}</span></p>
+            {estimatedDamage && <p className="text-xs text-muted-foreground">Daño estimado: {estimatedDamage}</p>}
           </div>
+          {requiresAction && (
+            <Badge variant="destructive" className="ml-auto flex items-center gap-1">
+              <Zap className="h-3 w-3" /> REQUIERE ACCIÓN INMEDIATA
+            </Badge>
+          )}
         </div>
       )}
 
@@ -204,12 +222,54 @@ export default function CrisisRoom() {
               <p className="text-sm text-muted-foreground text-center py-8">Evalúa la crisis primero para generar respuestas</p>
             ) : (
               <>
-                <Button variant="outline" className="w-full" onClick={handleDraftStatement} disabled={draftingStatement}>
-                  {draftingStatement ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Redactar Statement'}
-                </Button>
-                <Button variant="outline" className="w-full" onClick={handleRecovery} disabled={planningRecovery}>
-                  {planningRecovery ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Plan de Recovery'}
-                </Button>
+                {/* Assessment details */}
+                {crisisScore != null && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Score de crisis</span>
+                      <span className="font-medium">{Math.round(crisisScore * 100)}%</span>
+                    </div>
+                    <Progress value={crisisScore * 100} className="h-2" />
+                  </div>
+                )}
+
+                {triggers.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground font-medium">Triggers detectados:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {triggers.map((t: string, i: number) => (
+                        <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(estimatedDamage || recoveryTime) && (
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {estimatedDamage && (
+                      <div className="rounded-lg bg-secondary/50 p-2">
+                        <p className="text-xs text-muted-foreground">Daño estimado</p>
+                        <p className="font-medium capitalize">{estimatedDamage}</p>
+                      </div>
+                    )}
+                    {recoveryTime && (
+                      <div className="rounded-lg bg-secondary/50 p-2">
+                        <p className="text-xs text-muted-foreground">Tiempo de recovery</p>
+                        <p className="font-medium capitalize">{recoveryTime}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="border-t pt-3 space-y-2">
+                  <Button variant="outline" className="w-full" onClick={handleDraftStatement} disabled={draftingStatement}>
+                    {draftingStatement ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Redactar Statement'}
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={handleRecovery} disabled={planningRecovery}>
+                    {planningRecovery ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Plan de Recovery'}
+                  </Button>
+                </div>
+
                 {statement && (
                   <div className="rounded-lg bg-secondary/50 p-3 mt-2">
                     <p className="text-xs text-muted-foreground mb-1">Statement:</p>

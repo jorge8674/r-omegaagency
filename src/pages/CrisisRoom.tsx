@@ -98,6 +98,8 @@ export default function CrisisRoom() {
     setResponding(true);
     try {
       const result = await api.respondComment(comment, platform, "professional");
+      console.log('respond result:', result);
+      console.log('response text:', result?.data?.response);
       const data = result?.data || result;
       setResponse(data);
       toast({ title: "✅ Respuesta generada" });
@@ -113,9 +115,15 @@ export default function CrisisRoom() {
     try {
       const comments = bulkComments.split("\n").filter(Boolean);
       const result = await api.detectCrisis(comments);
+      console.log('bulk result full:', JSON.stringify(result, null, 2));
       const data = result?.data || result;
-      const analyses = data?.analyses || (Array.isArray(data) ? data : []);
-      setSentimentResults(analyses);
+      const list = data?.analyses 
+        || data?.results
+        || data?.comments_analysis
+        || Object.values(data || {}).find(v => Array.isArray(v))
+        || [];
+      console.log('list found:', list);
+      setSentimentResults(list);
       toast({ title: "✅ Análisis completado" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -333,7 +341,7 @@ export default function CrisisRoom() {
               {responding ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Generar Respuesta'}
             </Button>
             {response && (() => {
-              const respText = response?.response || (typeof response === "string" ? response : "");
+              const respText = response?.response || response?.suggested_response || (typeof response === "string" ? response : "");
               const sentiment = response?.sentiment;
               const tips = response?.handling_tips || [];
               const alts = response?.suggested_alternatives || [];

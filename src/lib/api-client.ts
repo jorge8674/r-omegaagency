@@ -94,10 +94,44 @@ export const api = {
   alerts: () => apiCall('/monitor/alerts'),
 
   // ─── Brand Voice ────────────────────────────────────────
-  validateContent: (content: string, profile: Record<string, unknown>) =>
-    apiCall('/brand-voice/validate-content', 'POST', { content, brand_profile: profile }),
-  improveContent: (content: string, profile: Record<string, unknown>) =>
-    apiCall('/brand-voice/improve-content', 'POST', { content, brand_profile: profile }),
+  validateContent: (content: string, brandProfile: Record<string, unknown>) =>
+    apiCall('/brand-voice/validate-content', 'POST', {
+      content: content || '',
+      brand_profile: {
+        client_id: brandProfile?.client_id || 'default',
+        brand_name: brandProfile?.brand_name || '',
+        tone: brandProfile?.tone || 'professional',
+        forbidden_words: brandProfile?.forbidden_words || [],
+        emoji_usage: brandProfile?.emoji_usage || 'minimal',
+        formality_level: brandProfile?.formality_level || 2,
+        sample_posts: brandProfile?.sample_posts || [],
+        experiencia: brandProfile?.experiencia || '',
+        veiralidad: brandProfile?.veiralidad || '',
+        personality: brandProfile?.personality || '',
+        required_elements: brandProfile?.required_elements || [],
+        emoji_style: brandProfile?.emoji_style || 'minimal',
+        formality: brandProfile?.formality || 'professional',
+      },
+    }),
+  improveContent: (content: string, brandProfile: Record<string, unknown>) =>
+    apiCall('/brand-voice/improve-content', 'POST', {
+      content: content || '',
+      brand_profile: {
+        client_id: brandProfile?.client_id || 'default',
+        brand_name: brandProfile?.brand_name || '',
+        tone: brandProfile?.tone || 'professional',
+        forbidden_words: brandProfile?.forbidden_words || [],
+        emoji_usage: brandProfile?.emoji_usage || 'minimal',
+        formality_level: brandProfile?.formality_level || 2,
+        sample_posts: brandProfile?.sample_posts || [],
+        experiencia: brandProfile?.experiencia || '',
+        veiralidad: brandProfile?.veiralidad || '',
+        personality: brandProfile?.personality || '',
+        required_elements: brandProfile?.required_elements || [],
+        emoji_style: brandProfile?.emoji_style || 'minimal',
+        formality: brandProfile?.formality || 'professional',
+      },
+    }),
   createBrandProfile: (brandName: string, description: string, samplePosts: string[] | string) =>
     apiCall('/brand-voice/create-profile', 'POST', {
       client_name: brandName || 'Cliente',

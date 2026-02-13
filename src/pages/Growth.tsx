@@ -89,10 +89,16 @@ export default function Growth() {
     }
   };
 
+  const getBrandProfileForApi = () => {
+    const raw = brandProfile?.data || brandProfile;
+    if (raw?.brand_name || raw?.client_id) return raw;
+    return { brand_name: brandName || 'default' };
+  };
+
   const handleValidate = async () => {
     setValidating(true);
     try {
-      const result = await api.validateContent(validateText, brandProfile || {});
+      const result = await api.validateContent(validateText, getBrandProfileForApi());
       setValidationResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -104,7 +110,7 @@ export default function Growth() {
   const handleImprove = async () => {
     setImproving(true);
     try {
-      const result = await api.improveContent(improveText, brandProfile || {});
+      const result = await api.improveContent(improveText, getBrandProfileForApi());
       setImprovedResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });

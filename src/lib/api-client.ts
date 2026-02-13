@@ -105,15 +105,17 @@ export const api = {
     }),
   generateBenchmark: (competitorResult: any) =>
     apiCall('/competitive/generate-benchmark', 'POST', {
-      client_data: { followers: 1000, engagement_rate: 0.03 },
+      client_data: { followers: 1000, engagement_rate: 0.03, posting_frequency: 3 },
       competitor_profile: {
         name: competitorResult?.competitor_name || '',
         platform: competitorResult?.platform || 'instagram',
-        followers: competitorResult?.estimated_followers || 0,
-        engagement_rate: competitorResult?.avg_engagement_rate || 0,
-        posting_frequency: competitorResult?.posting_frequency || '',
+        estimated_followers: competitorResult?.estimated_followers || 0,
+        avg_engagement_rate: competitorResult?.avg_engagement_rate || 0,
+        posting_frequency: competitorResult?.posting_frequency || '3x_week',
         content_types: competitorResult?.content_types || [],
         top_hashtags: competitorResult?.top_hashtags || [],
+        best_performing_topics: competitorResult?.best_performing_topics || [],
+        peak_posting_hours: [9, 12, 18, 20],
       },
     }),
   identifyGaps: (competitorResult: any, niche?: string) =>
@@ -131,12 +133,37 @@ export const api = {
     }),
   predictVirality: (content: string, platform: string) =>
     apiCall('/trends/predict-virality', 'POST', { content_description: content, platform }),
-  findOpportunities: (niche: string, platform?: string) =>
-    apiCall('/trends/find-opportunities', 'POST', {
-      trends: [{ topic: niche || 'general', platform: platform || 'instagram', growth_rate: 0.15, engagement_potential: 'high' }],
+  findOpportunities: (trendsResult: any, niche: string, platform?: string) => {
+    const rawTrends = trendsResult?.data || trendsResult || [];
+    const trends = Array.isArray(rawTrends) && rawTrends.length > 0
+      ? rawTrends.map((t: any) => ({
+          topic: t.topic || niche || 'general',
+          platform: t.platform || platform || 'instagram',
+          growth_rate: t.trend_score || 0.15,
+          velocity: t.velocity || 'rising',
+          estimated_lifespan: t.estimated_lifespan || 'days',
+          relevant_hashtags: t.relevant_hashtags || [],
+          content_angle: t.content_angle || 'Educational',
+          risk_level: t.risk_level || 'safe',
+          audience_alignment: t.audience_alignment || 0.75,
+        }))
+      : [{
+          topic: niche || 'general',
+          platform: platform || 'instagram',
+          growth_rate: 0.15,
+          velocity: 'rising',
+          estimated_lifespan: 'days',
+          relevant_hashtags: [],
+          content_angle: 'Educational',
+          risk_level: 'safe',
+          audience_alignment: 0.75,
+        }];
+    return apiCall('/trends/find-opportunities', 'POST', {
+      trends,
       client_niche: niche || 'general',
       brand_profile: { name: 'Cliente', niche: niche || 'general', platform: platform || 'instagram' },
-    }),
+    });
+  },
 
   // ─── Crisis ─────────────────────────────────────────────
   assessCrisis: (signals: Record<string, unknown>) =>

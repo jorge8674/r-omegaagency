@@ -51,7 +51,7 @@ export default function Competitive() {
   const handleAnalyzeCompetitor = async () => {
     setAnalyzingCompetitor(true);
     try {
-      const result = await api.analyzeCompetitor({ name: competitorName, platform: competitorPlatform, competitor_data: competitorData ? { raw: competitorData } : {} });
+      const result = await api.analyzeCompetitor(competitorName, competitorPlatform, competitorData || '');
       setCompetitorResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });

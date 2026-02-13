@@ -55,8 +55,10 @@ export const api = {
   strategyAgentStatus: () => apiCall('/strategy/agent-status'),
 
   // ─── Analytics ──────────────────────────────────────────
-  analyzeMetrics: (data: Record<string, unknown>) =>
-    apiCall('/analytics/analyze-metrics', 'POST', { data }),
+  analyzeMetrics: (metricsJson: Record<string, unknown> | string) =>
+    apiCall('/analytics/analyze-metrics', 'POST', {
+      data: typeof metricsJson === 'string' ? JSON.parse(metricsJson) : metricsJson,
+    }),
   generateInsights: (data: Record<string, unknown>) =>
     apiCall('/analytics/generate-insights', 'POST', { data }),
   forecast: (data: Record<string, unknown>) =>
@@ -86,8 +88,10 @@ export const api = {
     apiCall('/brand-voice/create-profile', 'POST', data),
 
   // ─── Competitive ────────────────────────────────────────
-  analyzeCompetitor: (data: Record<string, unknown>) =>
-    apiCall('/competitive/analyze-competitor', 'POST', data),
+  analyzeCompetitor: (name: string, platform: string, url?: string) =>
+    apiCall('/competitive/analyze-competitor', 'POST', {
+      competitor_data: { name, platform, url: url || '' },
+    }),
   generateBenchmark: (data: Record<string, unknown>) =>
     apiCall('/competitive/generate-benchmark', 'POST', data),
   identifyGaps: (data: Record<string, unknown>) =>

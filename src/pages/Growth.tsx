@@ -125,6 +125,35 @@ export default function Growth() {
     }
   };
 
+  const OpportunityCards = ({ data }: { data: any }) => {
+    const opportunities = data?.data?.opportunities || data?.opportunities || data?.data || [];
+    if (Array.isArray(opportunities) && opportunities.length > 0 && opportunities[0]?.title) {
+      return (
+        <div className="mt-3 space-y-3">
+          {opportunities.map((opp: any, i: number) => (
+            <div key={i} className="border border-border/50 rounded-lg p-4 bg-secondary/30">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="font-medium text-sm">{opp.title}</h4>
+                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                  opp.potential_impact === 'high' ? 'bg-success/20 text-success' :
+                  opp.potential_impact === 'medium' ? 'bg-chart-3/20 text-chart-3' : 'bg-muted text-muted-foreground'
+                }`}>
+                  {opp.potential_impact?.toUpperCase()} IMPACT
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">{opp.description}</p>
+              <div className="flex gap-4 text-xs text-muted-foreground">
+                <span>⚡ Esfuerzo: {opp.effort_required}</span>
+                <span>📈 ROI estimado: {opp.estimated_roi}x</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return <ResultBlock data={data} />;
+  };
+
   const ResultBlock = ({ data }: { data: any }) => (
     <div className="rounded-lg bg-secondary/50 p-3 mt-3">
       <pre className="text-sm whitespace-pre-wrap overflow-x-auto">{typeof data === "string" ? data : JSON.stringify(data, null, 2)}</pre>
@@ -177,8 +206,8 @@ export default function Growth() {
                   Quick Wins
                 </Button>
               </div>
-              {oppsResult && <ResultBlock data={oppsResult} />}
-              {quickWinsResult && <ResultBlock data={quickWinsResult} />}
+              {oppsResult && <OpportunityCards data={oppsResult} />}
+              {quickWinsResult && <OpportunityCards data={quickWinsResult} />}
             </CardContent>
           </Card>
         </TabsContent>

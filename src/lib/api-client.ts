@@ -107,15 +107,15 @@ export const api = {
     apiCall('/competitive/generate-benchmark', 'POST', {
       client_data: { followers: 1000, engagement_rate: 0.03, posting_frequency: 3 },
       competitor_profile: {
-        name: competitorResult?.competitor_name || '',
+        competitor_name: competitorResult?.competitor_name || '',
         platform: competitorResult?.platform || 'instagram',
-        estimated_followers: competitorResult?.estimated_followers || 0,
-        avg_engagement_rate: competitorResult?.avg_engagement_rate || 0,
+        estimated_followers: competitorResult?.estimated_followers || null,
+        avg_engagement_rate: competitorResult?.avg_engagement_rate || null,
         posting_frequency: competitorResult?.posting_frequency || '3x_week',
         content_types: competitorResult?.content_types || [],
         top_hashtags: competitorResult?.top_hashtags || [],
         best_performing_topics: competitorResult?.best_performing_topics || [],
-        peak_posting_hours: [9, 12, 18, 20],
+        peak_posting_hours: competitorResult?.peak_posting_hours || [9, 12, 18, 20],
       },
     }),
   identifyGaps: (competitorResult: any, niche?: string) =>

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, User } from "lucide-react";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
+import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 
@@ -77,6 +78,9 @@ export default function Auth() {
 
       <Card className="relative w-full max-w-md border-border/50 bg-card/80 backdrop-blur-xl">
         <CardHeader className="text-center space-y-4">
+          <div className="flex justify-center">
+            <RaisenCircleLogo size={56} />
+          </div>
           <div>
             <RaisenLogo size="xl" />
           </div>

@@ -8,6 +8,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
+import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -47,7 +48,7 @@ export function AppSidebar() {
             </span>
           </div>
           <div className="hidden group-data-[collapsible=icon]:block">
-            <span className="font-display font-bold text-lg text-sidebar-accent-foreground">R<span className="text-primary">.</span></span>
+            <RaisenCircleLogo size={32} />
           </div>
         </div>
       </SidebarHeader>

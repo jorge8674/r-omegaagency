@@ -36,6 +36,7 @@ export const api = {
   // ─── Content ────────────────────────────────────────────
   generateCaption: (prompt: string, platform: string, tone: string) =>
     apiCall('/content/generate-caption', 'POST', { topic: prompt, platform, tone }),
+  // v2 - prompt fix
   generateImage: (topic: string) =>
     apiCall('/content/generate-image', 'POST', { prompt: topic }),
   generateHashtags: (content: string, platform: string) =>

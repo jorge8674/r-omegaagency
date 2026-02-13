@@ -115,6 +115,7 @@ export default function Competitive() {
     setFindingOpps(true);
     try {
       const result = await api.findOpportunities(trendsResult, trendNiche || "social media", trendPlatform);
+      console.log('opportunities result:', JSON.stringify(result));
       setOppsResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -426,23 +427,49 @@ export default function Competitive() {
                 Encontrar Oportunidades
               </Button>
               {oppsResult && (() => {
-                const items = oppsResult?.data || oppsResult || [];
+                const items = oppsResult?.opportunities || oppsResult?.data || (Array.isArray(oppsResult) ? oppsResult : []);
                 const list = Array.isArray(items) ? items : [];
-                return list.length > 0 ? (
+                return (
                   <div className="space-y-3 mt-4">
-                    {list.map((o: any, i: number) => (
-                      <div key={i} className="bg-secondary/30 rounded-lg p-3">
-                        <p className="font-medium">{o.topic || o.title || o.opportunity || JSON.stringify(o)}</p>
-                        {o.description && <p className="text-xs text-muted-foreground mt-1">{o.description}</p>}
-                        {o.score && <p className="text-xs text-primary mt-1">Score: {((o.score || 0) * 100).toFixed(0)}%</p>}
+                    {list.length > 0 ? list.map((opp: any, i: number) => (
+                      <div key={i} className="bg-secondary/30 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <p className="font-medium">
+                            {opp.trend?.topic || opp.topic || opp.title || opp.opportunity || `Oportunidad ${i + 1}`}
+                          </p>
+                          {opp.urgency && (
+                            <span className={`px-2 py-1 rounded text-xs font-bold text-primary-foreground ${
+                              opp.urgency === 'act_now' ? 'bg-destructive' :
+                              opp.urgency === 'this_week' ? 'bg-yellow-600' : 'bg-green-600'
+                            }`}>
+                              {opp.urgency?.replace('_', ' ').toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        {(opp.effort_required || opp.potential_impact) && (
+                          <div className="flex gap-3 text-xs text-muted-foreground mb-3">
+                            <span>⚡ Effort: {opp.effort_required || 'medium'}</span>
+                            <span>📈 Impact: {opp.potential_impact || 'high'}</span>
+                          </div>
+                        )}
+                        {opp.description && <p className="text-xs text-muted-foreground mt-1">{opp.description}</p>}
+                        {opp.score != null && <p className="text-xs text-primary mt-1">Score: {((opp.score || 0) * 100).toFixed(0)}%</p>}
+                        {opp.content_ideas?.length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-xs text-primary mb-1">💡 Ideas:</p>
+                            {opp.content_ideas.map((idea: string, j: number) => (
+                              <p key={j} className="text-sm">• {idea}</p>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-secondary/30 rounded-lg p-3 mt-4 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      {oppsResult?.message || 'No se encontraron oportunidades. Prueba analizar trends primero para obtener mejores resultados.'}
-                    </p>
+                    )) : (
+                      <div className="bg-secondary/30 rounded-lg p-3 text-center">
+                        <p className="text-sm text-muted-foreground">
+                          {oppsResult?.message || 'No se encontraron oportunidades. Prueba analizar trends primero.'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 );
               })()}

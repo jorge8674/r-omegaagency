@@ -132,29 +132,33 @@ export const api = {
       client_niche: niche || 'general',
     }),
   predictVirality: (content: string, platform: string) =>
-    apiCall('/trends/predict-virality', 'POST', { content_description: content, platform }),
+    apiCall('/trends/predict-virality', 'POST', {
+      content_description: content || '',
+      platform: platform || 'instagram',
+      target_audience: 'general audience',
+    }),
   findOpportunities: (trendsResult: any, niche: string, platform?: string) => {
     const rawTrends = trendsResult?.data || trendsResult || [];
     const trends = Array.isArray(rawTrends) && rawTrends.length > 0
       ? rawTrends.map((t: any) => ({
           topic: t.topic || niche || 'general',
           platform: t.platform || platform || 'instagram',
-          growth_rate: t.trend_score || 0.15,
+          trend_score: t.trend_score || 0.65,
           velocity: t.velocity || 'rising',
           estimated_lifespan: t.estimated_lifespan || 'days',
           relevant_hashtags: t.relevant_hashtags || [],
-          content_angle: t.content_angle || 'Educational',
+          content_angle: t.content_angle || 'Educational and entertaining',
           risk_level: t.risk_level || 'safe',
           audience_alignment: t.audience_alignment || 0.75,
         }))
       : [{
           topic: niche || 'general',
           platform: platform || 'instagram',
-          growth_rate: 0.15,
+          trend_score: 0.65,
           velocity: 'rising',
           estimated_lifespan: 'days',
           relevant_hashtags: [],
-          content_angle: 'Educational',
+          content_angle: 'Educational and entertaining',
           risk_level: 'safe',
           audience_alignment: 0.75,
         }];

@@ -99,8 +99,10 @@ export default function CrisisRoom() {
     try {
       const result = await api.respondComment(comment, platform, "professional");
       console.log('respond result:', result);
-      console.log('response text:', result?.data?.response);
+      console.log('respond result.data:', JSON.stringify(result?.data, null, 2));
       const data = result?.data || result;
+      console.log('respond data keys:', Object.keys(data || {}));
+      console.log('respond suggested_response:', data?.suggested_response);
       setResponse(data);
       toast({ title: "✅ Respuesta generada" });
     } catch (e: any) {

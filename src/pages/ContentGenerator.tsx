@@ -99,7 +99,7 @@ export default function ContentGenerator() {
     try {
       const result = await api.generateImage(topicWithLang(prompt));
       console.log("Image API result:", JSON.stringify(result));
-      const url = result?.data?.image_url || result?.image_url || extractField(result, "image_url", "url");
+      const url = result?.data?.image_urls?.[0] || result?.data?.image_url || result?.image_url || extractField(result, "image_url", "url");
       if (typeof url === "string" && url.startsWith("http")) {
         setImageUrl(url);
         toast({ title: "✅ Imagen generada" });

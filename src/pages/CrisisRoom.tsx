@@ -337,7 +337,7 @@ export default function CrisisRoom() {
               {responding ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Generar Respuesta'}
             </Button>
             {response && (() => {
-              const respText = response?.suggested_response || response?.response || (typeof response === "string" ? response : "");
+              const respText = response?.response_text || response?.suggested_response || response?.response || (typeof response === "string" ? response : "");
               const sentiment = response?.sentiment;
               const tips = response?.handling_tips || [];
               const alts = response?.suggested_alternatives || [];

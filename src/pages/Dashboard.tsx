@@ -52,9 +52,14 @@ export default function Dashboard() {
   const loading = stateLoading && agentsLoading && alertsLoading && healthLoading;
   const isOnline = health?.status === "healthy";
 
-  const agents = agentsData?.agents ?? agentsData ?? [];
-  const agentsList = Array.isArray(agents) ? agents : [];
-  const agentsOnline = agentsList.filter((a: any) => a.status === "online" || a.status === "active").length;
+  // Backend returns { success, data: { agents: { name: "status", ... } } }
+  const rawAgents = agentsData?.data?.agents ?? agentsData?.agents ?? agentsData ?? {};
+  const agentsList: { name: string; status: string }[] = Array.isArray(rawAgents)
+    ? rawAgents
+    : typeof rawAgents === "object" && rawAgents !== null
+      ? Object.entries(rawAgents).map(([name, status]) => ({ name, status: status as string }))
+      : [];
+  const agentsOnline = agentsList.filter((a) => a.status === "operational" || a.status === "online" || a.status === "active").length;
   const totalAgents = agentsList.length || systemState?.total_agents || 15;
   const alertCount = Array.isArray(alerts) ? alerts.length : alerts?.count ?? 0;
   const activeWorkflows = systemState?.active_workflows ?? 0;
@@ -171,7 +176,7 @@ export default function Dashboard() {
                 agentsList.map((agent: any, i: number) => (
                   <div key={i} className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2">
                     <div className="flex items-center gap-2">
-                      {agent.status === "online" || agent.status === "active" ? (
+                      {agent.status === "operational" || agent.status === "online" || agent.status === "active" ? (
                         <CheckCircle2 className="h-4 w-4 text-success" />
                       ) : (
                         <XCircle className="h-4 w-4 text-destructive" />

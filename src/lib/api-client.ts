@@ -56,11 +56,11 @@ export const api = {
 
   // ─── Analytics ──────────────────────────────────────────
   analyzeMetrics: (data: Record<string, unknown>) =>
-    apiCall('/analytics/analyze-metrics', 'POST', data),
+    apiCall('/analytics/analyze-metrics', 'POST', { data }),
   generateInsights: (data: Record<string, unknown>) =>
-    apiCall('/analytics/generate-insights', 'POST', data),
+    apiCall('/analytics/generate-insights', 'POST', { data }),
   forecast: (data: Record<string, unknown>) =>
-    apiCall('/analytics/forecast', 'POST', data),
+    apiCall('/analytics/forecast', 'POST', { data }),
   getDashboardData: (data: Record<string, unknown>) =>
     apiCall('/analytics/dashboard-data', 'POST', data),
 

@@ -169,19 +169,51 @@ export default function Competitive() {
                 {analyzingCompetitor && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Analizar Competidor
               </Button>
-              {competitorResult && <ResultBlock data={competitorResult} />}
-              {competitorResult && (
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={handleBenchmark} disabled={benchmarking}>
-                    {benchmarking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Benchmark
-                  </Button>
-                  <Button variant="outline" className="flex-1" onClick={handleGaps} disabled={identifyingGaps}>
-                    {identifyingGaps && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Content Gaps
-                  </Button>
-                </div>
-              )}
+              {competitorResult && (() => {
+                const cr = competitorResult?.data || competitorResult;
+                return (
+                  <div className="space-y-4 mt-4">
+                    <div className="flex gap-3 flex-wrap">
+                      <span className="px-3 py-1 bg-primary rounded text-sm font-bold text-primary-foreground">
+                        {cr.competitor_name}
+                      </span>
+                      <span className="px-3 py-1 bg-secondary rounded text-sm text-secondary-foreground">
+                        📅 {cr.posting_frequency}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-secondary/50 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-2">Tipos de contenido</p>
+                        {cr.content_types?.map((t: string, i: number) => (
+                          <span key={i} className="block text-sm">• {t}</span>
+                        ))}
+                      </div>
+                      <div className="bg-secondary/50 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-2">Top Hashtags</p>
+                        {cr.top_hashtags?.map((h: string, i: number) => (
+                          <span key={i} className="block text-sm text-primary">• {h}</span>
+                        ))}
+                      </div>
+                      <div className="bg-secondary/50 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-2">Temas que funcionan</p>
+                        {cr.best_performing_topics?.map((t: string, i: number) => (
+                          <span key={i} className="block text-sm">• {t}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1" onClick={handleBenchmark} disabled={benchmarking}>
+                        {benchmarking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Benchmark
+                      </Button>
+                      <Button variant="outline" className="flex-1" onClick={handleGaps} disabled={identifyingGaps}>
+                        {identifyingGaps && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Content Gaps
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
               {benchmarkResult && <ResultBlock data={benchmarkResult} />}
               {gapsResult && <ResultBlock data={gapsResult} />}
             </CardContent>

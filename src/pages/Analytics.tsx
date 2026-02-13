@@ -173,7 +173,30 @@ export default function Analytics() {
             </CardContent>
           </Card>
 
-          {metricsResult && <Card className="border-border/50 bg-card/80 backdrop-blur-sm"><CardHeader className="pb-2"><CardTitle className="text-sm">Análisis de Métricas</CardTitle></CardHeader><CardContent><ResultBlock data={metricsResult} /></CardContent></Card>}
+          {metricsResult && (() => {
+            const mr = metricsResult?.data || metricsResult;
+            return (
+              <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Análisis de Métricas</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-4 gap-3">
+                    {Object.entries(mr.metrics || {}).map(([key, val]) => (
+                      <div key={key} className="bg-secondary/50 rounded-lg p-3 text-center">
+                        <p className="text-2xl font-bold text-primary">{String(val)}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{key.replace(/_/g, ' ')}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {mr.ai_insights && (
+                    <div className="bg-secondary/50 rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground mb-2">💡 AI Insights</p>
+                      <div className="text-sm leading-relaxed whitespace-pre-line">{mr.ai_insights}</div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
           {insightsResult && <Card className="border-border/50 bg-card/80 backdrop-blur-sm"><CardHeader className="pb-2"><CardTitle className="text-sm">Insights</CardTitle></CardHeader><CardContent><ResultBlock data={insightsResult} /></CardContent></Card>}
           {forecastResult && <Card className="border-border/50 bg-card/80 backdrop-blur-sm"><CardHeader className="pb-2"><CardTitle className="text-sm">Forecast</CardTitle></CardHeader><CardContent><ResultBlock data={forecastResult} /></CardContent></Card>}
           {reportResult && <Card className="border-border/50 bg-card/80 backdrop-blur-sm"><CardHeader className="pb-2"><CardTitle className="text-sm">Reporte Mensual</CardTitle></CardHeader><CardContent><ResultBlock data={reportResult} /></CardContent></Card>}

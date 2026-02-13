@@ -113,7 +113,7 @@ export default function Competitive() {
   const handleFindOpportunities = async () => {
     setFindingOpps(true);
     try {
-      const result = await api.findOpportunities(trendNiche || "social media", trendPlatform);
+      const result = await api.findOpportunities(trendsResult, trendNiche || "social media", trendPlatform);
       setOppsResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });

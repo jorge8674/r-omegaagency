@@ -295,11 +295,32 @@ export default function ContentGenerator() {
                   </div>
                 )}
                 {imageUrl && (
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <Label className="text-sm font-medium">Imagen</Label>
-                    <div className="rounded-lg bg-secondary/50 p-3">
-                      <img src={imageUrl} alt="Generated" className="rounded-lg w-full" />
-                    </div>
+                    <img
+                      src={imageUrl}
+                      alt="Imagen generada por DALL-E"
+                      className="w-full rounded-xl border border-border/50"
+                      onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }}
+                    />
+                    <Button
+                      onClick={() => window.open(imageUrl, '_blank')}
+                      className="w-full"
+                    >
+                      🔗 Abrir imagen completa
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        const a = document.createElement('a');
+                        a.href = imageUrl;
+                        a.download = 'imagen-generada.png';
+                        a.click();
+                      }}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      ⬇️ Descargar
+                    </Button>
                   </div>
                 )}
                 {hashtags.length > 0 && (

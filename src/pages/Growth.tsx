@@ -98,7 +98,8 @@ export default function Growth() {
   const handleValidate = async () => {
     setValidating(true);
     try {
-      const result = await api.validateContent(validateText, getBrandProfileForApi());
+      const raw = brandProfile?.data || brandProfile;
+      const result = await api.validateContent(validateText, raw || {}, brandName);
       setValidationResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -110,7 +111,8 @@ export default function Growth() {
   const handleImprove = async () => {
     setImproving(true);
     try {
-      const result = await api.improveContent(improveText, getBrandProfileForApi());
+      const raw = brandProfile?.data || brandProfile;
+      const result = await api.improveContent(improveText, raw || {}, brandName);
       setImprovedResult(result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });

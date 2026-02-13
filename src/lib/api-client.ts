@@ -17,6 +17,22 @@ async function apiCall<T = any>(
   return response.json();
 }
 
+const buildBrandProfile = (bv: Record<string, unknown>, brandName?: string) => ({
+  client_id: bv?.client_id || brandName || 'default',
+  brand_name: bv?.brand_name || brandName || '',
+  tone: bv?.tone || 'professional',
+  forbidden_words: bv?.forbidden_words || [],
+  emoji_usage: bv?.emoji_usage || 'minimal',
+  formality_level: bv?.formality_level || 2,
+  sample_posts: bv?.sample_posts || [],
+  experiencia: bv?.experiencia || '',
+  veiralidad: bv?.veiralidad || '',
+  personality: bv?.personality || 'professional',
+  required_elements: bv?.required_elements || [],
+  emoji_style: bv?.emoji_style || 'minimal',
+  formality: bv?.formality || 'professional',
+});
+
 // Health check (root, not under /api/v1)
 export async function checkBackendHealth(): Promise<{ status: string }> {
   try {
@@ -94,43 +110,15 @@ export const api = {
   alerts: () => apiCall('/monitor/alerts'),
 
   // ─── Brand Voice ────────────────────────────────────────
-  validateContent: (content: string, brandProfile: Record<string, unknown>) =>
+  validateContent: (content: string, brandVoiceResult: Record<string, unknown>, brandName?: string) =>
     apiCall('/brand-voice/validate-content', 'POST', {
       content: content || '',
-      brand_profile: {
-        client_id: brandProfile?.client_id || 'default',
-        brand_name: brandProfile?.brand_name || '',
-        tone: brandProfile?.tone || 'professional',
-        forbidden_words: brandProfile?.forbidden_words || [],
-        emoji_usage: brandProfile?.emoji_usage || 'minimal',
-        formality_level: brandProfile?.formality_level || 2,
-        sample_posts: brandProfile?.sample_posts || [],
-        experiencia: brandProfile?.experiencia || '',
-        veiralidad: brandProfile?.veiralidad || '',
-        personality: brandProfile?.personality || '',
-        required_elements: brandProfile?.required_elements || [],
-        emoji_style: brandProfile?.emoji_style || 'minimal',
-        formality: brandProfile?.formality || 'professional',
-      },
+      brand_profile: buildBrandProfile(brandVoiceResult, brandName),
     }),
-  improveContent: (content: string, brandProfile: Record<string, unknown>) =>
+  improveContent: (content: string, brandVoiceResult: Record<string, unknown>, brandName?: string) =>
     apiCall('/brand-voice/improve-content', 'POST', {
       content: content || '',
-      brand_profile: {
-        client_id: brandProfile?.client_id || 'default',
-        brand_name: brandProfile?.brand_name || '',
-        tone: brandProfile?.tone || 'professional',
-        forbidden_words: brandProfile?.forbidden_words || [],
-        emoji_usage: brandProfile?.emoji_usage || 'minimal',
-        formality_level: brandProfile?.formality_level || 2,
-        sample_posts: brandProfile?.sample_posts || [],
-        experiencia: brandProfile?.experiencia || '',
-        veiralidad: brandProfile?.veiralidad || '',
-        personality: brandProfile?.personality || '',
-        required_elements: brandProfile?.required_elements || [],
-        emoji_style: brandProfile?.emoji_style || 'minimal',
-        formality: brandProfile?.formality || 'professional',
-      },
+      brand_profile: buildBrandProfile(brandVoiceResult, brandName),
     }),
   createBrandProfile: (brandName: string, description: string, samplePosts: string[] | string) =>
     apiCall('/brand-voice/create-profile', 'POST', {

@@ -1,76 +1,243 @@
-import { Users, TrendingUp, CalendarDays, Wifi, Loader2 } from "lucide-react";
-import { useDashboardData } from "@/hooks/useDashboardData";
-import { StatsCard } from "@/components/dashboard/StatsCard";
-import { FollowersByPlatformChart, AccountDistributionChart } from "@/components/dashboard/PlatformCharts";
-import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { PlatformStatus } from "@/components/dashboard/PlatformStatus";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Activity,
+  Bot,
+  AlertTriangle,
+  Workflow,
+  Loader2,
+  Play,
+  RefreshCw,
+  CheckCircle2,
+  XCircle,
+  Server,
+} from "lucide-react";
+
+const WORKFLOWS = [
+  { name: "full_content_pipeline", label: "Full Content Pipeline", description: "Genera contenido completo" },
+  { name: "crisis_response", label: "Crisis Response", description: "Respuesta de crisis automatizada" },
+  { name: "weekly_client_report", label: "Weekly Client Report", description: "Reporte semanal de clientes" },
+  { name: "trend_to_content", label: "Trend to Content", description: "Convierte trends en contenido" },
+  { name: "competitive_analysis", label: "Competitive Analysis", description: "Análisis competitivo completo" },
+];
 
 export default function Dashboard() {
-  const {
-    loading,
-    activeClients,
-    totalFollowers,
-    connectedAccounts,
-    totalAccounts,
-    platformCounts,
-    recentClients,
-    recentAccounts,
-  } = useDashboardData();
+  const { toast } = useToast();
+  const [executingWorkflow, setExecutingWorkflow] = useState<string | null>(null);
+
+  const { data: systemState, isLoading: stateLoading, refetch: refetchState } = useQuery({
+    queryKey: ["system-state"],
+    queryFn: () => api.systemState(),
+    refetchInterval: 30000,
+  });
+
+  const { data: health, isLoading: healthLoading, refetch: refetchHealth } = useQuery({
+    queryKey: ["system-health"],
+    queryFn: () => api.systemHealth(),
+    refetchInterval: 30000,
+  });
+
+  const { data: alerts, isLoading: alertsLoading, refetch: refetchAlerts } = useQuery({
+    queryKey: ["alerts"],
+    queryFn: () => api.alerts(),
+    refetchInterval: 30000,
+  });
+
+  const loading = stateLoading || healthLoading || alertsLoading;
+
+  const agentsOnline = health?.agents?.filter((a: any) => a.status === "online" || a.status === "active")?.length ?? health?.total_agents ?? 0;
+  const totalAgents = health?.agents?.length ?? health?.total_agents ?? 15;
+  const alertCount = Array.isArray(alerts) ? alerts.length : alerts?.count ?? 0;
+  const activeWorkflows = systemState?.active_workflows ?? 0;
+
+  const handleExecuteWorkflow = async (workflowName: string) => {
+    setExecutingWorkflow(workflowName);
+    try {
+      await api.executeWorkflow(workflowName, "default", {});
+      toast({ title: "Workflow iniciado", description: `${workflowName} ejecutándose...` });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setExecutingWorkflow(null);
+    }
+  };
+
+  const refreshAll = () => {
+    refetchState();
+    refetchHealth();
+    refetchAlerts();
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Conectando con el sistema...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Resumen general de tu plataforma</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Centro de control OmegaRaisen</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={refreshAll}>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Actualizar
+        </Button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Clientes Activos"
-          value={activeClients}
-          icon={Users}
-          subtitle={`${activeClients} de ${activeClients} activos`}
-        />
-        <StatsCard
-          title="Seguidores Totales"
-          value={totalFollowers.toLocaleString()}
-          icon={TrendingUp}
-          subtitle="Todas las plataformas"
-        />
-        <StatsCard
-          title="Posts Programados"
-          value="0"
-          icon={CalendarDays}
-          subtitle="Próximamente"
-        />
-        <StatsCard
-          title="Cuentas Conectadas"
-          value={`${connectedAccounts}/${totalAccounts}`}
-          icon={Wifi}
-          subtitle={`${totalAccounts} cuentas registradas`}
-        />
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
+              <Bot className="h-5 w-5 text-success" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Agentes Online</p>
+              <p className="text-2xl font-display font-bold">{agentsOnline}/{totalAgents}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Server className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Endpoints</p>
+              <p className="text-2xl font-display font-bold">84</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-3/10">
+              <Workflow className="h-5 w-5 text-chart-3" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Workflows Activos</p>
+              <p className="text-2xl font-display font-bold">{activeWorkflows}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${alertCount > 0 ? 'bg-destructive/10' : 'bg-success/10'}`}>
+              <AlertTriangle className={`h-5 w-5 ${alertCount > 0 ? 'text-destructive' : 'text-success'}`} />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Alertas</p>
+              <p className="text-2xl font-display font-bold">{alertCount}</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <FollowersByPlatformChart data={platformCounts} />
-        <AccountDistributionChart data={platformCounts} />
+        {/* System Health - Agents list */}
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="font-display text-lg flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              System Health
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+              {health?.agents ? (
+                health.agents.map((agent: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      {agent.status === "online" || agent.status === "active" ? (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      )}
+                      <span className="text-sm font-medium">{agent.name || agent.agent_name || `Agent ${i + 1}`}</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {agent.status || "unknown"}
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {health ? "Sistema operativo" : "Sin datos de agentes"}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Active Workflows */}
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="font-display text-lg flex items-center gap-2">
+              <Workflow className="h-5 w-5 text-primary" />
+              Workflows
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {WORKFLOWS.map((wf) => (
+                <div key={wf.name} className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{wf.label}</p>
+                    <p className="text-xs text-muted-foreground">{wf.description}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="ml-2 shrink-0"
+                    disabled={executingWorkflow === wf.name}
+                    onClick={() => handleExecuteWorkflow(wf.name)}
+                  >
+                    {executingWorkflow === wf.name ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Play className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Activity + Platform Status */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ActivityFeed recentClients={recentClients} recentAccounts={recentAccounts} />
-        <PlatformStatus data={platformCounts} />
-      </div>
+      {/* Alerts */}
+      {Array.isArray(alerts) && alerts.length > 0 && (
+        <Card className="border-destructive/30 bg-destructive/5 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="font-display text-lg flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Alertas Activas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {alerts.map((alert: any, i: number) => (
+                <div key={i} className="rounded-lg bg-background/50 px-3 py-2 border border-destructive/20">
+                  <p className="text-sm font-medium">{alert.title || alert.message || JSON.stringify(alert)}</p>
+                  {alert.description && <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

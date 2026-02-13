@@ -363,7 +363,50 @@ export default function Competitive() {
                   {predictingVirality && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Predecir Viralidad
                 </Button>
-                {viralResult && <ResultBlock data={viralResult} />}
+                {viralResult && (() => {
+                  const v = viralResult?.data || viralResult;
+                  return (
+                    <div className="space-y-3 mt-4">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary/20 rounded-full px-4 py-2 text-center">
+                          <p className="text-2xl font-bold text-primary">{((v.virality_score || 0) * 100).toFixed(0)}%</p>
+                          <p className="text-xs text-muted-foreground">Virality Score</p>
+                        </div>
+                        <div className="bg-secondary/30 rounded-full px-4 py-2 text-center">
+                          <p className="text-2xl font-bold">{v.predicted_reach_multiplier || 0}x</p>
+                          <p className="text-xs text-muted-foreground">Reach Multiplier</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-secondary/30 rounded-lg p-3">
+                          <p className="text-xs text-primary mb-2">✅ Factores de éxito</p>
+                          {v.key_success_factors?.map((f: string, i: number) => (
+                            <p key={i} className="text-sm">• {f}</p>
+                          ))}
+                        </div>
+                        <div className="bg-secondary/30 rounded-lg p-3">
+                          <p className="text-xs text-destructive mb-2">⚠️ Riesgos</p>
+                          {v.risk_factors?.map((r: string, i: number) => (
+                            <p key={i} className="text-sm">• {r}</p>
+                          ))}
+                        </div>
+                      </div>
+                      {v.platform_fit && (
+                        <div className="bg-secondary/30 rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-2">Platform Fit</p>
+                          <div className="flex gap-3 flex-wrap">
+                            {Object.entries(v.platform_fit).map(([platform, score]: [string, any]) => (
+                              <div key={platform} className="text-center">
+                                <p className="text-sm font-bold capitalize">{platform}</p>
+                                <p className="text-xs text-primary">{((score || 0) * 100).toFixed(0)}%</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>

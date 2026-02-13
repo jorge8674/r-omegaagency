@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,24 +33,47 @@ const TONES = [
   { value: "casual", label: "Casual" },
 ];
 
+const LANG_SUFFIX: Record<string, string> = {
+  es: " | Responde completamente en español, contenido natural y auténtico en español.",
+  en: " | Respond completely in English, natural and authentic English content.",
+};
+
+function extractField(result: any, ...keys: string[]) {
+  if (result?.data) result = result.data;
+  for (const k of keys) {
+    if (result?.[k] !== undefined) return result[k];
+  }
+  return result;
+}
+
 export default function ContentGenerator() {
   const { toast } = useToast();
   const [prompt, setPrompt] = useState("");
   const [platform, setPlatform] = useState("instagram");
   const [tone, setTone] = useState("professional");
   const [activeTab, setActiveTab] = useState("caption");
+  const [language, setLanguage] = useState<"es" | "en">(() => {
+    return (localStorage.getItem("omega_content_language") as "es" | "en") || "es";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("omega_content_language", language);
+  }, [language]);
+
+  const topicWithLang = (text: string) => text + LANG_SUFFIX[language];
 
   // Results
   const [generatingCaption, setGeneratingCaption] = useState(false);
   const [caption, setCaption] = useState("");
   const [generatingImage, setGeneratingImage] = useState(false);
-  const [imageResult, setImageResult] = useState<any>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [generatingHashtags, setGeneratingHashtags] = useState(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [scriptTopic, setScriptTopic] = useState("");
   const [scriptDuration, setScriptDuration] = useState(60);
   const [generatingScript, setGeneratingScript] = useState(false);
-  const [script, setScript] = useState<any>(null);
+  const [scriptScenes, setScriptScenes] = useState<any[]>([]);
+  const [scriptRaw, setScriptRaw] = useState<string>("");
 
   // Brand voice validation
   const [validatingBrand, setValidatingBrand] = useState(false);
@@ -59,8 +82,9 @@ export default function ContentGenerator() {
   const handleGenerateCaption = async () => {
     setGeneratingCaption(true);
     try {
-      const result = await api.generateCaption(prompt, platform, tone);
-      setCaption(typeof result === "string" ? result : result?.caption || result?.content || JSON.stringify(result));
+      const result = await api.generateCaption(topicWithLang(prompt), platform, tone);
+      const text = extractField(result, "caption", "content");
+      setCaption(typeof text === "string" ? text : JSON.stringify(text));
       toast({ title: "✅ Caption generada" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -72,8 +96,9 @@ export default function ContentGenerator() {
   const handleGenerateImage = async () => {
     setGeneratingImage(true);
     try {
-      const result = await api.generateImage(prompt);
-      setImageResult(result);
+      const result = await api.generateImage(topicWithLang(prompt));
+      const url = extractField(result, "image_url", "url");
+      setImageUrl(typeof url === "string" ? url : null);
       toast({ title: "✅ Imagen generada" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -85,9 +110,9 @@ export default function ContentGenerator() {
   const handleGenerateHashtags = async () => {
     setGeneratingHashtags(true);
     try {
-      const result = await api.generateHashtags(prompt || caption, platform);
-      const tags = Array.isArray(result) ? result : result?.hashtags || [];
-      setHashtags(tags);
+      const result = await api.generateHashtags(topicWithLang(prompt || caption), platform);
+      const tags = extractField(result, "hashtags");
+      setHashtags(Array.isArray(tags) ? tags : []);
       toast({ title: "✅ Hashtags generados" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -99,8 +124,19 @@ export default function ContentGenerator() {
   const handleGenerateScript = async () => {
     setGeneratingScript(true);
     try {
-      const result = await api.generateVideoScript(scriptTopic || prompt, scriptDuration, platform);
-      setScript(result);
+      const result = await api.generateVideoScript(topicWithLang(scriptTopic || prompt), scriptDuration, platform);
+      const data = result?.data || result;
+      const scenes = data?.scenes || data?.script;
+      if (Array.isArray(scenes)) {
+        setScriptScenes(scenes);
+        setScriptRaw("");
+      } else if (typeof (data?.script || data) === "string") {
+        setScriptRaw(data?.script || (typeof data === "string" ? data : JSON.stringify(data, null, 2)));
+        setScriptScenes([]);
+      } else {
+        setScriptRaw(JSON.stringify(data, null, 2));
+        setScriptScenes([]);
+      }
       toast({ title: "✅ Script generado" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -113,7 +149,7 @@ export default function ContentGenerator() {
     setValidatingBrand(true);
     try {
       const result = await api.validateContent(caption || prompt, { tone, platform });
-      setBrandResult(result);
+      setBrandResult(result?.data || result);
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
@@ -125,6 +161,8 @@ export default function ContentGenerator() {
     navigator.clipboard.writeText(text);
     toast({ title: "Copiado al portapapeles" });
   };
+
+  const hasResults = caption || imageUrl || hashtags.length > 0 || scriptScenes.length > 0 || scriptRaw;
 
   return (
     <div className="space-y-6">
@@ -173,6 +211,32 @@ export default function ContentGenerator() {
               </TabsList>
             </Tabs>
 
+            {/* Language selector */}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setLanguage("es")}
+                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  language === "es"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                🇵🇷 Español
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  language === "en"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                🇺🇸 English
+              </button>
+            </div>
+
             {activeTab === "caption" && (
               <Button className="w-full gradient-primary" onClick={handleGenerateCaption} disabled={generatingCaption || !prompt}>
                 {generatingCaption && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -213,7 +277,7 @@ export default function ContentGenerator() {
             <CardTitle className="font-display text-lg">Resultados</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!caption && !imageResult && hashtags.length === 0 && !script ? (
+            {!hasResults ? (
               <p className="text-sm text-muted-foreground text-center py-12">Sin datos – introduce información para generar contenido</p>
             ) : (
               <>
@@ -230,15 +294,11 @@ export default function ContentGenerator() {
                     </div>
                   </div>
                 )}
-                {imageResult && (
+                {imageUrl && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Imagen</Label>
                     <div className="rounded-lg bg-secondary/50 p-3">
-                      {imageResult.url || imageResult.image_url ? (
-                        <img src={imageResult.url || imageResult.image_url} alt="Generated" className="rounded-lg w-full" />
-                      ) : (
-                        <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(imageResult, null, 2)}</pre>
-                      )}
+                      <img src={imageUrl} alt="Generated" className="rounded-lg w-full" />
                     </div>
                   </div>
                 )}
@@ -257,11 +317,25 @@ export default function ContentGenerator() {
                     </div>
                   </div>
                 )}
-                {script && (
+                {(scriptScenes.length > 0 || scriptRaw) && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Script de Video</Label>
-                    <div className="rounded-lg bg-secondary/50 p-3">
-                      <pre className="text-sm whitespace-pre-wrap">{typeof script === "string" ? script : JSON.stringify(script, null, 2)}</pre>
+                    <div className="rounded-lg bg-secondary/50 p-3 space-y-3">
+                      {scriptScenes.length > 0 ? (
+                        <ol className="list-decimal list-inside space-y-2">
+                          {scriptScenes.map((scene, i) => (
+                            <li key={i} className="text-sm">
+                              <span className="font-medium">{scene.title || scene.name || `Escena ${i + 1}`}</span>
+                              {(scene.description || scene.action || scene.dialogue) && (
+                                <p className="text-muted-foreground ml-5 mt-0.5">{scene.description || scene.action || scene.dialogue}</p>
+                              )}
+                              {scene.duration && <span className="text-xs text-muted-foreground ml-5">({scene.duration})</span>}
+                            </li>
+                          ))}
+                        </ol>
+                      ) : (
+                        <pre className="text-sm whitespace-pre-wrap">{scriptRaw}</pre>
+                      )}
                     </div>
                   </div>
                 )}

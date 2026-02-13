@@ -84,7 +84,8 @@ export default function CrisisRoom() {
     setPlanningRecovery(true);
     try {
       const result = await api.recoveryPlan(assessment);
-      setRecovery(result?.data || result);
+      const steps = result?.data?.recovery_steps || result?.data?.steps || result?.data || result?.recovery_steps || result?.steps;
+      setRecovery(steps);
       toast({ title: "✅ Plan de recovery generado" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -286,20 +287,24 @@ export default function CrisisRoom() {
                 {recovery && (
                   <div className="rounded-lg bg-secondary/50 p-3 mt-2">
                     <p className="text-xs text-muted-foreground mb-2 font-medium">Recovery Plan:</p>
-                    {Array.isArray(recovery?.steps || recovery?.plan) ? (
-                      <ol className="space-y-2 text-sm list-decimal list-inside">
-                        {(recovery.steps || recovery.plan).map((step: any, i: number) => (
-                          <li key={i} className="rounded-md bg-background/50 p-2">
-                            <span className="font-medium">{step.action || step.step || step.description || step}</span>
-                            {(step.responsible || step.deadline) && (
-                              <div className="flex gap-3 mt-1 text-xs text-muted-foreground ml-5">
-                                {step.responsible && <span>👤 {step.responsible}</span>}
-                                {step.deadline && <span>📅 {step.deadline}</span>}
-                              </div>
-                            )}
-                          </li>
+                    {Array.isArray(recovery) ? (
+                      <div className="space-y-2">
+                        {recovery.map((step: any, i: number) => (
+                          <div key={step.step_number || i} className="border border-border/30 rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                                {step.step_number || i + 1}
+                              </span>
+                              <span className="font-medium text-sm">{step.action || step.step || step.description || step}</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground flex gap-4 ml-8">
+                              {step.responsible && <span>👤 {step.responsible}</span>}
+                              {step.deadline && <span>⏱️ {step.deadline}</span>}
+                              {step.success_metric && <span>✅ {step.success_metric}</span>}
+                            </div>
+                          </div>
                         ))}
-                      </ol>
+                      </div>
                     ) : (
                       <pre className="text-sm whitespace-pre-wrap">{typeof recovery === "string" ? recovery : JSON.stringify(recovery, null, 2)}</pre>
                     )}

@@ -21,16 +21,12 @@ const buildBrandProfile = (bv: Record<string, unknown>, brandName?: string) => (
   client_id: bv?.client_id || brandName || 'default',
   brand_name: bv?.brand_name || brandName || '',
   tone: bv?.tone || 'professional',
+  personality_traits: bv?.personality_traits || ['trustworthy', 'innovative', 'helpful'],
   forbidden_words: bv?.forbidden_words || [],
+  required_keywords: bv?.required_keywords || [],
   emoji_usage: bv?.emoji_usage || 'minimal',
   formality_level: bv?.formality_level || 2,
   sample_posts: bv?.sample_posts || [],
-  experiencia: bv?.experiencia || '',
-  veiralidad: bv?.veiralidad || '',
-  personality: bv?.personality || 'professional',
-  required_elements: bv?.required_elements || [],
-  emoji_style: bv?.emoji_style || 'minimal',
-  formality: bv?.formality || 'professional',
 });
 
 // Health check (root, not under /api/v1)

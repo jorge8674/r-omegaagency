@@ -41,7 +41,7 @@ export default function CrisisRoom() {
   const handleAssess = async () => {
     setAssessing(true);
     try {
-      const result = await api.assessCrisis({
+      const signalsPayload = {
         negative_comment_percentage: negativePercent / 100,
         complaint_velocity: complaintVelocity,
         sentiment_drop: sentimentDrop / 100,
@@ -49,7 +49,9 @@ export default function CrisisRoom() {
         media_involvement: mediaInvolved,
         influencer_involvement: influencerInvolved,
         platform,
-      });
+      };
+      console.log('Crisis payload:', JSON.stringify({ signals: signalsPayload }, null, 2));
+      const result = await api.assessCrisis(signalsPayload);
       setAssessment(result);
       toast({ title: "✅ Crisis evaluada" });
     } catch (e: any) {

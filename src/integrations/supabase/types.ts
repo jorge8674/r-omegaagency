@@ -58,6 +58,7 @@ export type Database = {
       clients: {
         Row: {
           active: boolean
+          assigned_to: string | null
           company: string | null
           created_at: string
           email: string | null
@@ -71,6 +72,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          assigned_to?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -84,6 +86,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          assigned_to?: string | null
           company?: string | null
           created_at?: string
           email?: string | null

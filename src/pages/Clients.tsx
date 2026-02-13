@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import { ClientSocialAccounts } from "@/components/clients/ClientSocialAccounts";
 
 interface ClientFormData {
@@ -62,6 +63,7 @@ const emptyForm: ClientFormData = {
 };
 
 export default function Clients() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -354,11 +356,7 @@ export default function Clients() {
             <div key={client.id}>
               <Card
                 className="border-border/50 bg-card/80 backdrop-blur-sm hover:bg-card/90 transition-colors cursor-pointer"
-                onClick={() =>
-                  setExpandedClient(
-                    expandedClient === client.id ? null : client.id
-                  )
-                }
+                onClick={() => navigate(`/clients/${client.id}`)}
               >
                 <CardContent className="flex items-center gap-4 p-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">

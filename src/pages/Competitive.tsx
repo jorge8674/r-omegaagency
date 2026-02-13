@@ -217,7 +217,55 @@ export default function Competitive() {
                   </div>
                 );
               })()}
-              {benchmarkResult && <ResultBlock data={benchmarkResult} />}
+              {benchmarkResult && (() => {
+                const b = benchmarkResult?.data || benchmarkResult;
+                return (
+                  <div className="space-y-4 mt-4">
+                    <div className="flex gap-3 flex-wrap items-center">
+                      <span className="px-3 py-1 bg-primary rounded text-sm font-bold text-primary-foreground">
+                        {b.client_name} vs {b.competitor_name}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Tus métricas</p>
+                        <p className="text-sm">Followers: <span className="font-bold">{b.client_metrics?.followers?.toLocaleString()}</span></p>
+                        <p className="text-sm">Engagement: <span className="font-bold">{((b.client_metrics?.engagement_rate || 0) * 100).toFixed(1)}%</span></p>
+                        <p className="text-sm">Frecuencia: <span className="font-bold">{b.client_metrics?.posting_frequency}/sem</span></p>
+                      </div>
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Competidor</p>
+                        <p className="text-sm">Followers: <span className="font-bold">{b.competitor_metrics?.followers?.toLocaleString()}</span></p>
+                        <p className="text-sm">Engagement: <span className="font-bold">{((b.competitor_metrics?.engagement_rate || 0) * 100).toFixed(1)}%</span></p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-primary mb-2">💪 Tus ventajas</p>
+                        {b.client_advantages?.map((a: string, i: number) => (
+                          <p key={i} className="text-sm">• {a}</p>
+                        ))}
+                      </div>
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-destructive mb-2">⚡ Ventajas del competidor</p>
+                        {b.competitor_advantages?.map((a: string, i: number) => (
+                          <p key={i} className="text-sm">• {a}</p>
+                        ))}
+                      </div>
+                    </div>
+                    {b.opportunities?.length > 0 && (
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-primary mb-2">🚀 Oportunidades</p>
+                        <div className="flex gap-2 flex-wrap">
+                          {b.opportunities.map((o: string, i: number) => (
+                            <Badge key={i} variant="secondary">{o}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               {gapsResult && (() => {
                 const g = gapsResult?.data || gapsResult;
                 return (

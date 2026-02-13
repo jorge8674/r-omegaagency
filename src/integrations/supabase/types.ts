@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_providers: {
+        Row: {
+          capabilities: string[]
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          capabilities?: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          capabilities?: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -48,6 +78,57 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_ai_config: {
+        Row: {
+          active_providers: string[]
+          budget_used: number | null
+          client_id: string
+          created_at: string
+          id: string
+          monthly_budget: number | null
+          organization_id: string
+          package: string
+          updated_at: string
+        }
+        Insert: {
+          active_providers?: string[]
+          budget_used?: number | null
+          client_id: string
+          created_at?: string
+          id?: string
+          monthly_budget?: number | null
+          organization_id: string
+          package?: string
+          updated_at?: string
+        }
+        Update: {
+          active_providers?: string[]
+          budget_used?: number | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          monthly_budget?: number | null
+          organization_id?: string
+          package?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_ai_config_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_ai_config_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -101,6 +182,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "clients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_ai_keys: {
+        Row: {
+          api_key_encrypted: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          organization_id: string
+          provider_slug: string
+          updated_at: string
+        }
+        Insert: {
+          api_key_encrypted: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          organization_id: string
+          provider_slug: string
+          updated_at?: string
+        }
+        Update: {
+          api_key_encrypted?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string
+          provider_slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_ai_keys_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

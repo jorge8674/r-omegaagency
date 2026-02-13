@@ -14,8 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Users, Globe, UserCheck, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, Globe, UserCheck, FileText, Loader2, Bot } from "lucide-react";
 import { ClientSocialAccounts } from "@/components/clients/ClientSocialAccounts";
+import { ClientAIConfig } from "@/components/clients/ClientAIConfig";
 
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -133,7 +134,7 @@ export default function ClientDetail() {
 
       {/* Tabs */}
       <Tabs defaultValue="social" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
           <TabsTrigger value="social" className="gap-1.5">
             <Globe className="h-3.5 w-3.5" />
             Cuentas
@@ -141,6 +142,10 @@ export default function ClientDetail() {
           <TabsTrigger value="agent" className="gap-1.5">
             <UserCheck className="h-3.5 w-3.5" />
             Agente
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="gap-1.5">
+            <Bot className="h-3.5 w-3.5" />
+            AI
           </TabsTrigger>
           <TabsTrigger value="posts" className="gap-1.5">
             <FileText className="h-3.5 w-3.5" />
@@ -199,6 +204,11 @@ export default function ClientDetail() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* AI Config Tab */}
+        <TabsContent value="ai">
+          <ClientAIConfig clientId={client.id} organizationId={client.organization_id} />
         </TabsContent>
 
         {/* Posts Tab */}

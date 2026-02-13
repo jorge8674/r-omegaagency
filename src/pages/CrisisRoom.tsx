@@ -56,7 +56,8 @@ export default function CrisisRoom() {
       console.log('platform value:', signalsPayload.platform);
       const result = await api.assessCrisis(signalsPayload);
       console.log('Crisis assessment result:', JSON.stringify(result, null, 2));
-      setAssessment(result);
+      const data = result?.data || result;
+      setAssessment(data);
       toast({ title: "✅ Crisis evaluada" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -68,8 +69,9 @@ export default function CrisisRoom() {
   const handleDraftStatement = async () => {
     setDraftingStatement(true);
     try {
-      const result = await api.draftStatement({ assessment, brand_name: "Cliente" });
-      setStatement(typeof result === "string" ? result : result?.statement || JSON.stringify(result, null, 2));
+      const result = await api.draftStatement({ assessment, brand_voice: "professional", brand_name: "Cliente" });
+      const stmt = result?.data?.statement || result?.statement || (typeof result === "string" ? result : JSON.stringify(result?.data || result, null, 2));
+      setStatement(stmt);
       toast({ title: "✅ Statement generado" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -82,7 +84,7 @@ export default function CrisisRoom() {
     setPlanningRecovery(true);
     try {
       const result = await api.recoveryPlan(assessment);
-      setRecovery(result);
+      setRecovery(result?.data || result);
       toast({ title: "✅ Plan de recovery generado" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -118,8 +120,8 @@ export default function CrisisRoom() {
     }
   };
 
-  // Extract nested data from API response
-  const assessmentData = assessment?.data || assessment;
+  // assessment is already result.data (extracted in handleAssess)
+  const assessmentData = assessment;
   const crisisLevelObj = assessmentData?.crisis_level;
   const crisisLevel = crisisLevelObj?.level || assessmentData?.level || assessmentData?.crisis_level;
   const crisisScore = crisisLevelObj?.score ?? assessmentData?.score;
@@ -271,15 +273,36 @@ export default function CrisisRoom() {
                 </div>
 
                 {statement && (
-                  <div className="rounded-lg bg-secondary/50 p-3 mt-2">
-                    <p className="text-xs text-muted-foreground mb-1">Statement:</p>
-                    <p className="text-sm whitespace-pre-wrap">{statement}</p>
+                  <div className="rounded-lg bg-secondary/50 p-3 mt-2 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground font-medium">Statement:</p>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { navigator.clipboard.writeText(statement); toast({ title: "Copiado al portapapeles" }); }}>
+                        Copiar
+                      </Button>
+                    </div>
+                    <Textarea value={statement} readOnly rows={6} className="text-sm bg-background/50" />
                   </div>
                 )}
                 {recovery && (
                   <div className="rounded-lg bg-secondary/50 p-3 mt-2">
-                    <p className="text-xs text-muted-foreground mb-1">Recovery Plan:</p>
-                    <pre className="text-sm whitespace-pre-wrap">{typeof recovery === "string" ? recovery : JSON.stringify(recovery, null, 2)}</pre>
+                    <p className="text-xs text-muted-foreground mb-2 font-medium">Recovery Plan:</p>
+                    {Array.isArray(recovery?.steps || recovery?.plan) ? (
+                      <ol className="space-y-2 text-sm list-decimal list-inside">
+                        {(recovery.steps || recovery.plan).map((step: any, i: number) => (
+                          <li key={i} className="rounded-md bg-background/50 p-2">
+                            <span className="font-medium">{step.action || step.step || step.description || step}</span>
+                            {(step.responsible || step.deadline) && (
+                              <div className="flex gap-3 mt-1 text-xs text-muted-foreground ml-5">
+                                {step.responsible && <span>👤 {step.responsible}</span>}
+                                {step.deadline && <span>📅 {step.deadline}</span>}
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <pre className="text-sm whitespace-pre-wrap">{typeof recovery === "string" ? recovery : JSON.stringify(recovery, null, 2)}</pre>
+                    )}
                   </div>
                 )}
               </>

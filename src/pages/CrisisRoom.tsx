@@ -35,7 +35,7 @@ export default function CrisisRoom() {
 
   const [comment, setComment] = useState("");
   const [responding, setResponding] = useState(false);
-  const [response, setResponse] = useState("");
+  const [response, setResponse] = useState<any>(null);
   const [bulkComments, setBulkComments] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [sentimentResults, setSentimentResults] = useState<any>(null);
@@ -95,10 +95,10 @@ export default function CrisisRoom() {
   };
 
   const handleRespond = async () => {
-    setResponding(true);
     try {
       const result = await api.respondComment(comment, platform, "professional");
-      setResponse(typeof result === "string" ? result : result?.response || JSON.stringify(result, null, 2));
+      const data = result?.data || result;
+      setResponse(data);
       toast({ title: "✅ Respuesta generada" });
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -329,11 +329,36 @@ export default function CrisisRoom() {
             <Button className="w-full" onClick={handleRespond} disabled={responding || !comment}>
               {responding ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Generar Respuesta'}
             </Button>
-            {response && (
-              <div className="rounded-lg bg-secondary/50 p-3">
-                <p className="text-sm whitespace-pre-wrap">{response}</p>
-              </div>
-            )}
+            {response && (() => {
+              const parsed = typeof response === "string" ? (() => { try { return JSON.parse(response); } catch { return null; } })() : response;
+              const respText = parsed?.response || parsed?.data?.response || (typeof response === "string" && !parsed ? response : "");
+              const sentiment = parsed?.sentiment || parsed?.data?.sentiment;
+              const tips = parsed?.handling_tips || parsed?.data?.handling_tips || [];
+              const alts = parsed?.suggested_alternatives || parsed?.data?.suggested_alternatives || [];
+              const sentimentColor = (s: string) => s === "negative" ? "destructive" : s === "positive" ? "default" : "secondary";
+              const sentimentLabel = (s: string) => s === "negative" ? "NEGATIVO" : s === "positive" ? "POSITIVO" : "NEUTRAL";
+              return (
+                <div className="rounded-lg bg-secondary/50 p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    {sentiment && <Badge variant={sentimentColor(sentiment)}>{sentimentLabel(sentiment)}</Badge>}
+                    <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { navigator.clipboard.writeText(respText); toast({ title: "Copiado" }); }}>Copiar</Button>
+                  </div>
+                  <Textarea value={respText} readOnly rows={4} className="text-sm bg-background/50" />
+                  {tips.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">Consejos:</p>
+                      <ul className="list-disc list-inside text-sm space-y-1">{tips.map((t: string, i: number) => <li key={i}>{t}</li>)}</ul>
+                    </div>
+                  )}
+                  {alts.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">Alternativas:</p>
+                      <ul className="list-disc list-inside text-sm space-y-1">{alts.map((a: string, i: number) => <li key={i}>{a}</li>)}</ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
@@ -348,11 +373,29 @@ export default function CrisisRoom() {
             <Button className="w-full" onClick={handleBulkAnalyze} disabled={analyzing || !bulkComments}>
               {analyzing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Analizar Sentimiento'}
             </Button>
-            {sentimentResults && (
-              <div className="rounded-lg bg-secondary/50 p-3">
-                <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(sentimentResults, null, 2)}</pre>
-              </div>
-            )}
+            {sentimentResults && (() => {
+              const analyses = sentimentResults?.data?.analyses || sentimentResults?.analyses || (Array.isArray(sentimentResults?.data) ? sentimentResults.data : Array.isArray(sentimentResults) ? sentimentResults : []);
+              const allText = analyses.map((a: any) => `${a.comment}: ${a.sentiment} (${Math.round((a.score || 0) * 100)}%)`).join("\n");
+              const sentColor = (s: string) => s === "negative" ? "destructive" : s === "positive" ? "default" : "secondary";
+              const sentLabel = (s: string) => s === "negative" ? "NEGATIVO" : s === "positive" ? "POSITIVO" : "NEUTRAL";
+              return (
+                <div className="rounded-lg bg-secondary/50 p-3 space-y-2">
+                  <div className="flex justify-end">
+                    <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { navigator.clipboard.writeText(allText); toast({ title: "Copiado" }); }}>Copiar todo</Button>
+                  </div>
+                  {analyses.length > 0 ? analyses.map((a: any, i: number) => (
+                    <div key={i} className="border border-border/30 rounded-lg p-3 space-y-1">
+                      <p className="text-sm">{a.comment}</p>
+                      <div className="flex items-center gap-3">
+                        <Badge variant={sentColor(a.sentiment)}>{sentLabel(a.sentiment)}</Badge>
+                        <div className="flex-1"><Progress value={(a.score || 0) * 100} className="h-2" /></div>
+                        <span className="text-xs text-muted-foreground font-medium">{Math.round((a.score || 0) * 100)}%</span>
+                      </div>
+                    </div>
+                  )) : <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(sentimentResults, null, 2)}</pre>}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>

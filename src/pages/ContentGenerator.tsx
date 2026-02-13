@@ -95,11 +95,18 @@ export default function ContentGenerator() {
 
   const handleGenerateImage = async () => {
     setGeneratingImage(true);
+    setImageUrl(null);
     try {
       const result = await api.generateImage(topicWithLang(prompt));
-      const url = extractField(result, "image_url", "url");
-      setImageUrl(typeof url === "string" ? url : null);
-      toast({ title: "✅ Imagen generada" });
+      console.log("Image API result:", JSON.stringify(result));
+      const url = result?.data?.image_url || result?.image_url || extractField(result, "image_url", "url");
+      if (typeof url === "string" && url.startsWith("http")) {
+        setImageUrl(url);
+        toast({ title: "✅ Imagen generada" });
+      } else {
+        console.error("No valid image_url found in response:", result);
+        toast({ title: "Error", description: "No se encontró URL de imagen en la respuesta", variant: "destructive" });
+      }
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {

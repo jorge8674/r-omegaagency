@@ -11,10 +11,13 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
-import Content from "./pages/Content";
+import ContentGenerator from "./pages/ContentGenerator";
 import CalendarPage from "./pages/Calendar";
 import Media from "./pages/Media";
 import Analytics from "./pages/Analytics";
+import CrisisRoom from "./pages/CrisisRoom";
+import Competitive from "./pages/Competitive";
+import Growth from "./pages/Growth";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -59,7 +62,7 @@ const App = () => (
                 path="/content"
                 element={
                   <ProtectedRoute>
-                    <AppLayout><Content /></AppLayout>
+                    <AppLayout><ContentGenerator /></AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -84,6 +87,30 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <AppLayout><Analytics /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/crisis"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout><CrisisRoom /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/competitive"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout><Competitive /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/growth"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout><Growth /></AppLayout>
                   </ProtectedRoute>
                 }
               />

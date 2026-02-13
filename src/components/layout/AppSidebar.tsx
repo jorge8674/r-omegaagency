@@ -1,11 +1,13 @@
 import {
   LayoutDashboard,
   Users,
-  FileText,
+  Sparkles,
   CalendarDays,
   BarChart3,
   Settings,
-  ImageIcon,
+  AlertTriangle,
+  Search,
+  Rocket,
 } from "lucide-react";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
@@ -22,21 +24,34 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Clientes", url: "/clients", icon: Users },
-  { title: "Contenido", url: "/content", icon: FileText },
+  { title: "Contenido", url: "/content", icon: Sparkles },
   { title: "Calendario", url: "/calendar", icon: CalendarDays },
-  { title: "Media", url: "/media", icon: ImageIcon },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Competitive", url: "/competitive", icon: Search },
+  { title: "Crisis Room", url: "/crisis", icon: AlertTriangle },
+  { title: "Growth", url: "/growth", icon: Rocket },
 ];
 
 const configItems = [
+  { title: "Clientes", url: "/clients", icon: Users },
   { title: "Configuración", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
+  const { data: health } = useQuery({
+    queryKey: ["system-health-sidebar"],
+    queryFn: () => api.systemHealth(),
+    refetchInterval: 30000,
+    retry: 1,
+  });
+
+  const isOnline = health && !health?.error;
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
@@ -101,9 +116,9 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center gap-2 rounded-lg bg-sidebar-accent/50 p-2 group-data-[collapsible=icon]:justify-center">
-          <div className="h-2 w-2 rounded-full bg-success shrink-0" />
+          <div className={`h-2 w-2 rounded-full shrink-0 ${isOnline ? 'bg-success' : 'bg-destructive'}`} />
           <span className="text-xs text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-            Sistema activo
+            {isOnline ? "Sistema activo" : "Sin conexión"}
           </span>
         </div>
       </SidebarFooter>

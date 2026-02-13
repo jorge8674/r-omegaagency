@@ -197,9 +197,125 @@ export default function Analytics() {
               </Card>
             );
           })()}
-          {insightsResult && <Card className="border-border/50 bg-card/80 backdrop-blur-sm"><CardHeader className="pb-2"><CardTitle className="text-sm">Insights</CardTitle></CardHeader><CardContent><ResultBlock data={insightsResult} /></CardContent></Card>}
-          {forecastResult && <Card className="border-border/50 bg-card/80 backdrop-blur-sm"><CardHeader className="pb-2"><CardTitle className="text-sm">Forecast</CardTitle></CardHeader><CardContent><ResultBlock data={forecastResult} /></CardContent></Card>}
-          {reportResult && <Card className="border-border/50 bg-card/80 backdrop-blur-sm"><CardHeader className="pb-2"><CardTitle className="text-sm">Reporte Mensual</CardTitle></CardHeader><CardContent><ResultBlock data={reportResult} /></CardContent></Card>}
+          {insightsResult && (() => {
+            const ir = insightsResult?.data || insightsResult;
+            const insightsText = ir?.insights || ir?.response_text || '';
+            return (
+              <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+                <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Brain className="h-4 w-4 text-primary" /> Insights</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  {insightsText && (
+                    <div className="bg-secondary/50 rounded-lg p-4">
+                      <div className="text-sm leading-relaxed whitespace-pre-line">{insightsText}</div>
+                    </div>
+                  )}
+                  {ir?.metrics_analyzed?.length > 0 && (
+                    <p className="text-xs text-muted-foreground">Métricas analizadas: {ir.metrics_analyzed.join(', ')}</p>
+                  )}
+                  {ir?.generated_at && (
+                    <p className="text-xs text-muted-foreground">Generado: {new Date(ir.generated_at).toLocaleString('es-ES')}</p>
+                  )}
+                  {!insightsText && <ResultBlock data={insightsResult} />}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {forecastResult && (() => {
+            const fr = forecastResult?.data || forecastResult;
+            const forecastList = fr?.forecast || [];
+            return (
+              <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+                <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><LineChart className="h-4 w-4 text-primary" /> Forecast</CardTitle></CardHeader>
+                <CardContent>
+                  {Array.isArray(forecastList) && forecastList.length > 0 ? (
+                    <div className="space-y-2">
+                      {forecastList.map((f: any, i: number) => (
+                        <div key={i} className="bg-secondary/50 rounded-lg p-3">
+                          <p className="font-medium text-sm">{f.metric || f.label || `Predicción ${i + 1}`}</p>
+                          {f.value != null && <p className="text-lg font-bold text-primary">{f.value}</p>}
+                          {f.description && <p className="text-xs text-muted-foreground">{f.description}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-secondary/50 rounded-lg p-4 text-center">
+                      <p className="text-sm text-muted-foreground">{fr?.message || forecastResult?.message || 'No hay datos suficientes para forecast.'}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {reportResult && (() => {
+            const rr = reportResult?.data || reportResult;
+            return (
+              <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+                <CardHeader className="pb-2"><CardTitle className="text-sm">📊 Reporte Mensual — {rr?.client_name || ''}</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  {rr?.overall_score != null && (
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/20 rounded-lg p-3 text-center">
+                        <p className="text-3xl font-bold text-primary">{rr.overall_score}/10</p>
+                        <p className="text-xs text-muted-foreground">Score General</p>
+                      </div>
+                    </div>
+                  )}
+                  {rr?.executive_summary && (
+                    <div className="bg-secondary/50 rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground mb-2 font-semibold">Resumen Ejecutivo</p>
+                      <div className="text-sm leading-relaxed whitespace-pre-line">{rr.executive_summary}</div>
+                    </div>
+                  )}
+                  {rr?.key_wins?.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-primary mb-1">🏆 Logros Clave</p>
+                      {rr.key_wins.map((w: string, i: number) => (
+                        <p key={i} className="text-sm text-muted-foreground">✅ {w}</p>
+                      ))}
+                    </div>
+                  )}
+                  {rr?.sections?.map((sec: any, si: number) => (
+                    <div key={si} className="bg-secondary/30 rounded-lg p-3 space-y-2">
+                      <p className="font-medium text-sm">{sec.title}</p>
+                      {sec.metrics?.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {sec.metrics.map((m: any, mi: number) => (
+                            <div key={mi} className="bg-secondary/50 rounded-lg p-2 text-center">
+                              <p className="text-lg font-bold text-primary">{typeof m.current_value === 'number' && m.current_value < 1 ? (m.current_value * 100).toFixed(1) + '%' : m.current_value?.toLocaleString()}</p>
+                              <p className="text-xs text-muted-foreground">{m.metric_name?.replace(/_/g, ' ')}</p>
+                              {m.change_percentage != null && (
+                                <p className={`text-xs font-semibold ${m.is_positive ? 'text-green-500' : 'text-destructive'}`}>
+                                  {m.is_positive ? '↑' : '↓'} {m.change_percentage}%
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {sec.recommendations?.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground font-semibold mb-1">Recomendaciones:</p>
+                          {sec.recommendations.map((r: string, ri: number) => (
+                            <p key={ri} className="text-sm">💡 {r}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {rr?.next_period_goals?.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-primary mb-1">🎯 Metas Próximo Período</p>
+                      {rr.next_period_goals.map((g: string, i: number) => (
+                        <p key={i} className="text-sm text-muted-foreground">• {g}</p>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
         </TabsContent>
       </Tabs>
     </div>

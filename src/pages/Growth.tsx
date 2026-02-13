@@ -126,7 +126,8 @@ export default function Growth() {
   };
 
   const OpportunityCards = ({ data }: { data: any }) => {
-    const opportunities = data?.data?.opportunities || data?.opportunities || data?.data || [];
+    const raw = data?.data || data;
+    const opportunities = raw?.opportunities || raw?.data || (Array.isArray(raw) ? raw : []);
     if (Array.isArray(opportunities) && opportunities.length > 0 && opportunities[0]?.title) {
       return (
         <div className="mt-3 space-y-3">
@@ -135,8 +136,8 @@ export default function Growth() {
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-medium text-sm">{opp.title}</h4>
                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                  opp.potential_impact === 'high' ? 'bg-success/20 text-success' :
-                  opp.potential_impact === 'medium' ? 'bg-chart-3/20 text-chart-3' : 'bg-muted text-muted-foreground'
+                  opp.potential_impact === 'high' ? 'bg-green-500/20 text-green-400' :
+                  opp.potential_impact === 'medium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-muted text-muted-foreground'
                 }`}>
                   {opp.potential_impact?.toUpperCase()} IMPACT
                 </span>
@@ -152,6 +153,76 @@ export default function Growth() {
       );
     }
     return <ResultBlock data={data} />;
+  };
+
+  const QuickWinsList = ({ data }: { data: any }) => {
+    const raw = data?.data || data;
+    const wins = raw?.quick_wins || raw?.data || (Array.isArray(raw) ? raw : []);
+    if (Array.isArray(wins) && wins.length > 0) {
+      return (
+        <div className="mt-3 space-y-2">
+          {wins.map((w: any, i: number) => (
+            <div key={i} className="border border-border/50 rounded-lg p-3 bg-secondary/30">
+              <p className="text-sm whitespace-pre-line">{typeof w === 'string' ? w : w.title || w.description || JSON.stringify(w)}</p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return <ResultBlock data={data} />;
+  };
+
+  const BrandProfileCard = ({ data }: { data: any }) => {
+    const raw = data?.data || data;
+    if (!raw?.brand_name && !raw?.tone) return <ResultBlock data={data} />;
+    return (
+      <div className="mt-3 border border-border/50 rounded-lg p-4 bg-secondary/30 space-y-3">
+        <div className="flex justify-between items-center">
+          <h4 className="font-medium">{raw.brand_name}</h4>
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary/20 text-primary">{raw.tone}</span>
+        </div>
+        {raw.personality_traits?.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {raw.personality_traits.map((t: string, i: number) => (
+              <span key={i} className="px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground">{t}</span>
+            ))}
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+          <span>😀 Emojis: {raw.emoji_usage || 'N/A'}</span>
+          <span>📏 Formalidad: {raw.formality_level ?? 'N/A'}/10</span>
+        </div>
+        {raw.sample_posts?.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Posts de ejemplo:</p>
+            {raw.sample_posts.map((p: string, i: number) => (
+              <p key={i} className="text-sm">• {p}</p>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const ExperimentCard = ({ data }: { data: any }) => {
+    const raw = data?.data || data;
+    if (!raw?.experiment_id && !raw?.hypothesis) return <ResultBlock data={data} />;
+    return (
+      <div className="mt-3 border border-border/50 rounded-lg p-4 bg-secondary/30 space-y-2">
+        <div className="flex justify-between items-center">
+          <h4 className="font-medium text-sm">{raw.hypothesis}</h4>
+          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+            raw.status === 'draft' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
+          }`}>{raw.status?.toUpperCase()}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+          <span>🔬 Variable: {raw.variable_tested}</span>
+          <span>📱 Plataforma: {raw.platform}</span>
+          <span>👥 Muestra: {raw.target_sample_size}</span>
+          <span>🆔 {raw.experiment_id}</span>
+        </div>
+      </div>
+    );
   };
 
   const ResultBlock = ({ data }: { data: any }) => (
@@ -207,7 +278,7 @@ export default function Growth() {
                 </Button>
               </div>
               {oppsResult && <OpportunityCards data={oppsResult} />}
-              {quickWinsResult && <OpportunityCards data={quickWinsResult} />}
+              {quickWinsResult && <QuickWinsList data={quickWinsResult} />}
             </CardContent>
           </Card>
         </TabsContent>
@@ -228,7 +299,7 @@ export default function Growth() {
                 {creatingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Crear Perfil
               </Button>
-              {brandProfile && <ResultBlock data={brandProfile} />}
+              {brandProfile && <BrandProfileCard data={brandProfile} />}
 
               {brandProfile && (
                 <div className="border-t border-border pt-3 space-y-3">
@@ -266,7 +337,7 @@ export default function Growth() {
                 {designing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Diseñar Experimento
               </Button>
-              {experimentResult && <ResultBlock data={experimentResult} />}
+              {experimentResult && <ExperimentCard data={experimentResult} />}
             </CardContent>
           </Card>
         </TabsContent>

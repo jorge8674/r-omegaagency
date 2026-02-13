@@ -84,8 +84,14 @@ export const api = {
     apiCall('/brand-voice/validate-content', 'POST', { content, brand_profile: profile }),
   improveContent: (content: string, profile: Record<string, unknown>) =>
     apiCall('/brand-voice/improve-content', 'POST', { content, brand_profile: profile }),
-  createBrandProfile: (data: Record<string, unknown>) =>
-    apiCall('/brand-voice/create-profile', 'POST', data),
+  createBrandProfile: (brandName: string, description: string, samplePosts: string[] | string) =>
+    apiCall('/brand-voice/create-profile', 'POST', {
+      client_name: brandName,
+      brand_description: description,
+      sample_posts: Array.isArray(samplePosts)
+        ? samplePosts
+        : samplePosts?.split('\n').filter(Boolean) || [],
+    }),
 
   // ─── Competitive ────────────────────────────────────────
   analyzeCompetitor: (name: string, platform: string, url?: string) =>
@@ -129,8 +135,13 @@ export const api = {
   // ─── Growth ─────────────────────────────────────────────
   identifyOpportunities: (data: Record<string, unknown>) =>
     apiCall('/growth/identify-opportunities', 'POST', data),
-  quickWins: (data: Record<string, unknown>) =>
-    apiCall('/growth/quick-wins', 'POST', data),
+  quickWins: (niche: string, platform: string) =>
+    apiCall('/growth/quick-wins', 'POST', {
+      niche,
+      platform,
+      account_type: 'business',
+      current_metrics: {},
+    }),
 
   // ─── Video ──────────────────────────────────────────────
   writeScript: (data: Record<string, unknown>) =>
@@ -149,8 +160,14 @@ export const api = {
     apiCall('/scheduling/optimal-times', 'POST', { platform, audience_timezone: timezone, content_type: 'post' }),
 
   // ─── A/B Testing ────────────────────────────────────────
-  designExperiment: (data: Record<string, unknown>) =>
-    apiCall('/ab-testing/design-experiment', 'POST', data),
+  designExperiment: (hypothesis: string, variant?: string, platform?: string) =>
+    apiCall('/ab-testing/design-experiment', 'POST', {
+      hypothesis,
+      baseline_content: variant || hypothesis,
+      variant_content: variant || hypothesis,
+      platform: platform || 'instagram',
+      metric_to_optimize: 'engagement',
+    }),
   analyzeResults: (experiment: Record<string, unknown>) =>
     apiCall('/ab-testing/analyze-results', 'POST', { experiment }),
 

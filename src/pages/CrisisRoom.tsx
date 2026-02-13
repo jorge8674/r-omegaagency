@@ -51,6 +51,7 @@ export default function CrisisRoom() {
         platform,
       };
       console.log('Crisis payload:', JSON.stringify({ signals: signalsPayload }, null, 2));
+      console.log('platform value:', signalsPayload.platform);
       const result = await api.assessCrisis(signalsPayload);
       setAssessment(result);
       toast({ title: "✅ Crisis evaluada" });

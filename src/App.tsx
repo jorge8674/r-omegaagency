@@ -21,6 +21,7 @@ import Growth from "./pages/Growth";
 import SettingsPage from "./pages/SettingsPage";
 import AdminResellers from "./pages/AdminResellers";
 import ResellerDashboard from "./pages/ResellerDashboard";
+import ResellerBranding from "./pages/ResellerBranding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -137,6 +138,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <AppLayout><ResellerDashboard /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reseller/branding"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout><ResellerBranding /></AppLayout>
                   </ProtectedRoute>
                 }
               />

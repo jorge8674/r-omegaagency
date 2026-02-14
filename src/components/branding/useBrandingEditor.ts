@@ -110,25 +110,30 @@ export function useBrandingEditor() {
     try {
       const base = (import.meta.env.VITE_API_URL || "https://omegaraisen-production.up.railway.app/api/v1");
       const url = `${base}/resellers/${resellerId}/branding`;
+      const sanitizeDict = (val: unknown) => {
+        if (!val || Array.isArray(val)) return {};
+        return val;
+      };
       const payload: Record<string, unknown> = {
-        ...branding,
+        agency_name: branding.agency_name || null,
+        logo_url: branding.logo_url || null,
         primary_color: branding.primary_color || "#d4891a",
         secondary_color: branding.secondary_color || "#1e2030",
+        hero_type: branding.hero_type || "image",
+        hero_media_url: branding.hero_media_url || null,
+        hero_title: branding.hero_title || null,
+        hero_subtitle: branding.hero_subtitle || null,
         hero_cta_text: branding.hero_cta_text || "Comenzar",
         hero_cta_url: branding.hero_cta_url || null,
-        hero_media_url: branding.hero_media_url || null,
-        logo_url: branding.logo_url || null,
-        pain_section: sanitizeObj(branding.pain_section),
-        solutions_section: sanitizeObj(branding.solutions_section),
-        services_section: sanitizeObj(branding.services_section),
-        metrics_section: sanitizeObj(branding.metrics_section),
-        process_section: sanitizeObj(branding.process_section),
-        testimonials: sanitizeObj(branding.testimonials),
-        client_logos: sanitizeObj(branding.client_logos),
-        social_links: sanitizeObj(branding.social_links),
+        pain_section: sanitizeDict(branding.pain_section),
+        solutions_section: sanitizeDict(branding.solutions_section),
+        services_section: sanitizeDict(branding.services_section),
+        metrics_section: sanitizeDict(branding.metrics_section),
+        process_section: sanitizeDict(branding.process_section),
         contact_email: branding.contact_email || null,
         contact_phone: branding.contact_phone || null,
         footer_text: branding.footer_text || null,
+        social_links: sanitizeDict(branding.social_links),
       };
       console.log("BRANDING SAVE PAYLOAD:", JSON.stringify(payload, null, 2));
       const response = await fetch(url, {

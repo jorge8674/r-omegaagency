@@ -28,47 +28,6 @@ const AuthContext = createContext<AuthContextType>({
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://omegaraisen-production.up.railway.app/api/v1";
 
-// Mock login until backend endpoint is confirmed
-const mockLogin = async (email: string, _password: string): Promise<{ token: string; user: AuthUser }> => {
-  await new Promise((r) => setTimeout(r, 800));
-  if (email === "test@agenciatest.com") {
-    return {
-      token: "mock-token-reseller",
-      user: {
-        email,
-        role: "reseller",
-        reseller_id: "8ebe5f95-c470-4eff-bd06-5aa8446e7a51",
-        client_id: null,
-        redirect_to: "/reseller/dashboard",
-      },
-    };
-  }
-  if (email === "ibrain@r-omega.agency") {
-    return {
-      token: "mock-token-owner",
-      user: {
-        email,
-        role: "owner",
-        reseller_id: null,
-        client_id: null,
-        redirect_to: "/admin/resellers",
-      },
-    };
-  }
-  if (email === "agent@test.com") {
-    return {
-      token: "mock-token-agent",
-      user: {
-        email,
-        role: "agent",
-        reseller_id: null,
-        client_id: null,
-        redirect_to: "/dashboard",
-      },
-    };
-  }
-  throw new Error("Credenciales inválidas");
-};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -92,17 +51,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<AuthUser> => {
-    // TODO: Replace mock with real API call when backend confirms
-    // const res = await fetch(`${API_BASE}/auth/login`, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ email, password }),
-    // });
-    // if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Credenciales inválidas"); }
-    // const data = await res.json();
-    // const authUser = data.user; const authToken = data.token;
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await response.json();
 
-    const { token: authToken, user: authUser } = await mockLogin(email, password);
+    if (!response.ok || !data.success) {
+      throw new Error(data.detail || data.message || "Credenciales inválidas");
+    }
+
+    const authUser: AuthUser = data.data;
+    const authToken: string = data.token;
 
     setToken(authToken);
     setUser(authUser);

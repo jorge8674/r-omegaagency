@@ -140,44 +140,74 @@ export type Database = {
         Row: {
           active: boolean
           assigned_to: string | null
+          budget_operative_60: number | null
+          budget_reserve_40: number | null
           company: string | null
           created_at: string
           email: string | null
+          human_hours_package: string | null
+          human_supervision: boolean | null
           id: string
+          monthly_budget_total: number | null
           name: string
           notes: string | null
           organization_id: string
           phone: string | null
           plan: string | null
+          reseller_id: string | null
+          stripe_customer_id: string | null
+          trial_active: boolean | null
+          trial_ends_at: string | null
           updated_at: string
+          white_label_plan: string | null
         }
         Insert: {
           active?: boolean
           assigned_to?: string | null
+          budget_operative_60?: number | null
+          budget_reserve_40?: number | null
           company?: string | null
           created_at?: string
           email?: string | null
+          human_hours_package?: string | null
+          human_supervision?: boolean | null
           id?: string
+          monthly_budget_total?: number | null
           name: string
           notes?: string | null
           organization_id: string
           phone?: string | null
           plan?: string | null
+          reseller_id?: string | null
+          stripe_customer_id?: string | null
+          trial_active?: boolean | null
+          trial_ends_at?: string | null
           updated_at?: string
+          white_label_plan?: string | null
         }
         Update: {
           active?: boolean
           assigned_to?: string | null
+          budget_operative_60?: number | null
+          budget_reserve_40?: number | null
           company?: string | null
           created_at?: string
           email?: string | null
+          human_hours_package?: string | null
+          human_supervision?: boolean | null
           id?: string
+          monthly_budget_total?: number | null
           name?: string
           notes?: string | null
           organization_id?: string
           phone?: string | null
           plan?: string | null
+          reseller_id?: string | null
+          stripe_customer_id?: string | null
+          trial_active?: boolean | null
+          trial_ends_at?: string | null
           updated_at?: string
+          white_label_plan?: string | null
         }
         Relationships: [
           {
@@ -185,6 +215,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
             referencedColumns: ["id"]
           },
         ]
@@ -338,6 +375,184 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reseller_agents: {
+        Row: {
+          created_at: string | null
+          email: string
+          hourly_rate: number | null
+          id: string
+          name: string
+          reseller_id: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          hourly_rate?: number | null
+          id?: string
+          name: string
+          reseller_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          hourly_rate?: number | null
+          id?: string
+          name?: string
+          reseller_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_agents_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reseller_branding: {
+        Row: {
+          agency_tagline: string | null
+          badge_text: string | null
+          footer_email: string | null
+          footer_phone: string | null
+          hero_cta_text: string | null
+          hero_media_type: string | null
+          hero_media_url: string | null
+          id: string
+          legal_pages: Json | null
+          logo_url: string | null
+          metrics: Json | null
+          pain_items: Json | null
+          primary_color: string | null
+          process_steps: Json | null
+          reseller_id: string | null
+          secondary_color: string | null
+          services: Json | null
+          social_links: Json | null
+          solution_items: Json | null
+          testimonials: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          agency_tagline?: string | null
+          badge_text?: string | null
+          footer_email?: string | null
+          footer_phone?: string | null
+          hero_cta_text?: string | null
+          hero_media_type?: string | null
+          hero_media_url?: string | null
+          id?: string
+          legal_pages?: Json | null
+          logo_url?: string | null
+          metrics?: Json | null
+          pain_items?: Json | null
+          primary_color?: string | null
+          process_steps?: Json | null
+          reseller_id?: string | null
+          secondary_color?: string | null
+          services?: Json | null
+          social_links?: Json | null
+          solution_items?: Json | null
+          testimonials?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          agency_tagline?: string | null
+          badge_text?: string | null
+          footer_email?: string | null
+          footer_phone?: string | null
+          hero_cta_text?: string | null
+          hero_media_type?: string | null
+          hero_media_url?: string | null
+          id?: string
+          legal_pages?: Json | null
+          logo_url?: string | null
+          metrics?: Json | null
+          pain_items?: Json | null
+          primary_color?: string | null
+          process_steps?: Json | null
+          reseller_id?: string | null
+          secondary_color?: string | null
+          services?: Json | null
+          social_links?: Json | null
+          solution_items?: Json | null
+          testimonials?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_branding_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resellers: {
+        Row: {
+          agency_name: string
+          clients_migrated: boolean | null
+          created_at: string | null
+          days_overdue: number | null
+          id: string
+          monthly_revenue_reported: number | null
+          omega_commission_rate: number | null
+          owner_email: string
+          owner_name: string
+          payment_due_date: string | null
+          slug: string
+          status: string | null
+          stripe_account_id: string | null
+          stripe_customer_id: string | null
+          suspend_switch: boolean | null
+          updated_at: string | null
+          white_label_active: boolean | null
+        }
+        Insert: {
+          agency_name: string
+          clients_migrated?: boolean | null
+          created_at?: string | null
+          days_overdue?: number | null
+          id?: string
+          monthly_revenue_reported?: number | null
+          omega_commission_rate?: number | null
+          owner_email: string
+          owner_name: string
+          payment_due_date?: string | null
+          slug: string
+          status?: string | null
+          stripe_account_id?: string | null
+          stripe_customer_id?: string | null
+          suspend_switch?: boolean | null
+          updated_at?: string | null
+          white_label_active?: boolean | null
+        }
+        Update: {
+          agency_name?: string
+          clients_migrated?: boolean | null
+          created_at?: string | null
+          days_overdue?: number | null
+          id?: string
+          monthly_revenue_reported?: number | null
+          omega_commission_rate?: number | null
+          owner_email?: string
+          owner_name?: string
+          payment_due_date?: string | null
+          slug?: string
+          status?: string | null
+          stripe_account_id?: string | null
+          stripe_customer_id?: string | null
+          suspend_switch?: boolean | null
+          updated_at?: string | null
+          white_label_active?: boolean | null
+        }
+        Relationships: []
       }
       social_accounts: {
         Row: {

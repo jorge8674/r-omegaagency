@@ -124,7 +124,10 @@ export function useBrandingEditor() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         console.error("BRANDING ERROR DETAIL:", JSON.stringify(data, null, 2));
-        toast({ title: "Error al guardar", description: data?.detail || "Intenta de nuevo.", variant: "destructive" });
+        const msg = Array.isArray(data?.detail)
+          ? data.detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ')
+          : (typeof data?.detail === 'string' ? data.detail : "Intenta de nuevo.");
+        toast({ title: "Error al guardar", description: msg, variant: "destructive" });
       } else {
         console.log("BRANDING SAVE OK:", data);
         toast({ title: "Cambios guardados", description: "El branding se actualizó correctamente." });

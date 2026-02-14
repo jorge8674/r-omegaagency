@@ -93,9 +93,24 @@ export function useBrandingEditor() {
   const save = async () => {
     setSaving(true);
     try {
-      await api.saveResellerBranding(resellerId, branding as any);
-      toast({ title: "Cambios guardados", description: "El branding se actualizó correctamente." });
-    } catch {
+      const base = (import.meta.env.VITE_API_URL || "https://omegaraisen-production.up.railway.app/api/v1");
+      const url = `${base}/resellers/${resellerId}/branding`;
+      const payload = branding as any;
+      console.log("BRANDING SAVE PAYLOAD:", JSON.stringify(payload, null, 2));
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        console.error("BRANDING ERROR DETAIL:", JSON.stringify(data, null, 2));
+        toast({ title: "Error al guardar", description: data?.detail || "Intenta de nuevo.", variant: "destructive" });
+      } else {
+        toast({ title: "Cambios guardados", description: "El branding se actualizó correctamente." });
+      }
+    } catch (err) {
+      console.error("BRANDING SAVE EXCEPTION:", err);
       toast({ title: "Error al guardar", description: "Intenta de nuevo.", variant: "destructive" });
     } finally {
       setSaving(false);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOmegaAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api-client";
@@ -13,7 +13,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import {
   Users, DollarSign, CalendarDays, Eye, Plus, UserPlus,
-  Settings, Ban, CheckCircle, AlertTriangle, UserCircle,
+  Settings, Ban, CheckCircle, AlertTriangle, UserCircle, Palette,
 } from "lucide-react";
 import { AddClientModal } from "@/components/dashboard/AddClientModal";
 
@@ -69,7 +69,8 @@ export default function ResellerDashboard() {
   const { user } = useOmegaAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const resellerId = user?.reseller_id || "";
+  const [searchParams] = useSearchParams();
+  const resellerId = searchParams.get("reseller_id") || user?.reseller_id || "";
   const [addClientOpen, setAddClientOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery<ResellerData>({
@@ -130,6 +131,13 @@ export default function ResellerDashboard() {
         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs">
           Panel de Agencia
         </Badge>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => navigate(`/reseller/branding?reseller_id=${resellerId}`)}
+        >
+          <Palette className="h-4 w-4 mr-1" /> Editar Mi Branding
+        </Button>
       </div>
 
       {/* KPI Cards */}

@@ -50,14 +50,14 @@ const App = () => (
                 </OmegaProtectedRoute>
               } />
 
-              {/* Reseller-only */}
+              {/* Reseller + Owner (owner can view reseller dashboards) */}
               <Route path="/reseller/dashboard" element={
-                <OmegaProtectedRoute allowedRoles={["reseller"]}>
+                <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
                   <AppLayout><ResellerDashboard /></AppLayout>
                 </OmegaProtectedRoute>
               } />
               <Route path="/reseller/branding" element={
-                <OmegaProtectedRoute allowedRoles={["reseller"]}>
+                <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
                   <AppLayout><ResellerBranding /></AppLayout>
                 </OmegaProtectedRoute>
               } />

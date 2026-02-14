@@ -3,6 +3,21 @@ import { useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api-client";
 import { toast } from "@/hooks/use-toast";
 
+function hslStringToHex(hsl: string): string {
+  const match = hsl.match(/^(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%$/);
+  if (!match) return hsl;
+  const h = parseFloat(match[1]);
+  const s = parseFloat(match[2]) / 100;
+  const l = parseFloat(match[3]) / 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
 export interface BrandingData {
   agency_name: string;
   logo_url: string;
@@ -57,6 +72,13 @@ export function useBrandingEditor() {
     api.getResellerBranding(resellerId)
       .then((r: any) => {
         const d = r?.data || r || {};
+        // Convert HSL strings from API to hex for color picker compatibility
+        if (d.primary_color && !d.primary_color.startsWith("#")) {
+          d.primary_color = hslStringToHex(d.primary_color);
+        }
+        if (d.secondary_color && !d.secondary_color.startsWith("#")) {
+          d.secondary_color = hslStringToHex(d.secondary_color);
+        }
         setBranding({ ...defaultBranding, ...d });
         setSlug(d.slug || r?.slug || "");
       })

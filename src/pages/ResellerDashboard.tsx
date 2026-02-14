@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import {
   Users, DollarSign, CalendarDays, Eye, Plus, UserPlus,
   Settings, Ban, CheckCircle, AlertTriangle, UserCircle,
 } from "lucide-react";
+import { AddClientModal } from "@/components/dashboard/AddClientModal";
 
 interface ResellerData {
   reseller: {
@@ -65,7 +67,9 @@ const statusBanner: Record<string, { icon: React.ReactNode; text: string; classN
 export default function ResellerDashboard() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const resellerId = searchParams.get("reseller_id") || "";
+  const [addClientOpen, setAddClientOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery<ResellerData>({
     queryKey: ["reseller-dashboard", resellerId],
@@ -172,7 +176,7 @@ export default function ResellerDashboard() {
             <Button
               size="sm"
               className="gradient-primary text-primary-foreground"
-              onClick={() => toast({ title: "Próximamente", description: "Funcionalidad de agregar cliente en desarrollo." })}
+              onClick={() => setAddClientOpen(true)}
             >
               <Plus className="h-4 w-4 mr-1" /> Agregar Cliente
             </Button>
@@ -245,7 +249,7 @@ export default function ResellerDashboard() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => toast({ title: "Próximamente", description: "Funcionalidad de agregar agente en desarrollo." })}
+              onClick={() => toast({ title: "Próximamente", description: "Función disponible próximamente. Contacta a OMEGA para agregar agentes." })}
             >
               <UserPlus className="h-4 w-4 mr-1" /> Agregar Agente
             </Button>
@@ -344,6 +348,12 @@ export default function ResellerDashboard() {
         </Card>
       </div>
 
+      <AddClientModal
+        open={addClientOpen}
+        onOpenChange={setAddClientOpen}
+        resellerId={resellerId}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["reseller-dashboard", resellerId] })}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'https://omegaraisen-production
 
 async function apiCall<T = any>(
   endpoint: string,
-  method: 'GET' | 'POST' = 'GET',
+  method: 'GET' | 'POST' | 'PATCH' = 'GET',
   body?: Record<string, unknown>
 ): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -262,4 +262,21 @@ export const api = {
   systemState: () => apiCall('/orchestrator/system-state'),
   executeWorkflow: (workflowName: string, clientId: string, params: Record<string, unknown>) =>
     apiCall('/orchestrator/execute-workflow', 'POST', { workflow_name: workflowName, client_id: clientId, params }),
+
+  // ─── Resellers ─────────────────────────────────────────
+  getResellers: () => apiCall('/resellers/all'),
+  createReseller: (data: Record<string, unknown>) =>
+    apiCall('/resellers/create', 'POST', data),
+  getResellerDashboard: (id: string) =>
+    apiCall(`/resellers/${id}/dashboard`),
+  updateResellerStatus: (id: string, data: Record<string, unknown>) =>
+    apiCall(`/resellers/${id}/status`, 'PATCH', data),
+  saveResellerBranding: (id: string, data: Record<string, unknown>) =>
+    apiCall(`/resellers/${id}/branding`, 'POST', data),
+  getResellerBranding: (id: string) =>
+    apiCall(`/resellers/${id}/branding`),
+  getResellerClients: (id: string) =>
+    apiCall(`/resellers/${id}/clients`),
+  getResellerBySlug: (slug: string) =>
+    apiCall(`/resellers/slug/${slug}`),
 };

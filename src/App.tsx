@@ -19,6 +19,7 @@ import CrisisRoom from "./pages/CrisisRoom";
 import Competitive from "./pages/Competitive";
 import Growth from "./pages/Growth";
 import SettingsPage from "./pages/SettingsPage";
+import AdminResellers from "./pages/AdminResellers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -119,6 +120,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <AppLayout><SettingsPage /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/resellers"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout><AdminResellers /></AppLayout>
                   </ProtectedRoute>
                 }
               />

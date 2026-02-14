@@ -52,6 +52,14 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 
 const emptyForm = { slug: "", agency_name: "", owner_email: "", owner_name: "" };
 
+interface ResellersResponse {
+  resellers: Reseller[];
+  total: number;
+  active: number;
+  suspended: number;
+  with_mora: number;
+}
+
 export default function AdminResellers() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -59,11 +67,23 @@ export default function AdminResellers() {
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
-  const { data: resellers = [], isLoading } = useQuery<Reseller[]>({
+  const { data: apiResponse, isLoading } = useQuery<ResellersResponse>({
     queryKey: ["admin-resellers"],
-    queryFn: () => api.getResellers().then((r: any) => r?.resellers || r?.data || r || []),
+    queryFn: () => api.getResellers().then((r: any) => {
+      const source = r?.data ?? r;
+      const list = Array.isArray(source) ? source : (source?.resellers ?? []);
+      return {
+        resellers: list,
+        total: source?.count ?? source?.total ?? list.length,
+        active: source?.active ?? list.filter((x: any) => x.status === 'active').length,
+        suspended: source?.suspended ?? list.filter((x: any) => x.status === 'suspended').length,
+        with_mora: source?.with_mora ?? list.filter((x: any) => (x.days_overdue ?? 0) > 7).length,
+      };
+    }),
     retry: 1,
   });
+
+  const resellers = apiResponse?.resellers ?? [];
 
   const suspendMutation = useMutation({
     mutationFn: (reseller: Reseller) =>
@@ -107,13 +127,12 @@ export default function AdminResellers() {
   const totalCommission = resellers.reduce(
     (s, r) => s + (r.monthly_revenue_reported || 0) * (r.omega_commission_rate || 0.3), 0
   );
-  const overdueCount = resellers.filter((r) => r.days_overdue > 0).length;
 
   const kpis = [
-    { title: "Total Resellers", value: resellers.length, icon: Building2 },
+    { title: "Total Resellers", value: apiResponse?.total ?? resellers.length, icon: Building2 },
     { title: "Revenue Reportado", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign },
     { title: "Comisión OMEGA", value: `$${totalCommission.toLocaleString()}`, icon: DollarSign },
-    { title: "Con Mora", value: overdueCount, icon: AlertTriangle },
+    { title: "Con Mora", value: apiResponse?.with_mora ?? 0, icon: AlertTriangle },
   ];
 
   return (
@@ -178,11 +197,11 @@ export default function AdminResellers() {
       </div>
 
       {/* Overdue Alert Banner */}
-      {overdueCount > 0 && (
+      {(apiResponse?.with_mora ?? 0) > 0 && (
         <div className="flex items-center gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-3">
           <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
           <p className="text-sm text-warning">
-            <span className="font-semibold">{overdueCount} reseller{overdueCount > 1 ? "s" : ""}</span> con mora de más de 7 días.
+            <span className="font-semibold">{apiResponse?.with_mora} reseller{(apiResponse?.with_mora ?? 0) > 1 ? "s" : ""}</span> con mora de más de 7 días.
           </p>
         </div>
       )}

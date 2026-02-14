@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   Search,
   Rocket,
+  Building2,
+  Shield,
 } from "lucide-react";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
@@ -40,6 +42,10 @@ const mainItems = [
 const configItems = [
   { title: "Clientes", url: "/clients", icon: Users },
   { title: "Configuración", url: "/settings", icon: Settings },
+];
+
+const adminItems = [
+  { title: "Resellers", url: "/admin/resellers", icon: Building2 },
 ];
 
 export function AppSidebar() {
@@ -96,6 +102,30 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {configItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <NavLink
+                      to={item.url}
+                      className="hover:bg-sidebar-accent/50"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center gap-1">
+            <Shield className="h-3 w-3" /> Admin
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink

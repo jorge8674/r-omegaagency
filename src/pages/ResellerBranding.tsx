@@ -6,6 +6,9 @@ import { Save, ExternalLink, Loader2, Palette, Layout, Layers, Star, Phone } fro
 import { useBrandingEditor } from "@/components/branding/useBrandingEditor";
 import { TabIdentity } from "@/components/branding/TabIdentity";
 import { TabHero } from "@/components/branding/TabHero";
+import { TabSections } from "@/components/branding/TabSections";
+import { TabSocialProof } from "@/components/branding/TabSocialProof";
+import { TabContact } from "@/components/branding/TabContact";
 
 export default function ResellerBranding() {
   const { resellerId, slug, branding, loading, saving, uploading, update, save, uploadFile } = useBrandingEditor();
@@ -85,19 +88,13 @@ export default function ResellerBranding() {
           <TabHero branding={branding} update={update} uploading={uploading} uploadFile={uploadFile} />
         </TabsContent>
         <TabsContent value="sections" className="mt-6">
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            <p className="text-sm">Secciones — Próximamente</p>
-          </div>
+          <TabSections branding={branding} update={update} />
         </TabsContent>
         <TabsContent value="social" className="mt-6">
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            <p className="text-sm">Social Proof — Próximamente</p>
-          </div>
+          <TabSocialProof branding={branding} update={update} />
         </TabsContent>
         <TabsContent value="contact" className="mt-6">
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            <p className="text-sm">Contacto & Footer — Próximamente</p>
-          </div>
+          <TabContact branding={branding} update={update} />
         </TabsContent>
       </Tabs>
     </div>

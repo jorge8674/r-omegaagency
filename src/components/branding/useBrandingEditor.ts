@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useOmegaAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api-client";
 import { toast } from "@/hooks/use-toast";
@@ -59,7 +60,8 @@ const defaultBranding: BrandingData = {
 
 export function useBrandingEditor() {
   const { user } = useOmegaAuth();
-  const resellerId = user?.reseller_id || "";
+  const [searchParams] = useSearchParams();
+  const resellerId = searchParams.get("reseller_id") || user?.reseller_id || "";
   const [branding, setBranding] = useState<BrandingData>(defaultBranding);
   const [slug, setSlug] = useState("");
   const [loading, setLoading] = useState(true);

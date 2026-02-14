@@ -11,7 +11,9 @@ import {
   Building2,
   Shield,
   PanelLeft,
+  Palette,
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
 import { NavLink } from "@/components/NavLink";
@@ -47,10 +49,19 @@ const configItems = [
 
 const adminItems = [
   { title: "Resellers", url: "/admin/resellers", icon: Building2 },
-  { title: "Mi Panel", url: "/reseller/dashboard", icon: PanelLeft },
 ];
 
 export function AppSidebar() {
+  const [searchParams] = useSearchParams();
+  const resellerId = searchParams.get("reseller_id") || "";
+
+  const agencyItems = resellerId
+    ? [
+        { title: "Mi Panel", url: `/reseller/dashboard?reseller_id=${resellerId}`, icon: PanelLeft },
+        { title: "Editor de Landing", url: `/reseller/branding?reseller_id=${resellerId}`, icon: Palette },
+      ]
+    : [];
+
   const { data: health } = useQuery({
     queryKey: ["system-health-sidebar"],
     queryFn: () => api.systemHealth(),
@@ -144,6 +155,32 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {agencyItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-1">
+              <Palette className="h-3 w-3" /> Mi Agencia
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {agencyItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <NavLink
+                        to={item.url}
+                        className="hover:bg-sidebar-accent/50"
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2">

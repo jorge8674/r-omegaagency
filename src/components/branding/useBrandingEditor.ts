@@ -95,7 +95,26 @@ export function useBrandingEditor() {
     try {
       const base = (import.meta.env.VITE_API_URL || "https://omegaraisen-production.up.railway.app/api/v1");
       const url = `${base}/resellers/${resellerId}/branding`;
-      const payload = branding as any;
+      const payload: Record<string, unknown> = {
+        ...branding,
+        primary_color: branding.primary_color || "#d4891a",
+        secondary_color: branding.secondary_color || "#1e2030",
+        hero_cta_text: branding.hero_cta_text || "Comenzar",
+        hero_cta_url: branding.hero_cta_url || null,
+        hero_media_url: branding.hero_media_url || null,
+        logo_url: branding.logo_url || null,
+        pain_section: branding.pain_section || {},
+        solutions_section: branding.solutions_section || {},
+        services_section: branding.services_section || {},
+        metrics_section: branding.metrics_section || {},
+        process_section: branding.process_section || {},
+        testimonials: branding.testimonials || {},
+        client_logos: branding.client_logos || {},
+        social_links: branding.social_links || {},
+        contact_email: branding.contact_email || null,
+        contact_phone: branding.contact_phone || null,
+        footer_text: branding.footer_text || null,
+      };
       console.log("BRANDING SAVE PAYLOAD:", JSON.stringify(payload, null, 2));
       const response = await fetch(url, {
         method: "POST",
@@ -107,6 +126,7 @@ export function useBrandingEditor() {
         console.error("BRANDING ERROR DETAIL:", JSON.stringify(data, null, 2));
         toast({ title: "Error al guardar", description: data?.detail || "Intenta de nuevo.", variant: "destructive" });
       } else {
+        console.log("BRANDING SAVE OK:", data);
         toast({ title: "Cambios guardados", description: "El branding se actualizó correctamente." });
       }
     } catch (err) {

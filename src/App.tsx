@@ -20,6 +20,7 @@ import Competitive from "./pages/Competitive";
 import Growth from "./pages/Growth";
 import SettingsPage from "./pages/SettingsPage";
 import AdminResellers from "./pages/AdminResellers";
+import ResellerDashboard from "./pages/ResellerDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -128,6 +129,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <AppLayout><AdminResellers /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reseller/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout><ResellerDashboard /></AppLayout>
                   </ProtectedRoute>
                 }
               />

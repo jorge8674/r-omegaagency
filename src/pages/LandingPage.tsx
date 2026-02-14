@@ -26,17 +26,24 @@ const LandingPage: React.FC = () => {
         if (res.status === 404) { setStatus("not_found"); return; }
         if (!res.ok) { setStatus("error"); return; }
         const json = await res.json();
-        const data = json.data || json;
-        if (data.status === "suspended" || data.suspend_switch) { setStatus("suspended"); return; }
-        setReseller(data);
+        const wrapper = json.data || json;
+        // API may nest: { data: { reseller: {...}, branding: {...} } }
+        const resellerData = wrapper.reseller || wrapper;
+        const brandingData = wrapper.branding || null;
+        if (resellerData.status === "suspended" || resellerData.suspend_switch) { setStatus("suspended"); return; }
+        setReseller(resellerData);
 
-        // Fetch branding
-        const bRes = await fetch(`${API_BASE}/resellers/${data.id}/branding`);
-        if (bRes.ok) {
-          const bJson = await bRes.json();
-          setBranding(bJson.data || bJson);
+        if (brandingData) {
+          setBranding(brandingData);
         } else {
-          setBranding({});
+          // Fallback: fetch branding separately
+          const bRes = await fetch(`${API_BASE}/resellers/${resellerData.id}/branding`);
+          if (bRes.ok) {
+            const bJson = await bRes.json();
+            setBranding(bJson.data || bJson);
+          } else {
+            setBranding({});
+          }
         }
         setStatus("ok");
       } catch {
@@ -47,20 +54,20 @@ const LandingPage: React.FC = () => {
 
   if (status === "loading") return (
     <div style={{ minHeight: "100vh", background: "#0D0E12", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,.15)", borderTopColor: "#d4891a", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+      <div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,.1)", borderTopColor: "var(--brand-primary, #d4891a)", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   );
 
   if (status === "suspended") return (
-    <div style={{ minHeight: "100vh", background: "#0D0E12", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "DM Sans, sans-serif" }}>
-      <p style={{ fontSize: 20, opacity: 0.7 }}>Esta agencia no está disponible</p>
+    <div style={{ minHeight: "100vh", background: "#0D0E12", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Syne, sans-serif" }}>
+      <p style={{ fontSize: 20, opacity: 0.5 }}>Esta agencia no está disponible</p>
     </div>
   );
 
   if (status === "not_found" || status === "error") return (
-    <div style={{ minHeight: "100vh", background: "#0D0E12", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "DM Sans, sans-serif" }}>
-      <p style={{ fontSize: 20, opacity: 0.7 }}>Agencia no encontrada</p>
+    <div style={{ minHeight: "100vh", background: "#0D0E12", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Syne, sans-serif" }}>
+      <p style={{ fontSize: 20, opacity: 0.5 }}>Agencia no encontrada</p>
     </div>
   );
 
@@ -70,17 +77,18 @@ const LandingPage: React.FC = () => {
   const ctaUrl = b.hero_cta_url || "#contacto";
 
   return (
-    <div
-      id="landing-root"
-      style={{
-        ["--brand-primary" as any]: b.primary_color || "#d4891a",
-        ["--brand-secondary" as any]: b.secondary_color || "#1e2030",
-        fontFamily: "DM Sans, sans-serif",
-        background: "#0D0E12",
-        color: "white",
-        minHeight: "100vh",
-      }}
-    >
+    <div id="landing-root" style={{
+      ["--brand-primary" as any]: b.primary_color || "#d4891a",
+      ["--brand-secondary" as any]: b.secondary_color || "#1e2030",
+      fontFamily: "DM Sans, sans-serif",
+      background: "#0D0E12",
+      color: "white",
+      minHeight: "100vh",
+    }}>
+      <style>{`
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+        @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+      `}</style>
       <LandingNavbar agencyName={agencyName} logoUrl={b.logo_url} ctaText={ctaText} ctaUrl={ctaUrl} />
       <LandingHero
         heroType={b.hero_type || b.hero_media_type}
@@ -89,6 +97,7 @@ const LandingPage: React.FC = () => {
         heroSubtitle={b.hero_subtitle}
         ctaText={ctaText}
         ctaUrl={ctaUrl}
+        agencyName={agencyName}
       />
       <LandingSections
         metrics={safeObj(b.metrics_section)}

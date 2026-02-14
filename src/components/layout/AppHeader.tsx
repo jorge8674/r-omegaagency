@@ -3,7 +3,7 @@ import { Bell, Moon, Sun, LogOut, User, Play, Loader2, CheckCircle2 } from "luci
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useTheme } from "@/hooks/useTheme";
-import { useAuth } from "@/hooks/useAuth";
+import { useOmegaAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { checkBackendHealth, api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
 const WORKFLOWS = [
@@ -30,9 +31,16 @@ const WORKFLOWS = [
   { name: "competitive_analysis", label: "Competitive Analysis" },
 ];
 
+const roleBadge: Record<string, { label: string; className: string }> = {
+  owner: { label: "Super Admin", className: "bg-primary/10 text-primary border-primary/30" },
+  reseller: { label: "Agencia", className: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
+  agent: { label: "Agente", className: "bg-green-500/10 text-green-400 border-green-500/30" },
+  client: { label: "Cliente", className: "bg-purple-500/10 text-purple-400 border-purple-500/30" },
+};
+
 export function AppHeader() {
   const { theme, toggleTheme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user, logout } = useOmegaAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [executingWorkflow, setExecutingWorkflow] = useState<string | null>(null);
@@ -67,12 +75,13 @@ export function AppHeader() {
     }
   };
 
-  const initials = user?.user_metadata?.full_name
-    ?.split(" ")
-    .map((n: string) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || user?.email?.[0]?.toUpperCase() || "U";
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
+
+  const initials = user?.email?.[0]?.toUpperCase() || "U";
+  const badge = roleBadge[user?.role || ""] || roleBadge.client;
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl px-4">
@@ -86,6 +95,13 @@ export function AppHeader() {
         </span>
       </div>
 
+      {/* Role badge */}
+      {user && (
+        <Badge variant="outline" className={`text-[10px] ${badge.className}`}>
+          {badge.label}
+        </Badge>
+      )}
+
       <div className="flex-1" />
 
       {/* Workflow Dropdown */}
@@ -98,16 +114,8 @@ export function AppHeader() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           {WORKFLOWS.map((wf) => (
-            <DropdownMenuItem
-              key={wf.name}
-              onClick={() => handleExecuteWorkflow(wf.name)}
-              disabled={!!executingWorkflow}
-            >
-              {executingWorkflow === wf.name ? (
-                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Play className="mr-2 h-3.5 w-3.5" />
-              )}
+            <DropdownMenuItem key={wf.name} onClick={() => handleExecuteWorkflow(wf.name)} disabled={!!executingWorkflow}>
+              {executingWorkflow === wf.name ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Play className="mr-2 h-3.5 w-3.5" />}
               {wf.label}
             </DropdownMenuItem>
           ))}
@@ -167,7 +175,7 @@ export function AppHeader() {
             Mi Perfil
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={signOut} className="text-destructive">
+          <DropdownMenuItem onClick={handleLogout} className="text-destructive">
             <LogOut className="mr-2 h-4 w-4" />
             Cerrar Sesión
           </DropdownMenuItem>

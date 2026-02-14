@@ -3,11 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider as OmegaAuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/hooks/useTheme";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { OmegaProtectedRoute } from "@/components/auth/OmegaProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
-import Auth from "./pages/Auth";
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
@@ -30,132 +30,70 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <AuthProvider>
+      <OmegaAuthProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><Dashboard /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/clients"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><Clients /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/clients/:id"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><ClientDetail /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/content"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><ContentGenerator /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/calendar"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><CalendarPage /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/media"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><Media /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/analytics"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><Analytics /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/crisis"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><CrisisRoom /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/competitive"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><Competitive /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/growth"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><Growth /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><SettingsPage /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/resellers"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><AdminResellers /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reseller/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><ResellerDashboard /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reseller/branding"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout><ResellerBranding /></AppLayout>
-                  </ProtectedRoute>
-                }
-              />
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
               <Route path="/landing/:slug" element={<LandingPage />} />
+
+              {/* Default redirect */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+              {/* Owner-only */}
+              <Route path="/admin/resellers" element={
+                <OmegaProtectedRoute allowedRoles={["owner"]}>
+                  <AppLayout><AdminResellers /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+
+              {/* Reseller-only */}
+              <Route path="/reseller/dashboard" element={
+                <OmegaProtectedRoute allowedRoles={["reseller"]}>
+                  <AppLayout><ResellerDashboard /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+              <Route path="/reseller/branding" element={
+                <OmegaProtectedRoute allowedRoles={["reseller"]}>
+                  <AppLayout><ResellerBranding /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+
+              {/* Owner + reseller + agent */}
+              <Route path="/dashboard" element={
+                <OmegaProtectedRoute allowedRoles={["owner", "reseller", "agent"]}>
+                  <AppLayout><Dashboard /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+
+              {/* General protected */}
+              {[
+                { path: "/clients", el: <Clients /> },
+                { path: "/clients/:id", el: <ClientDetail /> },
+                { path: "/content", el: <ContentGenerator /> },
+                { path: "/calendar", el: <CalendarPage /> },
+                { path: "/media", el: <Media /> },
+                { path: "/analytics", el: <Analytics /> },
+                { path: "/crisis", el: <CrisisRoom /> },
+                { path: "/competitive", el: <Competitive /> },
+                { path: "/growth", el: <Growth /> },
+                { path: "/settings", el: <SettingsPage /> },
+              ].map(({ path, el }) => (
+                <Route key={path} path={path} element={
+                  <OmegaProtectedRoute allowedRoles={["owner", "reseller", "agent"]}>
+                    <AppLayout>{el}</AppLayout>
+                  </OmegaProtectedRoute>
+                } />
+              ))}
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
-      </AuthProvider>
+      </OmegaAuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

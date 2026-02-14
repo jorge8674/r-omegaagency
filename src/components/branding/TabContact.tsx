@@ -9,12 +9,12 @@ interface Props {
 }
 
 const socialFields = [
-  { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/tu-agencia", icon: "📸" },
-  { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/tu-agencia", icon: "📘" },
-  { key: "linkedin", label: "LinkedIn", placeholder: "https://linkedin.com/company/tu-agencia", icon: "💼" },
-  { key: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@tu-agencia", icon: "🎵" },
-  { key: "twitter", label: "Twitter / X", placeholder: "https://x.com/tu-agencia", icon: "🐦" },
-  { key: "whatsapp", label: "WhatsApp", placeholder: "+1 787 000 0000", icon: "💬" },
+  { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/tu-agencia" },
+  { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/tu-agencia" },
+  { key: "linkedin", label: "LinkedIn", placeholder: "https://linkedin.com/company/tu-agencia" },
+  { key: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@tu-agencia" },
+  { key: "twitter", label: "Twitter / X", placeholder: "https://x.com/tu-agencia" },
+  { key: "whatsapp", label: "WhatsApp", placeholder: "+1 787 000 0000" },
 ] as const;
 
 export function TabContact({ branding, update }: Props) {
@@ -53,15 +53,12 @@ export function TabContact({ branding, update }: Props) {
           <CardTitle className="font-display text-lg">Redes Sociales</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {socialFields.map(({ key, label, placeholder, icon }) => (
-            <div key={key} className="flex items-center gap-3">
-              <span className="text-lg w-6 text-center">{icon}</span>
-              <div className="flex-1 space-y-1">
-                <label className="text-xs text-muted-foreground">{label}</label>
-                <Input placeholder={placeholder}
-                  value={(social_links as any)[key] || ""}
-                  onChange={(e) => updateSocial(key, e.target.value)} />
-              </div>
+          {socialFields.map(({ key, label, placeholder }) => (
+            <div key={key} className="space-y-1">
+              <label className="text-xs text-muted-foreground">{label}</label>
+              <Input placeholder={placeholder}
+                value={(social_links as any)[key] || ""}
+                onChange={(e) => updateSocial(key, e.target.value)} />
             </div>
           ))}
         </CardContent>

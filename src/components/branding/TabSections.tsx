@@ -73,7 +73,7 @@ export function TabSections({ branding, update }: Props) {
     <Accordion type="single" collapsible className="space-y-3">
       {/* DOLOR */}
       <AccordionItem value="pain" className="border border-border rounded-lg px-4">
-        <AccordionTrigger className={!pain.active ? "opacity-50" : ""}>😓 Dolor</AccordionTrigger>
+        <AccordionTrigger className={!pain.active ? "opacity-50" : ""}>Dolor</AccordionTrigger>
         <AccordionContent className="space-y-4 pt-2">
           {sectionHeader("Sección activa", pain.active, (v) => upPain({ active: v }))}
           <Input placeholder="Título" value={pain.title} onChange={(e) => upPain({ title: e.target.value })} />
@@ -88,7 +88,7 @@ export function TabSections({ branding, update }: Props) {
 
       {/* SOLUCIONES */}
       <AccordionItem value="solutions" className="border border-border rounded-lg px-4">
-        <AccordionTrigger className={!sol.active ? "opacity-50" : ""}>💡 Soluciones</AccordionTrigger>
+        <AccordionTrigger className={!sol.active ? "opacity-50" : ""}>Soluciones</AccordionTrigger>
         <AccordionContent className="space-y-4 pt-2">
           {sectionHeader("Sección activa", sol.active, (v) => upSol({ active: v }))}
           <Input placeholder="Título" value={sol.title} onChange={(e) => upSol({ title: e.target.value })} />
@@ -105,7 +105,7 @@ export function TabSections({ branding, update }: Props) {
 
       {/* SERVICIOS */}
       <AccordionItem value="services" className="border border-border rounded-lg px-4">
-        <AccordionTrigger className={!svc.active ? "opacity-50" : ""}>🛠 Servicios</AccordionTrigger>
+        <AccordionTrigger className={!svc.active ? "opacity-50" : ""}>Servicios</AccordionTrigger>
         <AccordionContent className="space-y-4 pt-2">
           {sectionHeader("Sección activa", svc.active, (v) => upSvc({ active: v }))}
           <Input placeholder="Título" value={svc.title} onChange={(e) => upSvc({ title: e.target.value })} />
@@ -123,7 +123,7 @@ export function TabSections({ branding, update }: Props) {
 
       {/* MÉTRICAS */}
       <AccordionItem value="metrics" className="border border-border rounded-lg px-4">
-        <AccordionTrigger className={!met.active ? "opacity-50" : ""}>📊 Métricas</AccordionTrigger>
+        <AccordionTrigger className={!met.active ? "opacity-50" : ""}>Métricas</AccordionTrigger>
         <AccordionContent className="space-y-4 pt-2">
           {sectionHeader("Sección activa", met.active, (v) => upMet({ active: v }))}
           <Repeater items={met.items} max={4}
@@ -141,7 +141,7 @@ export function TabSections({ branding, update }: Props) {
 
       {/* PROCESO */}
       <AccordionItem value="process" className="border border-border rounded-lg px-4">
-        <AccordionTrigger className={!proc.active ? "opacity-50" : ""}>🔄 Proceso</AccordionTrigger>
+        <AccordionTrigger className={!proc.active ? "opacity-50" : ""}>Proceso</AccordionTrigger>
         <AccordionContent className="space-y-4 pt-2">
           {sectionHeader("Sección activa", proc.active, (v) => upProc({ active: v }))}
           <Input placeholder="Título" value={proc.title} onChange={(e) => upProc({ title: e.target.value })} />

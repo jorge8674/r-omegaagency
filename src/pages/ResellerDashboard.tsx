@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useOmegaAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -65,10 +66,10 @@ const statusBanner: Record<string, { icon: React.ReactNode; text: string; classN
 };
 
 export default function ResellerDashboard() {
-  const [searchParams] = useSearchParams();
+  const { user } = useOmegaAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const resellerId = searchParams.get("reseller_id") || "";
+  const resellerId = user?.reseller_id || "";
   const [addClientOpen, setAddClientOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery<ResellerData>({

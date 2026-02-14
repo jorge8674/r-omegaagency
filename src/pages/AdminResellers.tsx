@@ -9,6 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -16,7 +18,11 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Building2, DollarSign, AlertTriangle, Users, Eye,
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Building2, DollarSign, AlertTriangle, Eye, Plus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -44,10 +50,14 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   trial: { label: "Trial", className: "bg-chart-3/20 text-[hsl(var(--chart-3))] border-[hsl(var(--chart-3))]/30" },
 };
 
+const emptyForm = { slug: "", agency_name: "", owner_email: "", owner_name: "" };
+
 export default function AdminResellers() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [suspendTarget, setSuspendTarget] = useState<Reseller | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
 
   const { data: resellers = [], isLoading } = useQuery<Reseller[]>({
     queryKey: ["admin-resellers"],
@@ -63,7 +73,7 @@ export default function AdminResellers() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
-      toast({ title: "Estado actualizado", description: "El estado del reseller se actualizó correctamente." });
+      toast({ title: "Estado actualizado" });
       setSuspendTarget(null);
     },
     onError: () => {
@@ -71,6 +81,27 @@ export default function AdminResellers() {
       setSuspendTarget(null);
     },
   });
+
+  const createMutation = useMutation({
+    mutationFn: (data: typeof emptyForm) => api.createReseller(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
+      toast({ title: "Reseller creado", description: `${form.agency_name} registrado correctamente.` });
+      setForm(emptyForm);
+      setCreateOpen(false);
+    },
+    onError: (err: any) => {
+      toast({ title: "Error al crear", description: err?.message || "Intenta de nuevo.", variant: "destructive" });
+    },
+  });
+
+  const handleCreate = () => {
+    if (!form.slug || !form.agency_name || !form.owner_email || !form.owner_name) {
+      toast({ title: "Campos requeridos", description: "Completa todos los campos.", variant: "destructive" });
+      return;
+    }
+    createMutation.mutate(form);
+  };
 
   const totalRevenue = resellers.reduce((s, r) => s + (r.monthly_revenue_reported || 0), 0);
   const totalCommission = resellers.reduce(
@@ -89,13 +120,46 @@ export default function AdminResellers() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">
-            Resellers
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gestión global de agencias reseller
-          </p>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Resellers</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gestión global de agencias reseller</p>
         </div>
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogTrigger asChild>
+            <Button className="gradient-primary text-primary-foreground">
+              <Plus className="h-4 w-4 mr-1" /> Nuevo Reseller
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="font-display">Nuevo Reseller</DialogTitle>
+              <DialogDescription>Registra una nueva agencia reseller en OMEGA.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="slug">Slug</Label>
+                <Input id="slug" placeholder="mi-agencia" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="agency_name">Nombre de la Agencia</Label>
+                <Input id="agency_name" placeholder="Agencia XYZ" value={form.agency_name} onChange={(e) => setForm({ ...form, agency_name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="owner_name">Nombre del Owner</Label>
+                <Input id="owner_name" placeholder="Juan Pérez" value={form.owner_name} onChange={(e) => setForm({ ...form, owner_name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="owner_email">Email del Owner</Label>
+                <Input id="owner_email" type="email" placeholder="owner@agencia.com" value={form.owner_email} onChange={(e) => setForm({ ...form, owner_email: e.target.value })} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
+              <Button className="gradient-primary text-primary-foreground" onClick={handleCreate} disabled={createMutation.isPending}>
+                {createMutation.isPending ? "Creando…" : "Crear Reseller"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* KPI Cards */}
@@ -103,17 +167,11 @@ export default function AdminResellers() {
         {kpis.map((kpi) => (
           <Card key={kpi.title} className="glass">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {kpi.title}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{kpi.title}</CardTitle>
               <kpi.icon className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-20" />
-              ) : (
-                <p className="text-2xl font-bold font-display">{kpi.value}</p>
-              )}
+              {isLoading ? <Skeleton className="h-8 w-20" /> : <p className="text-2xl font-bold font-display">{kpi.value}</p>}
             </CardContent>
           </Card>
         ))}
@@ -124,8 +182,7 @@ export default function AdminResellers() {
         <div className="flex items-center gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-3">
           <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
           <p className="text-sm text-warning">
-            <span className="font-semibold">{overdueCount} reseller{overdueCount > 1 ? "s" : ""}</span> con mora
-            de más de 7 días. Revisa los pagos pendientes.
+            <span className="font-semibold">{overdueCount} reseller{overdueCount > 1 ? "s" : ""}</span> con mora de más de 7 días.
           </p>
         </div>
       )}
@@ -165,10 +222,7 @@ export default function AdminResellers() {
                     const isOverdue = r.days_overdue > 7;
 
                     return (
-                      <TableRow
-                        key={r.id}
-                        className={isOverdue ? "bg-warning/5" : ""}
-                      >
+                      <TableRow key={r.id} className={isOverdue ? "bg-warning/5" : ""}>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Building2 className="h-4 w-4 text-primary" />
@@ -185,9 +239,7 @@ export default function AdminResellers() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={sc.className}>
-                            {sc.label}
-                          </Badge>
+                          <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
                         </TableCell>
                         <TableCell className="text-right font-mono">
                           ${(r.monthly_revenue_reported || 0).toLocaleString()}
@@ -197,14 +249,7 @@ export default function AdminResellers() {
                         </TableCell>
                         <TableCell>
                           {r.days_overdue > 0 ? (
-                            <Badge
-                              variant="outline"
-                              className={
-                                isOverdue
-                                  ? "bg-destructive/20 text-destructive border-destructive/30"
-                                  : "bg-warning/20 text-warning border-warning/30"
-                              }
-                            >
+                            <Badge variant="outline" className={isOverdue ? "bg-destructive/20 text-destructive border-destructive/30" : "bg-warning/20 text-warning border-warning/30"}>
                               {r.days_overdue}d
                             </Badge>
                           ) : (
@@ -212,20 +257,16 @@ export default function AdminResellers() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Switch
-                            checked={r.suspend_switch}
-                            onCheckedChange={() => setSuspendTarget(r)}
-                          />
+                          <Switch checked={r.suspend_switch} onCheckedChange={() => setSuspendTarget(r)} />
                         </TableCell>
                         <TableCell>
                           <Button
                             size="sm"
                             variant="ghost"
                             className="text-primary hover:text-primary/80"
-                            onClick={() => navigate(`/reseller/${r.id}/dashboard`)}
+                            onClick={() => navigate(`/reseller/dashboard?reseller_id=${r.id}`)}
                           >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Ver
+                            <Eye className="h-4 w-4 mr-1" /> Ver
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -254,11 +295,7 @@ export default function AdminResellers() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className={
-                suspendTarget?.suspend_switch
-                  ? "bg-success hover:bg-success/90"
-                  : "bg-destructive hover:bg-destructive/90"
-              }
+              className={suspendTarget?.suspend_switch ? "bg-success hover:bg-success/90" : "bg-destructive hover:bg-destructive/90"}
               onClick={() => suspendTarget && suspendMutation.mutate(suspendTarget)}
             >
               {suspendTarget?.suspend_switch ? "Reactivar" : "Suspender"}

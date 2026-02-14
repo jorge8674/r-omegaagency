@@ -53,7 +53,13 @@ const adminItems = [
 
 export function AppSidebar() {
   const [searchParams] = useSearchParams();
-  const resellerId = searchParams.get("reseller_id") || "";
+  const paramResellerId = searchParams.get("reseller_id");
+
+  // Persist reseller_id across navigation
+  if (paramResellerId) {
+    sessionStorage.setItem("omega_reseller_id", paramResellerId);
+  }
+  const resellerId = paramResellerId || sessionStorage.getItem("omega_reseller_id") || "";
 
   const agencyItems = resellerId
     ? [

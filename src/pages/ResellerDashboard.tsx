@@ -344,14 +344,6 @@ export default function ResellerDashboard() {
         </Card>
       </div>
 
-      {/* Floating Button */}
-      <Button
-        className="fixed bottom-6 right-6 z-50 gradient-primary text-primary-foreground shadow-lg rounded-full px-5 py-3 h-auto"
-        onClick={() => navigate(`/reseller/branding?reseller_id=${resellerId}`)}
-      >
-        <Settings className="h-4 w-4 mr-2" />
-        Editar Mi Branding
-      </Button>
     </div>
   );
 }

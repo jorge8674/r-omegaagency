@@ -10,6 +10,7 @@ import {
   Rocket,
   Building2,
   Shield,
+  PanelLeft,
 } from "lucide-react";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
@@ -46,6 +47,7 @@ const configItems = [
 
 const adminItems = [
   { title: "Resellers", url: "/admin/resellers", icon: Building2 },
+  { title: "Mi Panel", url: "/reseller/dashboard", icon: PanelLeft },
 ];
 
 export function AppSidebar() {

@@ -776,3 +776,277 @@ PENDIENTE ⏳
 ---
 
 *Documento generado por Claude Sonnet 4.5 | OMEGA Internal | Confidencial*
+
+---
+
+# ADDENDUM — WHITE-LABEL RESELLER SYSTEM
+*Actualizado: Febrero 2026*
+
+---
+
+## MODELO DE NEGOCIO RESELLER
+
+### Concepto
+Un cliente Enterprise puede adquirir el White-Label Add-on y convertirse en **Reseller**: opera su propia agencia de marketing digital bajo su marca, usando toda la infraestructura de OMEGA invisible detrás.
+
+### Jerarquía de Roles Actualizada
+
+```
+NIVEL 0 — OMEGA SUPER-ADMIN (Ibrain / OMEGA)
+  └── Ve TODO: todos los resellers, todos los clientes directos y de resellers
+  └── Puede deshabilitar cualquier reseller con un switch
+  └── Después de 90 días sin pago → hereda clientes del reseller directamente
+  └── Reserve Dashboard con PIN de 6 dígitos
+  └── Gestiona planes, precios, comisiones
+
+NIVEL 1 — RESELLER (Cliente Enterprise + White-Label Add-on)
+  └── Ve SOLO sus propios clientes (si tiene 50, ve 50)
+  └── Landing propia en subdomain: {slug}.r-omega.agency
+  └── 100% white-label — OMEGA completamente invisible
+  └── Su propio Stripe account configurado en su portal
+  └── Acceso completo al sistema OMEGA para gestionar sus clientes
+  └── Paga a OMEGA: 30% de su revenue mensual + costo de su plan Enterprise
+  └── Gana: 70% de lo que cobra a sus clientes
+
+NIVEL 2 — AGENTE HUMANO DEL RESELLER
+  └── Ve solo los clientes asignados dentro del reseller
+  └── Mismo modelo que agente OMEGA pero bajo marca del reseller
+
+NIVEL 3 — CLIENTE FINAL DEL RESELLER
+  └── Solo ve su portal personal
+  └── Paga al reseller (no a OMEGA directamente)
+  └── No sabe que OMEGA existe
+```
+
+---
+
+## ESTRUCTURA DE PRECIOS WHITE-LABEL
+
+### Requisito de Acceso
+- Plan Enterprise activo (requerido)
+- White-Label Add-on: $XXX/mes adicional (precio a definir por OMEGA)
+
+### Comisión por Plan Vendido
+El reseller vende exactamente los mismos planes de OMEGA (Básico/Pro/Enterprise) a sus clientes. Puede agregar su markup pero los planes base son de OMEGA.
+
+```
+Plan Básico vendido:   Reseller retiene 70%, OMEGA cobra 30%
+Plan Pro vendido:      Reseller retiene 70%, OMEGA cobra 30%  
+Plan Enterprise:       Reseller retiene 70%, OMEGA cobra 30%
+```
+
+### Facturación Mensual a Reseller (OMEGA cobra)
+```
+Total facturado por reseller a sus clientes ese mes: $X
+OMEGA cobra: $X * 30% + costo plan Enterprise del reseller
+```
+
+---
+
+## LANDING PAGE DEL RESELLER
+
+### URL
+`{slug}.r-omega.agency` — ejemplo: `agenciajuan.r-omega.agency`
+
+### Tecnología
+Misma arquitectura que la landing de Raisen (React Three Fiber, Syne font, etc.)
+Parametrizada desde base de datos por reseller_id.
+
+### Personalización Disponible
+```
+branding:
+  - Logo propio (upload imagen)
+  - Nombre de agencia
+  - Colores primario/secundario (HSL)
+  - Tagline y copy de cada sección
+
+secciones (misma estructura que Raisen landing):
+  - HeroSection: título, subtítulo, CTA, background
+  - PainSolutionSection: problemas/soluciones personalizados
+  - ServicesSection: nombre de servicios (powered by OMEGA)
+  - SocialProofSection: métricas y testimonios propios
+  - ProcessSection: pasos del proceso con su branding
+  - LeadFormSection: formulario → leads van al reseller
+  - Footer: contacto, redes sociales, legal
+
+OMEGA completamente invisible:
+  - Sin "Powered by OMEGA" en ningún lugar
+  - Sin referencias a r-omega.agency en el frontend del cliente
+  - Dominio del reseller en todas partes
+```
+
+### Formulario de Leads
+Los leads capturados en la landing del reseller van a la tabla `leads` con `reseller_id`, y se notifican al reseller (no a OMEGA directamente).
+
+---
+
+## ENFORCEMENT — SISTEMA DE PAGO Y SANCIONES
+
+### Flujo Normal
+```
+1. Reseller cobra a sus clientes (con su propio Stripe)
+2. Mes 1: OMEGA genera invoice al reseller (30% de revenue reportado)
+3. Reseller paga a OMEGA vía su método de pago registrado
+4. Sistema valida pago → acceso continúa
+```
+
+### Flujo de Incumplimiento
+```
+DÍA 0:   Vence pago del reseller
+DÍA 1:   Email warning automático
+DÍA 7:   Segundo warning + indicador en portal del reseller
+DÍA 15:  Switch "suspend_reseller" = true
+           → Portal del reseller: "Cuenta suspendida. Contacta soporte."
+           → Sus clientes: experiencia degradada (sin nuevos contenidos)
+           → Sus agentes: acceso bloqueado
+DÍA 30:  OMEGA contacta directamente a los clientes del reseller
+           → Oferta de migración directa a OMEGA
+DÍA 90:  Si no paga → clientes migrados a OMEGA directamente
+           → Reseller pierde permanentemente esos clientes
+           → Cuenta reseller cerrada
+```
+
+### Switch de Control (OMEGA Super-Admin)
+```
+resellers table:
+  - status: 'active' | 'warning' | 'suspended' | 'terminated'
+  - payment_due_date: date
+  - days_overdue: int (calculado)
+  - suspend_switch: boolean (manual override por OMEGA)
+  - clients_migrated: boolean
+```
+
+---
+
+## BASE DE DATOS — TABLAS NUEVAS
+
+```sql
+-- Resellers
+resellers:
+  id uuid PK
+  slug varchar UNIQUE          -- "agenciajuan" → agenciajuan.r-omega.agency
+  agency_name varchar
+  owner_email varchar
+  owner_name varchar
+  stripe_account_id varchar     -- Su propio Stripe Connect account
+  stripe_customer_id varchar    -- Para cobrarles a ellos
+  plan_id uuid FK plans
+  white_label_active boolean
+  status varchar                -- active/warning/suspended/terminated
+  monthly_revenue_reported decimal
+  omega_commission_rate decimal  -- 0.30 = 30%
+  payment_due_date date
+  days_overdue int
+  suspend_switch boolean
+  created_at timestamptz
+
+-- Branding del Reseller
+reseller_branding:
+  id uuid PK
+  reseller_id uuid FK resellers
+  logo_url varchar
+  primary_color varchar          -- HSL string
+  secondary_color varchar
+  font_display varchar
+  font_body varchar
+  agency_tagline varchar
+  hero_title varchar
+  hero_subtitle varchar
+  hero_cta_text varchar
+  pain_items jsonb               -- array de problemas
+  solution_items jsonb           -- array de soluciones
+  services jsonb                 -- array de servicios con nombre/desc
+  metrics jsonb                  -- sus propias métricas (CountUp)
+  process_steps jsonb            -- sus pasos del proceso
+  testimonials jsonb             -- sus testimonios
+  footer_email varchar
+  footer_phone varchar
+  social_links jsonb
+  updated_at timestamptz
+
+-- Clientes bajo reseller (extensión de clients table)
+clients (existing table + new fields):
+  reseller_id uuid FK resellers NULL  -- NULL = cliente directo de OMEGA
+  white_label_plan varchar            -- plan que el reseller le vendió
+
+-- Leads capturados en landing del reseller
+leads (existing table + new fields):
+  reseller_id uuid FK resellers NULL
+```
+
+---
+
+## RUTAS DEL SISTEMA ACTUALIZADO
+
+```
+-- OMEGA SUPER-ADMIN
+r-omega.agency/admin              → Dashboard completo (todos los resellers + clientes)
+r-omega.agency/admin/resellers    → Gestión de resellers (switches, pagos, status)
+r-omega.agency/admin/resellers/{id} → Detalle de reseller específico
+
+-- RESELLER PORTAL
+r-omega.agency/reseller           → Dashboard del reseller (sus clientes)
+r-omega.agency/reseller/branding  → Customización de su landing
+r-omega.agency/reseller/billing   → Sus pagos a OMEGA + revenue de sus clientes
+r-omega.agency/reseller/stripe    → Configuración de su Stripe
+
+-- LANDING DEL RESELLER (URL pública)
+{slug}.r-omega.agency             → Landing white-label del reseller
+{slug}.r-omega.agency/registro    → Registro de cliente del reseller
+{slug}.r-omega.agency/planes      → Planes (Básico/Pro/Enterprise con branding del reseller)
+
+-- PORTAL CLIENTE DEL RESELLER
+r-omega.agency/client             → Portal del cliente (mismo que siempre, branding del reseller)
+```
+
+---
+
+## FASES DE IMPLEMENTACIÓN ACTUALIZADO
+
+```
+FASE 1 — COMPLETADA ✅
+  Dashboard, Contenido, Crisis Room, Competitive, Analytics, Growth, Calendario
+
+FASE 2 — MULTI-TENANT BASE (Semana 2)
+  - Sistema de roles: Owner/Reseller/Agent/Client
+  - Auth separado por rol
+  - Base de datos: resellers, reseller_branding, clients con reseller_id
+  - Portal básico del reseller
+
+FASE 3 — BILLING + BUDGET (Semana 3)
+  - Stripe directo de OMEGA para clientes directos
+  - Stripe Connect para resellers (ellos cobran, OMEGA cobra su 30%)
+  - Sistema 60/40 operativo + reserve dashboard con PIN
+  - Sistema de enforcement (suspensión automática)
+  - Tracking de revenue por reseller
+
+FASE 4 — LANDING ENGINE (Semana 4)
+  - Landing parametrizada por reseller
+  - Editor de branding en portal del reseller
+  - Subdominio dinámico {slug}.r-omega.agency
+  - Formulario de leads → reseller
+
+FASE 5 — AI CONTEXT POR CLIENTE (Semana 5)
+  - Documentos por cliente
+  - Scraping de competidores
+  - Vector DB memoria por cliente
+  - Cross-learning entre cuentas
+
+FASE 6 — PORTALES COMPLETOS (Semana 6)
+  - Portal cliente completo con onboarding
+  - Portal agente humano
+  - Dashboard super-admin completo con vista de resellers
+  - Sistema de alertas de pago/suspensión automático
+```
+
+---
+
+## PRINCIPIOS DEL RESELLER
+
+1. **OMEGA invisible** — El cliente final NUNCA sabe que OMEGA existe
+2. **30% siempre** — No hay negociación de comisión, es fija
+3. **Stripe propio** — Reseller maneja su dinero, OMEGA le cobra su parte
+4. **90 días máximo** — Pasado ese plazo, clientes migran a OMEGA
+5. **Switch instantáneo** — OMEGA puede suspender a un reseller en segundos
+6. **Misma calidad** — Los clientes del reseller tienen la misma AI que los de OMEGA
+7. **Sin OMEGA branding** — Landing, portal, emails: todo es marca del reseller

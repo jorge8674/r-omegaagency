@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOmegaAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const { login, isAuthenticated, user } = useOmegaAuth();
@@ -10,6 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // If already authenticated, redirect
   if (isAuthenticated && user) {
@@ -26,7 +27,18 @@ export default function Login() {
       const authUser = await login(email.trim(), password);
       navigate(authUser.redirect_to, { replace: true });
     } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión");
+      const msg = err.message || "";
+      if (msg.includes("invalid_credentials") || msg.includes("inválidas") || msg.includes("401")) {
+        setError("Email o contraseña incorrectos");
+      } else if (msg.includes("no_access") || msg.includes("403")) {
+        setError("Tu cuenta no tiene acceso al sistema");
+      } else if (msg.includes("server_error") || msg.includes("500")) {
+        setError("Error del servidor. Intenta más tarde");
+      } else if (msg.includes("network_error")) {
+        setError("Sin conexión. Verifica tu internet");
+      } else {
+        setError(msg || "Error al iniciar sesión");
+      }
     } finally {
       setLoading(false);
     }
@@ -157,14 +169,35 @@ export default function Login() {
             >
               Contraseña
             </label>
-            <input
-              type="password"
-              className={inputClass}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                className={inputClass}
+                placeholder="••••••••"
+                style={{ paddingRight: 44 }}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "rgba(255,255,255,0.3)",
+                  padding: 4,
+                  display: "flex",
+                }}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           <button
@@ -203,6 +236,25 @@ export default function Login() {
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
+
+        <div style={{ textAlign: "center", marginTop: 16 }}>
+          <button
+            type="button"
+            onClick={() => alert("Contacta a OMEGA para restablecer tu acceso")}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 12,
+              color: "rgba(255,255,255,0.3)",
+              transition: "color 0.2s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
       </div>
     </div>
   );

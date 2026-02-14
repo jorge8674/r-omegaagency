@@ -34,32 +34,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore from localStorage on mount
+  // Restore and verify token on mount
   useEffect(() => {
-    try {
+    const initAuth = async () => {
       const savedToken = localStorage.getItem("omega_token");
       const savedUser = localStorage.getItem("omega_user");
-      if (savedToken && savedUser) {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+
+      if (!savedToken || !savedUser) {
+        setIsLoading(false);
+        return;
       }
-    } catch {
-      localStorage.removeItem("omega_token");
-      localStorage.removeItem("omega_user");
-    }
-    setIsLoading(false);
+
+      try {
+        const response = await fetch(`${API_BASE}/auth/me`, {
+          headers: { Authorization: `Bearer ${savedToken}` },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.data);
+          setToken(savedToken);
+        } else {
+          localStorage.removeItem("omega_token");
+          localStorage.removeItem("omega_user");
+        }
+      } catch {
+        // Offline fallback — use cached user
+        const user = JSON.parse(savedUser);
+        setUser(user);
+        setToken(savedToken);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<AuthUser> => {
-    const response = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await response.json();
+    let response: Response;
+    let data: any;
+
+    try {
+      response = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      data = await response.json();
+    } catch {
+      throw new Error("network_error");
+    }
 
     if (!response.ok || !data.success) {
-      throw new Error(data.detail || data.message || "Credenciales inválidas");
+      const status = response.status;
+      if (status === 401) throw new Error("invalid_credentials");
+      if (status === 403) throw new Error("no_access");
+      if (status >= 500) throw new Error("server_error");
+      throw new Error(data.detail || data.message || "invalid_credentials");
     }
 
     const authUser: AuthUser = data.data;

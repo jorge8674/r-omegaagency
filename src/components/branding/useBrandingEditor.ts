@@ -66,20 +66,35 @@ export function useBrandingEditor() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  const sanitizeObj = (val: unknown) => {
+    if (Array.isArray(val) || val === null || val === undefined) return {};
+    return val;
+  };
+
   useEffect(() => {
     if (!resellerId) return;
     setLoading(true);
     api.getResellerBranding(resellerId)
       .then((r: any) => {
         const d = r?.data || r || {};
-        // Convert HSL strings from API to hex for color picker compatibility
         if (d.primary_color && !d.primary_color.startsWith("#")) {
           d.primary_color = hslStringToHex(d.primary_color);
         }
         if (d.secondary_color && !d.secondary_color.startsWith("#")) {
           d.secondary_color = hslStringToHex(d.secondary_color);
         }
-        setBranding({ ...defaultBranding, ...d });
+        setBranding({
+          ...defaultBranding,
+          ...d,
+          social_links: sanitizeObj(d.social_links),
+          pain_section: sanitizeObj(d.pain_section),
+          solutions_section: sanitizeObj(d.solutions_section),
+          services_section: sanitizeObj(d.services_section),
+          metrics_section: sanitizeObj(d.metrics_section),
+          process_section: sanitizeObj(d.process_section),
+          testimonials: sanitizeObj(d.testimonials),
+          client_logos: sanitizeObj(d.client_logos),
+        });
         setSlug(d.slug || r?.slug || "");
       })
       .catch(() => {})
@@ -103,14 +118,14 @@ export function useBrandingEditor() {
         hero_cta_url: branding.hero_cta_url || null,
         hero_media_url: branding.hero_media_url || null,
         logo_url: branding.logo_url || null,
-        pain_section: branding.pain_section || {},
-        solutions_section: branding.solutions_section || {},
-        services_section: branding.services_section || {},
-        metrics_section: branding.metrics_section || {},
-        process_section: branding.process_section || {},
-        testimonials: branding.testimonials || {},
-        client_logos: branding.client_logos || {},
-        social_links: branding.social_links || {},
+        pain_section: sanitizeObj(branding.pain_section),
+        solutions_section: sanitizeObj(branding.solutions_section),
+        services_section: sanitizeObj(branding.services_section),
+        metrics_section: sanitizeObj(branding.metrics_section),
+        process_section: sanitizeObj(branding.process_section),
+        testimonials: sanitizeObj(branding.testimonials),
+        client_logos: sanitizeObj(branding.client_logos),
+        social_links: sanitizeObj(branding.social_links),
         contact_email: branding.contact_email || null,
         contact_phone: branding.contact_phone || null,
         footer_text: branding.footer_text || null,

@@ -23,58 +23,75 @@ export function TabHero({ branding, update, uploading, uploadFile }: Props) {
       <Card className="glass">
         <CardHeader><CardTitle className="text-sm font-display">Tipo de Hero</CardTitle></CardHeader>
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button
-              variant={!isVideo ? "default" : "outline"}
-              className={!isVideo ? "gradient-primary text-primary-foreground" : ""}
+              variant={branding.hero_type === "image" ? "default" : "outline"}
+              className={branding.hero_type === "image" ? "gradient-primary text-primary-foreground" : ""}
               size="sm"
               onClick={() => update("hero_type", "image")}
             >
               <ImageIcon className="h-4 w-4 mr-1" /> Imagen
             </Button>
             <Button
-              variant={isVideo ? "default" : "outline"}
-              className={isVideo ? "gradient-primary text-primary-foreground" : ""}
+              variant={branding.hero_type === "video" ? "default" : "outline"}
+              className={branding.hero_type === "video" ? "gradient-primary text-primary-foreground" : ""}
               size="sm"
               onClick={() => update("hero_type", "video")}
             >
               <VideoIcon className="h-4 w-4 mr-1" /> Video
             </Button>
+            <Button
+              variant={branding.hero_type === "none" ? "default" : "outline"}
+              className={branding.hero_type === "none" ? "gradient-primary text-primary-foreground" : ""}
+              size="sm"
+              onClick={() => update("hero_type", "none")}
+            >
+              Sin media
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Hero Media */}
-      <Card className="glass">
-        <CardHeader><CardTitle className="text-sm font-display">Media del Hero</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          {branding.hero_media_url && (
-            <div className="rounded-lg overflow-hidden border border-border max-h-[280px]">
-              {isVideo ? (
-                <video src={branding.hero_media_url} autoPlay loop muted playsInline className="w-full max-h-[280px] object-cover" />
-              ) : (
-                <img src={branding.hero_media_url} alt="Hero" className="w-full max-h-[280px] object-cover" />
+      {/* Hero Media — hidden when "none" */}
+      {branding.hero_type !== "none" && (
+        <Card className="glass">
+          <CardHeader><CardTitle className="text-sm font-display">Media del Hero</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            {branding.hero_media_url && (
+              <div className="rounded-lg overflow-hidden border border-border max-h-[280px]">
+                {isVideo ? (
+                  <video src={branding.hero_media_url} autoPlay loop muted playsInline className="w-full max-h-[280px] object-cover" />
+                ) : (
+                  <img src={branding.hero_media_url} alt="Hero" className="w-full max-h-[280px] object-cover" />
+                )}
+              </div>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept={isVideo ? "video/mp4,video/webm" : "image/*"}
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadFile(f, "hero_media_url");
+                e.target.value = "";
+              }}
+            />
+            <div className="flex gap-2 items-center">
+              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
+                {branding.hero_media_url ? "Cambiar" : "Subir"} {isVideo ? "Video" : "Imagen"}
+              </Button>
+              {branding.hero_media_url && (
+                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => update("hero_media_url", "")}>
+                  Eliminar media
+                </Button>
               )}
             </div>
-          )}
-          <input
-            ref={fileRef}
-            type="file"
-            accept={isVideo ? "video/mp4,video/webm" : "image/*"}
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) uploadFile(f, "hero_media_url");
-              e.target.value = "";
-            }}
-          />
-          <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
-            {uploading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
-            {branding.hero_media_url ? "Cambiar" : "Subir"} {isVideo ? "Video" : "Imagen"}
-          </Button>
-          <p className="text-xs text-muted-foreground">Máximo 15MB</p>
-        </CardContent>
-      </Card>
+            <p className="text-xs text-muted-foreground">Máximo 15MB</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Hero Texts */}
       <Card className="glass">

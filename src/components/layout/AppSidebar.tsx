@@ -28,6 +28,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
@@ -61,6 +62,7 @@ const agencyItems = [
 export function AppSidebar() {
   const { user, logout } = useOmegaAuth();
   const navigate = useNavigate();
+  const { setOpen, state } = useSidebar();
   const role = user?.role;
 
   const { data: health } = useQuery({
@@ -77,13 +79,23 @@ export function AppSidebar() {
   const showAdmin = role === "owner";
   const showAgency = role === "reseller";
 
+  const handleNavClick = () => {
+    setOpen(false);
+  };
+
+  const handleSidebarClick = () => {
+    if (state === "collapsed") {
+      setOpen(true);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
   };
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" onClick={handleSidebarClick}>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
@@ -107,7 +119,7 @@ export function AppSidebar() {
                 {mainItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
+                      <NavLink to={item.url} onClick={handleNavClick} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </NavLink>
@@ -127,7 +139,7 @@ export function AppSidebar() {
                 {configItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
+                      <NavLink to={item.url} onClick={handleNavClick} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </NavLink>
@@ -149,7 +161,7 @@ export function AppSidebar() {
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
+                      <NavLink to={item.url} onClick={handleNavClick} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </NavLink>
@@ -171,7 +183,7 @@ export function AppSidebar() {
                 {agencyItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
+                      <NavLink to={item.url} onClick={handleNavClick} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </NavLink>

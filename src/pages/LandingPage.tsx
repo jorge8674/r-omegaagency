@@ -59,8 +59,10 @@ const LandingPage: React.FC = () => {
   );
 
   const b = branding || {};
-  console.log('branding completo:', b);
-  console.log('pricing_plans:', b?.pricing_plans);
+  console.log('RAW API RESPONSE:', JSON.stringify(branding));
+  console.log('branding.pricing_plans:', branding?.pricing_plans);
+  console.log('tipo:', typeof branding?.pricing_plans);
+  console.log('es array:', Array.isArray(branding?.pricing_plans));
   const agencyName = reseller?.agency_name || "";
   const ctaText = b.hero_cta_text || "Comenzar";
   const ctaUrl = b.hero_cta_url || "#contacto";
@@ -72,7 +74,7 @@ const LandingPage: React.FC = () => {
   const metrics = Array.isArray(b.metrics) ? b.metrics : [];
   const processSteps = Array.isArray(b.process_steps) ? b.process_steps : [];
   const testimonials = Array.isArray(b.testimonials) ? b.testimonials : [];
-  const pricingPlans = Array.isArray(b.pricing_plans) ? b.pricing_plans : [];
+  const pricingPlans = b?.pricing_plans ?? [];
   const legalPages = Array.isArray(b.legal_pages) ? b.legal_pages : [];
 
   return (

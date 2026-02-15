@@ -57,6 +57,29 @@ export function TabIdentity({ branding, update, uploading, uploadFile }: Props) 
         </CardContent>
       </Card>
 
+      {/* Tagline & Badge */}
+      <Card className="glass">
+        <CardHeader><CardTitle className="text-sm font-display">Textos de Marca</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-2">
+            <Label>Tagline</Label>
+            <Input
+              placeholder="Tu agencia de marketing digital"
+              value={branding.agency_tagline}
+              onChange={(e) => update("agency_tagline", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Badge Text</Label>
+            <Input
+              placeholder="Boutique Creative Agency"
+              value={branding.badge_text}
+              onChange={(e) => update("badge_text", e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Colors */}
       <Card className="glass">
         <CardHeader><CardTitle className="text-sm font-display">Colores</CardTitle></CardHeader>

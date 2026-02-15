@@ -1,19 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./useAuth";
+import { useOmegaAuth } from "@/contexts/AuthContext";
 
 export function useOrganization() {
-  const { user } = useAuth();
+  const { user } = useOmegaAuth();
   const queryClient = useQueryClient();
 
   const profileQuery = useQuery({
-    queryKey: ["profile", user?.id],
+    queryKey: ["profile", user?.client_id],
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("user_id", user!.id)
+        .eq("user_id", user!.client_id!)
         .single();
       if (error) throw error;
       return data;
@@ -83,7 +83,7 @@ export function useOrganization() {
       // Log audit
       await supabase.from("audit_logs" as any).insert({
         organization_id: profileQuery.data!.organization_id!,
-        user_id: user!.id,
+        user_id: user!.client_id!,
         action: "update",
         entity_type: "organization",
         entity_id: profileQuery.data!.organization_id!,
@@ -105,7 +105,7 @@ export function useOrganization() {
       if (error) throw error;
       await supabase.from("audit_logs" as any).insert({
         organization_id: profileQuery.data!.organization_id!,
-        user_id: user!.id,
+        user_id: user!.client_id!,
         action: "update_role",
         entity_type: "user_role",
         entity_id: userId,
@@ -131,6 +131,6 @@ export function useOrganization() {
     auditLogs: auditQuery.data ?? [],
     updateOrg,
     updateRole,
-    isAdmin: rolesQuery.data?.some((r) => r.user_id === user?.id && r.role === "admin") ?? false,
+    isAdmin: rolesQuery.data?.some((r) => r.user_id === user?.client_id && r.role === "admin") ?? false,
   };
 }

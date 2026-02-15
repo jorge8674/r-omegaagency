@@ -374,8 +374,62 @@ export default function ContentGenerator() {
                       Validar Brand Voice
                     </Button>
                     {brandResult && (
-                      <div className="rounded-lg bg-secondary/50 p-3 mt-2">
-                        <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(brandResult, null, 2)}</pre>
+                      <div className="rounded-lg bg-secondary/50 p-3 mt-2 space-y-3">
+                        {/* Compliance Score */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium">Compliance Score</span>
+                              <span className={`text-sm font-bold ${
+                                (brandResult.compliance_score ?? 0) >= 0.8 ? 'text-green-500' : 
+                                (brandResult.compliance_score ?? 0) >= 0.5 ? 'text-yellow-500' : 'text-destructive'
+                              }`}>
+                                {Math.round((brandResult.compliance_score ?? 0) * 100)}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-secondary rounded-full h-2">
+                              <div
+                                className={`h-2 rounded-full transition-all ${
+                                  (brandResult.compliance_score ?? 0) >= 0.8 ? 'bg-green-500' : 
+                                  (brandResult.compliance_score ?? 0) >= 0.5 ? 'bg-yellow-500' : 'bg-destructive'
+                                }`}
+                                style={{ width: `${Math.round((brandResult.compliance_score ?? 0) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                          <Badge variant={brandResult.is_compliant ? "default" : "destructive"} className="shrink-0">
+                            {brandResult.is_compliant ? "✅ Cumple" : "⚠️ No cumple"}
+                          </Badge>
+                        </div>
+                        {/* Violations */}
+                        {brandResult.violations?.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-destructive mb-1">Violaciones:</p>
+                            {brandResult.violations.map((v: string, i: number) => (
+                              <p key={i} className="text-sm text-muted-foreground">❌ {v}</p>
+                            ))}
+                          </div>
+                        )}
+                        {/* Suggestions */}
+                        {brandResult.suggestions?.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-primary mb-1">Sugerencias:</p>
+                            {brandResult.suggestions
+                              .filter((s: string) => !s.startsWith('#'))
+                              .map((s: string, i: number) => (
+                                <p key={i} className="text-sm text-muted-foreground">💡 {s.replace(/^##?\s*\d*\.?\s*\*?\*?/g, '').replace(/\*\*/g, '')}</p>
+                              ))}
+                          </div>
+                        )}
+                        {/* Revised content */}
+                        {brandResult.revised_content && (
+                          <div>
+                            <p className="text-xs font-semibold text-primary mb-1">Contenido revisado:</p>
+                            <div className="bg-secondary/80 rounded-lg p-2">
+                              <p className="text-sm">{brandResult.revised_content}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

@@ -89,14 +89,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!response.ok || !data.success) {
       const status = response.status;
       const msg = (data.detail || data.message || "").toLowerCase();
+      const backendMsg = data.detail || data.message || "";
       if (status === 401 || msg.includes("invalid") || msg.includes("credentials") || msg.includes("incorrect")) {
-        throw new Error("invalid_credentials");
+        throw new Error(backendMsg || "invalid_credentials");
       }
       if (status === 403 || msg.includes("no access") || msg.includes("unauthorized")) {
-        throw new Error("no_access");
+        throw new Error(backendMsg || "no_access");
       }
-      if (status >= 500) throw new Error("server_error");
-      throw new Error("invalid_credentials");
+      if (status >= 500) throw new Error(backendMsg || "server_error");
+      throw new Error(backendMsg || "invalid_credentials");
     }
 
     const authUser: AuthUser = data.data;

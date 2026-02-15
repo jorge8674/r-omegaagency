@@ -9,11 +9,12 @@ export { API_BASE };
 export async function apiCall<T>(
   endpoint: string,
   method: ApiMethod = "GET",
-  body?: Record<string, unknown>
+  body?: Record<string, unknown>,
+  headers?: Record<string, string>
 ): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...headers },
     body: body ? JSON.stringify(body) : undefined,
   });
 

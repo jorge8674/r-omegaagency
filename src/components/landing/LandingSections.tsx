@@ -1,6 +1,6 @@
 import React from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { ShieldAlert, Sparkles, Check, X } from "lucide-react";
+import { ShieldAlert, Sparkles, Check, X, Star } from "lucide-react";
 
 interface SectionData {
   active?: boolean;
@@ -12,6 +12,15 @@ interface SectionData {
   steps?: any[];
 }
 
+interface PricingPlan {
+  name: string;
+  price: number;
+  period: string;
+  description: string;
+  features: string[];
+  is_popular: boolean;
+}
+
 interface Props {
   metrics: SectionData;
   pain: SectionData;
@@ -20,9 +29,10 @@ interface Props {
   process: SectionData;
   testimonials: SectionData;
   clientLogos: SectionData;
+  pricingPlans?: PricingPlan[];
+  ctaText?: string;
 }
 
-/* ─── Animated wrapper ─── */
 const Reveal: React.FC<{ children: React.ReactNode; delay?: number }> = ({ children, delay = 0 }) => {
   const { ref, isVisible } = useScrollAnimation(0.15);
   return (
@@ -34,7 +44,7 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number }> = ({ child
 
 const sep = <div style={{ height: 1, width: "66%", margin: "0 auto 64px", background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--brand-primary) 20%, transparent), transparent)" }} />;
 
-const LandingSections: React.FC<Props> = ({ metrics, pain, solutions, services, process, testimonials, clientLogos }) => (
+const LandingSections: React.FC<Props> = ({ metrics, pain, solutions, services, process, testimonials, clientLogos, pricingPlans = [], ctaText = "Comenzar" }) => (
   <>
     {/* ── Metrics ── */}
     {metrics.active && metrics.items && metrics.items.length > 0 && (
@@ -62,7 +72,6 @@ const LandingSections: React.FC<Props> = ({ metrics, pain, solutions, services, 
             <h2 style={{ fontFamily: "Syne", fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 700, letterSpacing: "-0.02em", color: "white", textAlign: "center", marginBottom: 64 }}>{pain.title}</h2>
           </Reveal>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 32 }}>
-            {/* Pain card */}
             <Reveal delay={150}>
               <div style={{ borderRadius: 12, border: "1px solid rgba(239,68,68,0.1)", background: "rgba(239,68,68,0.02)", padding: 32, backdropFilter: "blur(4px)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
@@ -77,7 +86,6 @@ const LandingSections: React.FC<Props> = ({ metrics, pain, solutions, services, 
                 ))}
               </div>
             </Reveal>
-            {/* Solutions card */}
             {solutions.active && solutions.items && solutions.items.length > 0 && (
               <Reveal delay={300}>
                 <div style={{ borderRadius: 12, border: "1px solid color-mix(in srgb, var(--brand-primary) 15%, transparent)", background: "color-mix(in srgb, var(--brand-primary) 2%, transparent)", padding: 32, backdropFilter: "blur(4px)" }}>
@@ -89,8 +97,8 @@ const LandingSections: React.FC<Props> = ({ metrics, pain, solutions, services, 
                     <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
                       <Check size={16} style={{ color: "var(--brand-primary)", marginTop: 3, flexShrink: 0 }} />
                       <div>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: "white" }}>{s.title}</span>
-                        {s.description && <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "4px 0 0" }}>{s.description}</p>}
+                        <span style={{ fontSize: 14, fontWeight: 600, color: "white" }}>{typeof s === 'string' ? s : s.title}</span>
+                        {typeof s !== 'string' && s.description && <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "4px 0 0" }}>{s.description}</p>}
                       </div>
                     </div>
                   ))}
@@ -139,7 +147,7 @@ const LandingSections: React.FC<Props> = ({ metrics, pain, solutions, services, 
             <Reveal key={i} delay={i * 180}>
               <div style={{ display: "flex", gap: 24, position: "relative", paddingBottom: i < process.steps!.length - 1 ? 40 : 0 }}>
                 {i < process.steps!.length - 1 && <div style={{ position: "absolute", left: 19, top: 48, bottom: 0, width: 1, background: "rgba(255,255,255,0.1)" }} />}
-                <div style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent)", background: "color-mix(in srgb, var(--brand-primary) 10%, transparent)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Syne", fontSize: 14, fontWeight: 700, color: "var(--brand-primary)", flexShrink: 0 }}>{i + 1}</div>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent)", background: "color-mix(in srgb, var(--brand-primary) 10%, transparent)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Syne", fontSize: 14, fontWeight: 700, color: "var(--brand-primary)", flexShrink: 0 }}>{s.step || i + 1}</div>
                 <div>
                   <h4 style={{ fontFamily: "Syne", fontSize: 18, fontWeight: 700, color: "white", marginBottom: 8 }}>{s.title}</h4>
                   <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{s.description}</p>
@@ -147,6 +155,67 @@ const LandingSections: React.FC<Props> = ({ metrics, pain, solutions, services, 
               </div>
             </Reveal>
           ))}
+        </div>
+      </section>
+    )}
+
+    {/* ── Pricing ── */}
+    {pricingPlans.length > 0 && (
+      <section style={{ padding: "96px 24px" }}>
+        {sep}
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <Reveal>
+            <h2 style={{ fontFamily: "Syne", fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 700, color: "white", textAlign: "center", marginBottom: 48 }}>Planes</h2>
+          </Reveal>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(280px, 1fr))`, gap: 24 }}>
+            {pricingPlans.map((plan, i) => (
+              <Reveal key={i} delay={i * 150}>
+                <div style={{
+                  borderRadius: 16, padding: 32, position: "relative",
+                  border: plan.is_popular ? "2px solid var(--brand-primary)" : "1px solid rgba(255,255,255,0.08)",
+                  background: plan.is_popular ? "color-mix(in srgb, var(--brand-primary) 5%, hsl(225 15% 8%))" : "hsl(225 15% 8%)",
+                  transition: "all 0.3s",
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = plan.is_popular ? "0 20px 60px -20px color-mix(in srgb, var(--brand-primary) 30%, transparent)" : "0 10px 40px -15px rgba(0,0,0,0.5)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+                >
+                  {plan.is_popular && (
+                    <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--brand-primary)", color: "#0D0E12", padding: "4px 16px", borderRadius: 9999, fontSize: 11, fontWeight: 700, fontFamily: "Syne", display: "flex", alignItems: "center", gap: 4 }}>
+                      <Star size={12} /> Más Popular
+                    </div>
+                  )}
+                  <h3 style={{ fontFamily: "Syne", fontSize: 22, fontWeight: 700, color: "white", marginBottom: 8 }}>{plan.name}</h3>
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 24 }}>{plan.description}</p>
+                  <div style={{ marginBottom: 24 }}>
+                    <span style={{ fontFamily: "Syne", fontSize: 42, fontWeight: 800, color: "white" }}>${plan.price}</span>
+                    <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginLeft: 4 }}>/{plan.period}</span>
+                  </div>
+                  <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px" }}>
+                    {plan.features.filter(f => f).map((feat, fi) => (
+                      <li key={fi} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, color: "rgba(255,255,255,0.7)" }}>
+                        <Check size={16} style={{ color: "var(--brand-primary)", flexShrink: 0 }} />
+                        {feat}
+                      </li>
+                    ))}
+                  </ul>
+                  <a href="#contacto" style={{
+                    display: "block", textAlign: "center",
+                    background: plan.is_popular ? "var(--brand-primary)" : "transparent",
+                    color: plan.is_popular ? "#0D0E12" : "var(--brand-primary)",
+                    border: plan.is_popular ? "none" : "1px solid color-mix(in srgb, var(--brand-primary) 40%, transparent)",
+                    padding: "12px 24px", borderRadius: 9999,
+                    fontWeight: 600, fontSize: 14, textDecoration: "none",
+                    fontFamily: "Syne", transition: "all 0.3s",
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.02)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+                  >
+                    {ctaText}
+                  </a>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
     )}

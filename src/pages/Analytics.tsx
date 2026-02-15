@@ -229,14 +229,35 @@ export default function Analytics() {
                 <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><LineChart className="h-4 w-4 text-primary" /> Forecast</CardTitle></CardHeader>
                 <CardContent>
                   {Array.isArray(forecastList) && forecastList.length > 0 ? (
-                    <div className="space-y-2">
-                      {forecastList.map((f: any, i: number) => (
-                        <div key={i} className="bg-secondary/50 rounded-lg p-3">
-                          <p className="font-medium text-sm">{f.metric || f.label || `Predicción ${i + 1}`}</p>
-                          {f.value != null && <p className="text-lg font-bold text-primary">{f.value}</p>}
-                          {f.description && <p className="text-xs text-muted-foreground">{f.description}</p>}
-                        </div>
-                      ))}
+                    <div className="space-y-1">
+                      <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-muted-foreground border-b border-border pb-2 mb-2">
+                        <span>Fecha</span>
+                        <span className="text-right">Seguidores</span>
+                        <span className="text-right">Engagement</span>
+                        <span className="text-right">Alcance</span>
+                      </div>
+                      <div className="max-h-80 overflow-y-auto space-y-1">
+                        {forecastList.map((f: any, i: number) => {
+                          const date = f.date || f.label || f.metric || `Día ${i + 1}`;
+                          const followers = f.followers ?? f.value ?? f.predicted_followers;
+                          const engagement = f.engagement_rate ?? f.engagement;
+                          const reach = f.reach ?? f.predicted_reach;
+                          return (
+                            <div key={i} className="grid grid-cols-4 gap-2 bg-secondary/30 rounded-lg px-3 py-2 text-sm">
+                              <span className="text-muted-foreground">{date}</span>
+                              <span className="text-right font-medium text-primary">
+                                {followers != null ? Number(followers).toLocaleString() : '—'}
+                              </span>
+                              <span className="text-right">
+                                {engagement != null ? `${(Number(engagement) < 1 ? (Number(engagement) * 100).toFixed(1) : Number(engagement).toFixed(1))}%` : '—'}
+                              </span>
+                              <span className="text-right">
+                                {reach != null ? Number(reach).toLocaleString() : '—'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   ) : (
                     <div className="bg-secondary/50 rounded-lg p-4 text-center">

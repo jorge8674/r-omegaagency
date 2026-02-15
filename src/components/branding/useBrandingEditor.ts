@@ -26,7 +26,7 @@ export interface BrandingData {
   logo_url: string;
   primary_color: string;
   secondary_color: string;
-  hero_type: "image" | "video";
+  hero_type: "image" | "video" | "none";
   hero_media_url: string;
   hero_title: string;
   hero_subtitle: string;
@@ -41,8 +41,9 @@ export interface BrandingData {
   client_logos: { active: boolean; items: { url: string; name: string }[] };
   contact_email: string;
   contact_phone: string;
-  social_links: { instagram: string; facebook: string; linkedin: string; tiktok: string; twitter: string; whatsapp: string };
+  social_links: { instagram: string; facebook: string; linkedin: string; tiktok: string; twitter: string; whatsapp: string; youtube: string };
   footer_text: string;
+  legal_pages: { title: string; content: string }[];
 }
 
 const defaultBranding: BrandingData = {
@@ -56,8 +57,9 @@ const defaultBranding: BrandingData = {
   testimonials: { active: true, items: [{ name: "", company: "", text: "", rating: 5 }] },
   client_logos: { active: false, items: [] },
   contact_email: "", contact_phone: "",
-  social_links: { instagram: "", facebook: "", linkedin: "", tiktok: "", twitter: "", whatsapp: "" },
+  social_links: { instagram: "", facebook: "", linkedin: "", tiktok: "", twitter: "", whatsapp: "", youtube: "" },
   footer_text: "",
+  legal_pages: [],
 };
 
 export function useBrandingEditor() {
@@ -98,6 +100,7 @@ export function useBrandingEditor() {
           process_section: sanitizeObj(d.process_section),
           testimonials: sanitizeObj(d.testimonials),
           client_logos: sanitizeObj(d.client_logos),
+          legal_pages: Array.isArray(d.legal_pages) ? d.legal_pages : (d.legal_pages ? [] : []),
         });
         setSlug(d.slug || r?.slug || "");
       })
@@ -125,7 +128,7 @@ export function useBrandingEditor() {
         logo_url: branding.logo_url || null,
         primary_color: branding.primary_color || "#d4891a",
         secondary_color: branding.secondary_color || "#1e2030",
-        hero_type: branding.hero_type || "image",
+        hero_media_type: branding.hero_type === "none" ? null : branding.hero_type || "image",
         hero_media_url: branding.hero_media_url || null,
         hero_title: branding.hero_title || null,
         hero_subtitle: branding.hero_subtitle || null,
@@ -140,6 +143,8 @@ export function useBrandingEditor() {
         contact_phone: branding.contact_phone || null,
         footer_text: branding.footer_text || null,
         social_links: sanitizeDict(branding.social_links),
+        testimonials: sanitizeDict(branding.testimonials),
+        legal_pages: branding.legal_pages?.length ? branding.legal_pages : null,
       };
       console.log("BRANDING SAVE PAYLOAD:", JSON.stringify(payload, null, 2));
       const response = await fetch(url, {

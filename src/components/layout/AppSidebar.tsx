@@ -35,6 +35,8 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import { useOmegaAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useProfile } from "@/hooks/useProfile";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -64,6 +66,7 @@ export function AppSidebar() {
   const { user, logout } = useOmegaAuth();
   const navigate = useNavigate();
   const { setOpen, state } = useSidebar();
+  const { avatarUrl } = useProfile();
   const role = user?.role;
 
   const { data: health } = useQuery({
@@ -198,21 +201,16 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2">
-        {/* System status */}
-        <div className="flex items-center gap-2 rounded-lg bg-sidebar-accent/50 p-2 group-data-[collapsible=icon]:justify-center mb-2">
-          <div className={`h-2 w-2 rounded-full shrink-0 ${isOnline ? 'bg-success' : 'bg-destructive'}`} />
-          <span className="text-xs text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-            {isOnline ? "Sistema activo" : "Sin conexión"}
-          </span>
-        </div>
-
-        {/* User info + logout */}
         {user && (
           <div className="rounded-lg border border-border/50 bg-sidebar-accent/30 p-2 group-data-[collapsible=icon]:p-1">
+            {/* Avatar + info */}
             <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0">
-                {user.email[0].toUpperCase()}
-              </div>
+              <Avatar className="h-8 w-8 shrink-0">
+                {avatarUrl && <AvatarImage src={avatarUrl} alt="Avatar" />}
+                <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                  {user.email[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
                 <p className="text-xs font-medium text-sidebar-foreground truncate">{user.email}</p>
                 <span className="inline-block mt-0.5 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[9px] font-semibold text-primary uppercase tracking-wider">
@@ -220,24 +218,36 @@ export function AppSidebar() {
                 </span>
               </div>
             </div>
-            <NavLink
-              to="/settings"
-              onClick={handleNavClick}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-md px-2 py-1.5 text-xs text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors group-data-[collapsible=icon]:mt-1"
-              activeClassName="text-primary"
-            >
-              <User className="h-3.5 w-3.5" />
-              <span className="group-data-[collapsible=icon]:hidden">Mi Perfil</span>
-            </NavLink>
-            <button
-              onClick={handleLogout}
-              className="mt-1 flex w-full items-center justify-center gap-2 rounded-md px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10 transition-colors group-data-[collapsible=icon]:mt-1"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              <span className="group-data-[collapsible=icon]:hidden">Cerrar sesión</span>
-            </button>
+
+            {/* Profile + Logout on same line */}
+            <div className="flex items-center gap-1 mt-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:mt-1">
+              <NavLink
+                to="/settings"
+                onClick={handleNavClick}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+                activeClassName="text-primary"
+              >
+                <User className="h-3.5 w-3.5" />
+                <span className="group-data-[collapsible=icon]:hidden">Perfil</span>
+              </NavLink>
+              <button
+                onClick={handleLogout}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="group-data-[collapsible=icon]:hidden">Salir</span>
+              </button>
+            </div>
           </div>
         )}
+
+        {/* System status - at the very bottom */}
+        <div className="flex items-center gap-2 rounded-lg bg-sidebar-accent/50 p-2 group-data-[collapsible=icon]:justify-center mt-1">
+          <div className={`h-2 w-2 rounded-full shrink-0 ${isOnline ? 'bg-success' : 'bg-destructive'}`} />
+          <span className="text-xs text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+            {isOnline ? "Sistema activo" : "Sin conexión"}
+          </span>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

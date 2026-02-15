@@ -21,6 +21,8 @@ function hslStringToHex(hsl: string): string {
 
 export interface BrandingData {
   agency_name: string;
+  agency_tagline: string;
+  badge_text: string;
   logo_url: string;
   primary_color: string;
   secondary_color: string;
@@ -44,7 +46,7 @@ export interface BrandingData {
 }
 
 const defaultBranding: BrandingData = {
-  agency_name: "", logo_url: "", primary_color: "#D4A017", secondary_color: "#1a1a2e",
+  agency_name: "", agency_tagline: "", badge_text: "", logo_url: "", primary_color: "#D4A017", secondary_color: "#1a1a2e",
   hero_type: "image", hero_media_url: "", hero_title: "", hero_subtitle: "", hero_cta_text: "Empezar Ahora", hero_cta_url: "",
   pain_section: { active: true, title: "¿Te identificas?", description: "", items: [{ text: "", emoji: "😓" }] },
   solutions_section: { active: true, title: "Nuestras Soluciones", items: [{ title: "", description: "" }] },
@@ -118,6 +120,8 @@ export function useBrandingEditor() {
       };
       const payload: Record<string, unknown> = {
         agency_name: branding.agency_name || null,
+        agency_tagline: branding.agency_tagline || null,
+        badge_text: branding.badge_text || null,
         logo_url: branding.logo_url || null,
         primary_color: branding.primary_color || "#d4891a",
         secondary_color: branding.secondary_color || "#1e2030",

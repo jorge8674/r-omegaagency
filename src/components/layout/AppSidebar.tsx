@@ -13,6 +13,7 @@ import {
   PanelLeft,
   Palette,
   LogOut,
+  User,
 } from "lucide-react";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
@@ -83,7 +84,7 @@ export function AppSidebar() {
     setOpen(false);
   };
 
-  const handleSidebarClick = () => {
+  const handleSidebarEnter = () => {
     if (state === "collapsed") {
       setOpen(true);
     }
@@ -95,7 +96,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" onClick={handleSidebarClick}>
+    <Sidebar collapsible="icon" onMouseEnter={handleSidebarEnter}>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
@@ -219,9 +220,18 @@ export function AppSidebar() {
                 </span>
               </div>
             </div>
+            <NavLink
+              to="/settings"
+              onClick={handleNavClick}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-md px-2 py-1.5 text-xs text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors group-data-[collapsible=icon]:mt-1"
+              activeClassName="text-primary"
+            >
+              <User className="h-3.5 w-3.5" />
+              <span className="group-data-[collapsible=icon]:hidden">Mi Perfil</span>
+            </NavLink>
             <button
               onClick={handleLogout}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-md px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10 transition-colors group-data-[collapsible=icon]:mt-1"
+              className="mt-1 flex w-full items-center justify-center gap-2 rounded-md px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10 transition-colors group-data-[collapsible=icon]:mt-1"
             >
               <LogOut className="h-3.5 w-3.5" />
               <span className="group-data-[collapsible=icon]:hidden">Cerrar sesión</span>

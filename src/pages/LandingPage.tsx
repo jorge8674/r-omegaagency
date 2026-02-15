@@ -26,21 +26,10 @@ const LandingPage: React.FC = () => {
         const json = await res.json();
         const wrapper = json.data || json;
         const resellerData = wrapper.reseller || wrapper;
-        const brandingData = wrapper.branding || null;
+        const brandingData = wrapper.branding || {};
         if (resellerData.status === "suspended" || resellerData.suspend_switch) { setStatus("suspended"); return; }
         setReseller(resellerData);
-
-        if (brandingData) {
-          setBranding(brandingData);
-        } else {
-          const bRes = await fetch(`${API_BASE}/resellers/${resellerData.id}/branding`);
-          if (bRes.ok) {
-            const bJson = await bRes.json();
-            setBranding(bJson.data || bJson);
-          } else {
-            setBranding({});
-          }
-        }
+        setBranding(brandingData);
         setStatus("ok");
       } catch {
         setStatus("error");

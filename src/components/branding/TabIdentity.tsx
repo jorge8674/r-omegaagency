@@ -16,6 +16,8 @@ interface Props {
 export function TabIdentity({ branding, update, uploading, uploadFile }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const hasValidLogo = typeof branding.logo_url === "string" && branding.logo_url.startsWith("https://");
+
   return (
     <div className="space-y-6">
       {/* Agency Name */}
@@ -34,7 +36,7 @@ export function TabIdentity({ branding, update, uploading, uploadFile }: Props) 
       <Card className="glass">
         <CardHeader><CardTitle className="text-sm font-display">Logo</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          {branding.logo_url ? (
+          {hasValidLogo ? (
             <div className="relative inline-block">
               <img src={branding.logo_url} alt="Logo" className="h-[120px] w-[120px] object-contain rounded-lg border border-border bg-secondary/30 p-2" />
               <button
@@ -44,16 +46,28 @@ export function TabIdentity({ branding, update, uploading, uploadFile }: Props) 
                 <X className="h-3 w-3" />
               </button>
             </div>
-          ) : null}
+          ) : (
+            <div className="flex flex-col items-center justify-center h-[120px] w-[120px] rounded-lg border border-dashed border-border bg-secondary/10 text-muted-foreground">
+              <Upload className="h-6 w-6 mb-1" />
+              <span className="text-[10px] text-center leading-tight px-1">Sube el logo de tu agencia</span>
+            </div>
+          )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) uploadFile(f, "logo_url");
             e.target.value = "";
           }} />
-          <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
-            {uploading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
-            Subir Logo
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
+              {uploading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
+              {hasValidLogo ? "Cambiar Logo" : "Subir Logo"}
+            </Button>
+            {hasValidLogo && (
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => update("logo_url", "")}>
+                <X className="h-4 w-4 mr-1" /> Eliminar
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 

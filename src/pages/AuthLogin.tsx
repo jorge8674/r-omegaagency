@@ -25,14 +25,12 @@ export default function AuthLogin() {
     setLoading(true);
     try {
       const authUser = await login(email.trim(), password);
+      console.log('Login response:', authUser);
       navigate(authUser.redirect_to, { replace: true });
     } catch (err: any) {
       const msg = err.message || "";
-      if (msg.includes("invalid_credentials")) setError("Email o contraseña incorrectos");
-      else if (msg.includes("no_access")) setError("Tu cuenta no tiene acceso al sistema");
-      else if (msg.includes("server_error")) setError("Error del servidor. Intenta más tarde");
-      else if (msg.includes("network_error")) setError("Sin conexión. Verifica tu internet");
-      else setError("Error al iniciar sesión");
+      if (msg.includes("network_error")) setError("Sin conexión. Verifica tu internet");
+      else setError(msg || "Email o contraseña incorrectos");
     } finally {
       setLoading(false);
     }

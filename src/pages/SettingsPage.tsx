@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useProfile } from "@/hooks/useProfile";
 import {
   Settings,
   Building,
@@ -23,6 +24,7 @@ import {
   ScrollText,
   Loader2,
   Save,
+  Camera,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -38,6 +40,8 @@ export default function SettingsPage() {
     updateRole,
     isAdmin,
   } = useOrganization();
+  const { avatarUrl, updateAvatar } = useProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [orgName, setOrgName] = useState("");
   const [nameInit, setNameInit] = useState(false);
@@ -47,6 +51,19 @@ export default function SettingsPage() {
     setOrgName(organization.name);
     setNameInit(true);
   }
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Archivo muy grande", description: "Máximo 2MB", variant: "destructive" });
+      return;
+    }
+    updateAvatar.mutate(file, {
+      onSuccess: () => toast({ title: "Foto de perfil actualizada" }),
+      onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+    });
+  };
 
   const handleSaveOrg = () => {
     if (!orgName.trim()) return;
@@ -113,6 +130,45 @@ export default function SettingsPage() {
 
         {/* Organization Tab */}
         <TabsContent value="org" className="space-y-4">
+          {/* Profile Photo Card */}
+          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Camera className="h-4 w-4 text-primary" />
+                Foto de Perfil
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center gap-4">
+              <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <Avatar className="h-20 w-20">
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt="Avatar" />}
+                  <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
+                    {organization?.name?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="h-5 w-5 text-white" />
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Cambiar foto</p>
+                <p className="text-xs text-muted-foreground">JPG, PNG. Máximo 2MB.</p>
+                {updateAvatar.isPending && (
+                  <div className="flex items-center gap-1 text-xs text-primary">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Subiendo...
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">

@@ -24,6 +24,7 @@ import ResellerDashboard from "./pages/ResellerDashboard";
 import ResellerBranding from "./pages/ResellerBranding";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="/landing/:slug" element={<LandingPage />} />
 
               {/* Default redirect */}

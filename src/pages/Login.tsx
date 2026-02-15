@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOmegaAuth } from "@/contexts/AuthContext";
 import { Loader2, Eye, EyeOff } from "lucide-react";
@@ -12,11 +12,12 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // If already authenticated, redirect
-  if (isAuthenticated && user) {
-    navigate(user.redirect_to, { replace: true });
-    return null;
-  }
+  // If already authenticated, redirect via useEffect to avoid render-loop
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(user.redirect_to, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

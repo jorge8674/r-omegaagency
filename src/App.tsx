@@ -7,7 +7,9 @@ import { AuthProvider as OmegaAuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { OmegaProtectedRoute } from "@/components/auth/OmegaProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
-import Login from "./pages/Login";
+import AuthLogin from "./pages/AuthLogin";
+import AuthRegister from "./pages/AuthRegister";
+import AuthReset from "./pages/AuthReset";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
@@ -38,12 +40,13 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               {/* Public routes */}
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/auth/login" element={<AuthLogin />} />
+              <Route path="/auth/register" element={<AuthRegister />} />
+              <Route path="/auth/reset" element={<AuthReset />} />
+              <Route path="/login" element={<Navigate to="/auth/login" replace />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/landing/:slug" element={<LandingPage />} />
-
-              {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
               {/* Owner-only */}
               <Route path="/admin/resellers" element={
@@ -52,7 +55,7 @@ const App = () => (
                 </OmegaProtectedRoute>
               } />
 
-              {/* Reseller + Owner (owner can view reseller dashboards) */}
+              {/* Reseller + Owner */}
               <Route path="/reseller/dashboard" element={
                 <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
                   <AppLayout><ResellerDashboard /></AppLayout>

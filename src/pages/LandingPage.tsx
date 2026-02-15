@@ -70,6 +70,8 @@ const LandingPage: React.FC = () => {
   );
 
   const b = branding || {};
+  console.log('branding completo:', b);
+  console.log('pricing_plans:', b?.pricing_plans);
   const agencyName = reseller?.agency_name || "";
   const ctaText = b.hero_cta_text || "Comenzar";
   const ctaUrl = b.hero_cta_url || "#contacto";

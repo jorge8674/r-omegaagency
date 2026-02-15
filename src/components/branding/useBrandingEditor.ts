@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useOmegaAuth } from "@/contexts/AuthContext";
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
 function hslStringToHex(hsl: string): string {

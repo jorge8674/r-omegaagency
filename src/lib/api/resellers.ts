@@ -30,7 +30,7 @@ export const resellersApi = {
 
   // ─── Dashboard ──────────────────────────────────────
   getDashboard: (id: string) =>
-    apiCall<ResellerDashboardResponse>(`/resellers/${id}/dashboard`, "GET", undefined, authHeaders()),
+    apiCall(`/resellers/${id}/dashboard`, "GET", undefined, authHeaders()),
 
   // ─── Branding ───────────────────────────────────────
   getBranding: (id: string) =>
@@ -57,6 +57,10 @@ export const resellersApi = {
   // ─── Clients under reseller ─────────────────────────
   getClients: (id: string) =>
     apiCall(`/resellers/${id}/clients`, "GET", undefined, authHeaders()),
+
+  // ─── Public (no auth) ─────────────────────────────────
+  getBySlug: (slug: string) =>
+    apiCall(`/resellers/slug/${slug}`),
 
   // ─── Leads ──────────────────────────────────────────
   getLeads: (id: string) =>

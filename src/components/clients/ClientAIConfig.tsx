@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { checkBackendHealth, api } from "@/lib/api-client";
+import { checkBackendHealth, api } from "@/lib/api";
 import { PROVIDER_TO_AGENT, getAgentCountForProvider, getEndpointCountForProvider } from "@/lib/ai-config";
 import { Loader2, Sparkles, Zap, Crown, DollarSign, Check, Server, CheckCircle2, XCircle } from "lucide-react";
 

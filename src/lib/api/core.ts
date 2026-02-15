@@ -6,7 +6,8 @@ const API_BASE =
 
 export { API_BASE };
 
-export async function apiCall<T>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function apiCall<T = any>(
   endpoint: string,
   method: ApiMethod = "GET",
   body?: Record<string, unknown>,

@@ -5,7 +5,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useTheme } from "@/hooks/useTheme";
 import { useOmegaAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { checkBackendHealth, api } from "@/lib/api-client";
+import { checkBackendHealth, api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,

@@ -32,7 +32,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/api";
 import { useOmegaAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";

@@ -1,0 +1,42 @@
+import type { ApiMethod, ApiHealthResponse } from "@/types/shared.types";
+
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  "https://omegaraisen-production.up.railway.app/api/v1";
+
+export { API_BASE };
+
+export async function apiCall<T>(
+  endpoint: string,
+  method: ApiMethod = "GET",
+  body?: Record<string, unknown>
+): Promise<T> {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(
+      `API Error ${response.status}: ${errorText || response.statusText}`
+    );
+  }
+
+  return response.json();
+}
+
+export async function checkBackendHealth(): Promise<ApiHealthResponse> {
+  try {
+    const base = API_BASE.replace("/api/v1", "");
+    const res = await fetch(`${base}/health`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) throw new Error("unhealthy");
+    return res.json();
+  } catch {
+    return { status: "unhealthy" };
+  }
+}

@@ -44,6 +44,7 @@ export interface BrandingData {
   social_links: { instagram: string; facebook: string; linkedin: string; tiktok: string; twitter: string; whatsapp: string; youtube: string };
   footer_text: string;
   legal_pages: { title: string; content: string }[];
+  pricing_plans: { name: string; price: number; period: "mes" | "año"; description: string; features: string[]; is_popular: boolean }[];
 }
 
 const defaultBranding: BrandingData = {
@@ -60,6 +61,7 @@ const defaultBranding: BrandingData = {
   social_links: { instagram: "", facebook: "", linkedin: "", tiktok: "", twitter: "", whatsapp: "", youtube: "" },
   footer_text: "",
   legal_pages: [],
+  pricing_plans: [],
 };
 
 export function useBrandingEditor() {
@@ -115,6 +117,7 @@ export function useBrandingEditor() {
           social_links: (d.social_links && typeof d.social_links === 'object' && !Array.isArray(d.social_links)) ? d.social_links : defaultBranding.social_links,
           footer_text: d.footer_text || "",
           legal_pages: Array.isArray(d.legal_pages) ? d.legal_pages : [],
+          pricing_plans: Array.isArray(d.pricing_plans) ? d.pricing_plans : [],
         });
         setSlug(d.slug || r?.slug || "");
       })
@@ -159,6 +162,7 @@ export function useBrandingEditor() {
           return Object.keys(filtered).length ? filtered : null;
         })(),
         legal_pages: branding.legal_pages?.length ? branding.legal_pages : null,
+        pricing_plans: branding.pricing_plans?.length ? branding.pricing_plans : null,
       };
       console.log("BRANDING SAVE PAYLOAD:", JSON.stringify(payload, null, 2));
       const response = await fetch(url, {

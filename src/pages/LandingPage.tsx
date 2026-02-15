@@ -10,8 +10,6 @@ const API_BASE = import.meta.env.VITE_API_URL || "https://omegaraisen-production
 
 type Status = "loading" | "ok" | "suspended" | "not_found" | "error";
 
-const safeObj = (v: unknown) => (!v || Array.isArray(v) ? {} : (v as Record<string, any>));
-
 const LandingPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [status, setStatus] = useState<Status>("loading");
@@ -27,7 +25,6 @@ const LandingPage: React.FC = () => {
         if (!res.ok) { setStatus("error"); return; }
         const json = await res.json();
         const wrapper = json.data || json;
-        // API may nest: { data: { reseller: {...}, branding: {...} } }
         const resellerData = wrapper.reseller || wrapper;
         const brandingData = wrapper.branding || null;
         if (resellerData.status === "suspended" || resellerData.suspend_switch) { setStatus("suspended"); return; }
@@ -36,7 +33,6 @@ const LandingPage: React.FC = () => {
         if (brandingData) {
           setBranding(brandingData);
         } else {
-          // Fallback: fetch branding separately
           const bRes = await fetch(`${API_BASE}/resellers/${resellerData.id}/branding`);
           if (bRes.ok) {
             const bJson = await bRes.json();
@@ -60,13 +56,15 @@ const LandingPage: React.FC = () => {
   );
 
   if (status === "suspended") return (
-    <div style={{ minHeight: "100vh", background: "#0D0E12", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Syne, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#0D0E12", color: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Syne, sans-serif", gap: 16 }}>
+      <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(239,68,68,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>⚠️</div>
       <p style={{ fontSize: 20, opacity: 0.5 }}>Esta agencia no está disponible</p>
     </div>
   );
 
   if (status === "not_found" || status === "error") return (
-    <div style={{ minHeight: "100vh", background: "#0D0E12", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Syne, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#0D0E12", color: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Syne, sans-serif", gap: 16 }}>
+      <div style={{ fontSize: 56, opacity: 0.2 }}>404</div>
       <p style={{ fontSize: 20, opacity: 0.5 }}>Agencia no encontrada</p>
     </div>
   );
@@ -75,6 +73,16 @@ const LandingPage: React.FC = () => {
   const agencyName = reseller?.agency_name || "";
   const ctaText = b.hero_cta_text || "Comenzar";
   const ctaUrl = b.hero_cta_url || "#contacto";
+
+  // Map flat backend fields to section objects for LandingSections
+  const painItems = Array.isArray(b.pain_items) ? b.pain_items : [];
+  const solutionItems = Array.isArray(b.solution_items) ? b.solution_items : [];
+  const services = Array.isArray(b.services) ? b.services : [];
+  const metrics = Array.isArray(b.metrics) ? b.metrics : [];
+  const processSteps = Array.isArray(b.process_steps) ? b.process_steps : [];
+  const testimonials = Array.isArray(b.testimonials) ? b.testimonials : [];
+  const pricingPlans = Array.isArray(b.pricing_plans) ? b.pricing_plans : [];
+  const legalPages = Array.isArray(b.legal_pages) ? b.legal_pages : [];
 
   return (
     <div id="landing-root" style={{
@@ -93,23 +101,33 @@ const LandingPage: React.FC = () => {
       <LandingHero
         heroType={b.hero_type || b.hero_media_type}
         heroMediaUrl={b.hero_media_url}
-        heroTitle={b.hero_title}
+        heroTitle={b.hero_title || b.agency_tagline || agencyName}
         heroSubtitle={b.hero_subtitle}
         ctaText={ctaText}
         ctaUrl={ctaUrl}
         agencyName={agencyName}
+        badgeText={b.badge_text}
       />
       <LandingSections
-        metrics={safeObj(b.metrics_section)}
-        pain={safeObj(b.pain_section)}
-        solutions={safeObj(b.solutions_section)}
-        services={safeObj(b.services_section)}
-        process={safeObj(b.process_section)}
-        testimonials={safeObj(b.testimonials_section)}
-        clientLogos={safeObj(b.client_logos_section)}
+        metrics={{ active: metrics.length > 0, items: metrics }}
+        pain={{ active: painItems.length > 0, title: "¿Te suena familiar?", points: painItems.map((p: any) => typeof p === 'string' ? p : p.text || '') }}
+        solutions={{ active: solutionItems.length > 0, items: solutionItems }}
+        services={{ active: services.length > 0, title: "Servicios", items: services }}
+        process={{ active: processSteps.length > 0, title: "Nuestro Proceso", steps: processSteps }}
+        testimonials={{ active: testimonials.length > 0, items: testimonials }}
+        clientLogos={{ active: false, items: [] }}
+        pricingPlans={pricingPlans}
+        ctaText={ctaText}
       />
-      <LandingContact resellerId={reseller.id} contactEmail={b.contact_email} />
-      <LandingFooter agencyName={agencyName} footerText={b.footer_text} socialLinks={safeObj(b.social_links) as Record<string, string>} />
+      <LandingContact resellerId={reseller.id} slug={slug} contactEmail={b.footer_email} ctaText={ctaText} />
+      <LandingFooter
+        agencyName={agencyName}
+        footerText={b.footer_text}
+        socialLinks={b.social_links && typeof b.social_links === 'object' && !Array.isArray(b.social_links) ? b.social_links : {}}
+        footerEmail={b.footer_email}
+        footerPhone={b.footer_phone}
+        legalPages={legalPages}
+      />
     </div>
   );
 };

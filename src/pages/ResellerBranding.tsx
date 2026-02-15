@@ -2,13 +2,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Save, ExternalLink, Loader2, Palette, Layout, Layers, Star, Phone, RefreshCw } from "lucide-react";
+import { Save, ExternalLink, Loader2, Palette, Layout, Layers, Star, Phone, RefreshCw, DollarSign } from "lucide-react";
 import { useBrandingEditor } from "@/components/branding/useBrandingEditor";
 import { TabIdentity } from "@/components/branding/TabIdentity";
 import { TabHero } from "@/components/branding/TabHero";
 import { TabSections } from "@/components/branding/TabSections";
 import { TabSocialProof } from "@/components/branding/TabSocialProof";
 import { TabContact } from "@/components/branding/TabContact";
+import { TabPricing } from "@/components/branding/TabPricing";
 import { useState, useCallback } from "react";
 
 export default function ResellerBranding() {
@@ -86,6 +87,9 @@ export default function ResellerBranding() {
               <TabsTrigger value="contact" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                 <Phone className="h-4 w-4 mr-1" /> Contacto
               </TabsTrigger>
+              <TabsTrigger value="pricing" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+                <DollarSign className="h-4 w-4 mr-1" /> Precios
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="identity" className="mt-6">
@@ -102,6 +106,9 @@ export default function ResellerBranding() {
             </TabsContent>
             <TabsContent value="contact" className="mt-6">
               <TabContact branding={branding} update={update} />
+            </TabsContent>
+            <TabsContent value="pricing" className="mt-6">
+              <TabPricing plans={branding.pricing_plans || []} onChange={(plans) => update("pricing_plans", plans)} />
             </TabsContent>
           </Tabs>
         </div>

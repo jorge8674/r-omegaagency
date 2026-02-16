@@ -4,6 +4,7 @@ import { analyticsApi } from "./analytics";
 import { competitiveApi } from "./competitive";
 import { resellersApi } from "./resellers";
 import { agentsApi } from "./agents";
+import { createClientContext, getClientContext, updateClientContext } from "./context";
 
 export const api = {
   // ─── Health ───────────────────────────────────────────
@@ -71,6 +72,11 @@ export const api = {
   getResellerBranding: resellersApi.getBranding,
   getResellerClients: resellersApi.getClients,
   getResellerBySlug: resellersApi.getBySlug,
+
+  // ─── Context ──────────────────────────────────────────
+  createClientContext,
+  getClientContext,
+  updateClientContext,
 };
 
 // Named exports for direct module access
@@ -80,3 +86,5 @@ export { analyticsApi } from "./analytics";
 export { competitiveApi } from "./competitive";
 export { resellersApi } from "./resellers";
 export { agentsApi } from "./agents";
+export { createClientContext, getClientContext, updateClientContext } from "./context";
+export type { ToneOption, GoalOption, PlatformOption, ClientContextData, ClientContextPayload, ClientContextUpdatePayload, AudienceValue } from "./context";

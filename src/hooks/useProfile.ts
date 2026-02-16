@@ -13,7 +13,7 @@ export function useProfile() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("user_id", user!.client_id!)
+        .eq("user_id", user!.id)
         .single();
       if (error) throw error;
       return data;

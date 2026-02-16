@@ -11,7 +11,7 @@ import AuthLogin from "./pages/AuthLogin";
 import AuthRegister from "./pages/AuthRegister";
 import AuthReset from "./pages/AuthReset";
 import Dashboard from "./pages/Dashboard";
-import Clients from "./pages/Clients";
+import Clients from "./pages/Clients/index";
 import ClientDetail from "./pages/ClientDetail";
 import ContentGenerator from "./pages/ContentGenerator/index";
 import CalendarPage from "./pages/Calendar";

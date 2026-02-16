@@ -1,10 +1,11 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 
 export interface AuthUser {
+  id: string;
   email: string;
   role: "owner" | "reseller" | "agent" | "client";
   reseller_id: string | null;
-  client_id: string | null;
+  client_id?: string | null;
   redirect_to: string;
 }
 
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           setUser(data.data);
           setToken(savedToken);
-          localStorage.setItem("omega_client_id", data.data.client_id ?? "");
+          localStorage.setItem("omega_client_id", data.data.id ?? "");
         } else {
           localStorage.removeItem("omega_token");
           localStorage.removeItem("omega_user");
@@ -108,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(authUser);
     localStorage.setItem("omega_token", authToken);
     localStorage.setItem("omega_user", JSON.stringify(authUser));
-    localStorage.setItem("omega_client_id", authUser.client_id ?? "");
+    localStorage.setItem("omega_client_id", authUser.id ?? "");
     return authUser;
   }, []);
 

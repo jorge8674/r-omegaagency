@@ -20,6 +20,10 @@ interface Props {
   onLoadContext: (clientId: string) => void;
   onSave: (payload: ClientContextPayload) => void;
   onUpdate: (payload: ClientContextUpdatePayload) => void;
+  brief?: string | null;
+  isGeneratingBrief?: boolean;
+  onGenerateBrief?: () => void;
+  onSaveBrief?: (brief: string) => void;
 }
 
 export function ContextSelector({
@@ -30,6 +34,10 @@ export function ContextSelector({
   isSaving,
   onSave,
   onUpdate,
+  brief,
+  isGeneratingBrief,
+  onGenerateBrief,
+  onSaveBrief,
 }: Props) {
   const [editMode, setEditMode] = useState(false);
 
@@ -42,7 +50,6 @@ export function ContextSelector({
     );
   }
 
-  // Modo edición: mostrar formulario con datos existentes
   if (hasContext && editMode && context) {
     return (
       <div className="space-y-3">
@@ -50,6 +57,10 @@ export function ContextSelector({
           clientId={clientId}
           existingContext={context}
           isSaving={isSaving}
+          brief={brief}
+          isGeneratingBrief={isGeneratingBrief}
+          onGenerateBrief={onGenerateBrief}
+          onSaveBrief={onSaveBrief}
           onSave={(payload) => {
             onUpdate({
               business_name: payload.business_name,
@@ -59,6 +70,9 @@ export function ContextSelector({
               primary_goal: payload.primary_goal,
               platforms: payload.platforms,
               website_url: payload.website_url,
+              keywords: payload.keywords,
+              forbidden_words: payload.forbidden_words,
+              forbidden_topics: payload.forbidden_topics,
             });
             setEditMode(false);
           }}
@@ -67,16 +81,18 @@ export function ContextSelector({
     );
   }
 
-  // Contexto existe: mostrar badge
   if (hasContext && context) {
     return <ContextBadge context={context} onEdit={() => setEditMode(true)} />;
   }
 
-  // Sin contexto: crear nuevo
   return (
     <ContextOnboarding
       clientId={clientId}
       isSaving={isSaving}
+      brief={brief}
+      isGeneratingBrief={isGeneratingBrief}
+      onGenerateBrief={onGenerateBrief}
+      onSaveBrief={onSaveBrief}
       onSave={onSave}
     />
   );

@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { ChipsInput } from "@/components/ui/ChipsInput";
+import { BriefPreview } from "./BriefPreview";
 import type { ClientContextData, ClientContextPayload, ToneOption, GoalOption, PlatformOption } from "@/lib/api/context";
 
 const TONES: { value: ToneOption; label: string }[] = [
@@ -46,9 +48,16 @@ interface Props {
   onSave: (payload: ClientContextPayload) => void;
   isSaving: boolean;
   existingContext?: ClientContextData | null;
+  brief?: string | null;
+  isGeneratingBrief?: boolean;
+  onGenerateBrief?: () => void;
+  onSaveBrief?: (brief: string) => void;
 }
 
-export function ContextOnboarding({ clientId, onSave, isSaving, existingContext }: Props) {
+export function ContextOnboarding({
+  clientId, onSave, isSaving, existingContext,
+  brief, isGeneratingBrief, onGenerateBrief, onSaveBrief,
+}: Props) {
   const [businessName, setBusinessName] = useState("");
   const [industry, setIndustry] = useState("");
   const [description, setDescription] = useState("");
@@ -56,6 +65,9 @@ export function ContextOnboarding({ clientId, onSave, isSaving, existingContext 
   const [goal, setGoal] = useState<GoalOption>("awareness");
   const [platforms, setPlatforms] = useState<PlatformOption[]>(["instagram"]);
   const [websiteUrl, setWebsiteUrl] = useState("");
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [forbiddenWords, setForbiddenWords] = useState<string[]>([]);
+  const [forbiddenTopics, setForbiddenTopics] = useState<string[]>([]);
 
   useEffect(() => {
     if (!existingContext) return;
@@ -66,6 +78,9 @@ export function ContextOnboarding({ clientId, onSave, isSaving, existingContext 
     setGoal(existingContext.primary_goal ?? "awareness");
     setPlatforms(existingContext.platforms.length ? existingContext.platforms : ["instagram"]);
     setWebsiteUrl(existingContext.website_url ?? "");
+    setKeywords(existingContext.keywords ?? []);
+    setForbiddenWords(existingContext.forbidden_words ?? []);
+    setForbiddenTopics(existingContext.forbidden_topics ?? []);
   }, [existingContext]);
 
   const togglePlatform = (p: PlatformOption) => {
@@ -85,6 +100,9 @@ export function ContextOnboarding({ clientId, onSave, isSaving, existingContext 
       primary_goal: goal,
       platforms,
       website_url: websiteUrl.trim() || undefined,
+      keywords,
+      forbidden_words: forbiddenWords,
+      forbidden_topics: forbiddenTopics,
     });
   };
 
@@ -138,6 +156,20 @@ export function ContextOnboarding({ clientId, onSave, isSaving, existingContext 
         <Label htmlFor="ctx-web">Website</Label>
         <Input id="ctx-web" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://..." />
       </div>
+
+      <ChipsInput label="Keywords" value={keywords} onChange={setKeywords} placeholder="keyword + Enter" />
+      <ChipsInput label="Palabras prohibidas" value={forbiddenWords} onChange={setForbiddenWords} placeholder="palabra + Enter" />
+      <ChipsInput label="Temas prohibidos" value={forbiddenTopics} onChange={setForbiddenTopics} placeholder="tema + Enter" />
+
+      {onGenerateBrief && (
+        <BriefPreview
+          brief={brief ?? null}
+          isGenerating={isGeneratingBrief ?? false}
+          onGenerate={onGenerateBrief}
+          onSave={onSaveBrief ?? (() => {})}
+        />
+      )}
+
       <Button onClick={handleSubmit} disabled={!isValid || isSaving} className="w-full">
         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {existingContext ? "Actualizar Contexto" : "Crear Contexto"}

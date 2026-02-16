@@ -1,9 +1,22 @@
+import { useEffect } from "react";
 import { useContentGenerator } from "./hooks/useContentGenerator";
+import { useClientContext } from "./hooks/useClientContext";
 import { ConfigPanel } from "./components/ConfigPanel";
 import { ResultsPanel } from "./components/ResultsPanel";
+import { ContextSelector } from "./components/ContextSelector";
 
 export default function ContentGenerator() {
   const state = useContentGenerator();
+  const ctx = useClientContext();
+
+  const clientId = localStorage.getItem("omega_client_id") ?? "";
+
+  useEffect(() => {
+    if (clientId) {
+      ctx.loadContext(clientId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId]);
 
   return (
     <div className="space-y-6">
@@ -11,6 +24,19 @@ export default function ContentGenerator() {
         <h1 className="text-2xl font-bold">Content Lab</h1>
         <p className="text-muted-foreground">Genera contenido optimizado con IA</p>
       </div>
+
+      {clientId && (
+        <ContextSelector
+          clientId={clientId}
+          hasContext={ctx.hasContext}
+          context={ctx.context}
+          isLoading={ctx.isLoading}
+          isSaving={ctx.isSaving}
+          onLoadContext={ctx.loadContext}
+          onSave={ctx.handleCreate}
+          onUpdate={ctx.handleUpdate}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ConfigPanel

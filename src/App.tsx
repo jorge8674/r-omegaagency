@@ -13,7 +13,7 @@ import AuthReset from "./pages/AuthReset";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
-import ContentGenerator from "./pages/ContentGenerator";
+import ContentGenerator from "./pages/ContentGenerator/index";
 import CalendarPage from "./pages/Calendar";
 import Media from "./pages/Media";
 import Analytics from "./pages/Analytics";

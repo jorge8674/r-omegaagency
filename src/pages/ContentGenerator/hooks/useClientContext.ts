@@ -7,6 +7,7 @@ import {
   createClientContext,
   getClientContext,
   updateClientContext,
+  generateClientBrief,
 } from "@/lib/api/context";
 import type {
   ClientContextData,
@@ -23,6 +24,7 @@ interface UseClientContextReturn {
   loadContext: (clientId: string) => Promise<void>;
   handleCreate: (payload: ClientContextPayload) => Promise<void>;
   handleUpdate: (payload: ClientContextUpdatePayload) => Promise<void>;
+  handleGenerateBrief: () => Promise<void>;
 }
 
 export function useClientContext(): UseClientContextReturn {
@@ -87,6 +89,24 @@ export function useClientContext(): UseClientContextReturn {
     }
   }, [context, toast]);
 
+  const handleGenerateBrief = useCallback(async () => {
+    const id = localStorage.getItem("omega_client_id");
+    if (!id) return;
+    setIsSaving(true);
+    try {
+      const res = await generateClientBrief(id);
+      if (res.data) {
+        setContext(res.data);
+        toast({ title: "✨ Brief generado", description: "Brief de marca creado con IA." });
+      }
+    } catch (e: unknown) {
+      const msg = (e as Error).message;
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [toast]);
+
   return {
     context,
     isLoading,
@@ -96,5 +116,6 @@ export function useClientContext(): UseClientContextReturn {
     loadContext,
     handleCreate,
     handleUpdate,
+    handleGenerateBrief,
   };
 }

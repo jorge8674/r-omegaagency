@@ -59,6 +59,7 @@ export interface ClientContextPayload {
   brand_colors?: string[];
   website_url?: string;
   custom_instructions?: string;
+  ai_generated_brief?: string;
 }
 
 export type ClientContextUpdatePayload = Partial<
@@ -88,5 +89,13 @@ export function updateClientContext(
 ): Promise<ApiResponse<ClientContextData>> {
   return apiCall<ApiResponse<ClientContextData>>(
     `/context/${clientId}`, "PATCH", payload as unknown as Record<string, unknown>
+  );
+}
+
+export function generateClientBrief(
+  clientId: string
+): Promise<ApiResponse<ClientContextData>> {
+  return apiCall<ApiResponse<ClientContextData>>(
+    `/context/${clientId}/generate-brief`, "POST"
   );
 }

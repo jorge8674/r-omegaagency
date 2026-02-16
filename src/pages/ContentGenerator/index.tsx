@@ -35,6 +35,10 @@ export default function ContentGenerator() {
           onLoadContext={ctx.loadContext}
           onSave={ctx.handleCreate}
           onUpdate={ctx.handleUpdate}
+          brief={ctx.context?.ai_generated_brief ?? null}
+          isGeneratingBrief={ctx.isSaving}
+          onGenerateBrief={ctx.handleGenerateBrief}
+          onSaveBrief={(b) => ctx.handleUpdate({ ai_generated_brief: b })}
         />
       )}
 

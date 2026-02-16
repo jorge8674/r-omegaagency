@@ -54,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           setUser(data.data);
           setToken(savedToken);
+          localStorage.setItem("omega_client_id", data.data.client_id ?? "");
         } else {
           localStorage.removeItem("omega_token");
           localStorage.removeItem("omega_user");
@@ -107,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(authUser);
     localStorage.setItem("omega_token", authToken);
     localStorage.setItem("omega_user", JSON.stringify(authUser));
+    localStorage.setItem("omega_client_id", authUser.client_id ?? "");
     return authUser;
   }, []);
 
@@ -115,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem("omega_token");
     localStorage.removeItem("omega_user");
+    localStorage.removeItem("omega_client_id");
     sessionStorage.removeItem("omega_reseller_id");
     // Fire-and-forget logout to backend
     // fetch(`${API_BASE}/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(() => {});

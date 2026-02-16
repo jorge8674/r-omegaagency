@@ -5,6 +5,7 @@ import { competitiveApi } from "./competitive";
 import { resellersApi } from "./resellers";
 import { agentsApi } from "./agents";
 import { createClientContext, getClientContext, updateClientContext } from "./context";
+import { listClients, createClient, getClient, updateClient, deleteClient } from "./clients";
 
 export const api = {
   // ─── Health ───────────────────────────────────────────
@@ -77,6 +78,13 @@ export const api = {
   createClientContext,
   getClientContext,
   updateClientContext,
+
+  // ─── Clients ──────────────────────────────────────────
+  listClients,
+  createClient,
+  getClient,
+  updateClient: updateClient,
+  deleteClient,
 };
 
 // Named exports for direct module access
@@ -88,3 +96,5 @@ export { resellersApi } from "./resellers";
 export { agentsApi } from "./agents";
 export { createClientContext, getClientContext, updateClientContext } from "./context";
 export type { ToneOption, GoalOption, PlatformOption, ClientContextData, ClientContextPayload, ClientContextUpdatePayload, AudienceValue } from "./context";
+export { listClients, createClient, getClient, updateClient, deleteClient } from "./clients";
+export type { ClientProfile, ClientCreate, ClientUpdate, ClientPlan, ClientStatus, SubscriptionStatus, ClientRole, ClientListResponse, ClientResponse, ClientListParams } from "./clients";

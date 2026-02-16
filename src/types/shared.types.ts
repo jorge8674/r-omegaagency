@@ -35,4 +35,4 @@ export interface ApiResponse<T> {
 }
 
 /** HTTP methods supported by the API client */
-export type ApiMethod = "GET" | "POST" | "PATCH";
+export type ApiMethod = "GET" | "POST" | "PATCH" | "DELETE" | "PUT";

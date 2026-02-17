@@ -2,7 +2,7 @@
 // Responsabilidad: Tab controller + modal wrapper + state management
 
 import { useState, useEffect, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -88,7 +88,12 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>🔥 {isEdit ? "EDITAR (NUEVO)" : "CREAR (NUEVO)"}</DialogTitle>
+          <DialogTitle>{isEdit ? "Editar Cliente" : "Nuevo Cliente"}</DialogTitle>
+          <DialogDescription>
+            {isEdit
+              ? "Modifica los datos, contexto de marca y cuentas sociales del cliente."
+              : "Completa la información básica para crear el cliente. Luego podrás configurar su contexto y cuentas."}
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="info" className="mt-2">
@@ -120,7 +125,11 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
           </TabsContent>
 
           <TabsContent value="accounts">
-            <AccountsTab />
+            <AccountsTab
+              clientId={client?.id ?? null}
+              plan={plan}
+              isEdit={isEdit}
+            />
           </TabsContent>
         </Tabs>
 

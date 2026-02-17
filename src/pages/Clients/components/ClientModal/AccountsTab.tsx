@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Loader2, ChevronLeft, Share2 } from "lucide-react";
+import { PlatformIcon, getPlatformLabel } from "@/components/icons/PlatformIcon";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,15 +35,7 @@ import {
 import { apiCall } from "@/lib/api/core";
 import { ChipsInput } from "@/components/ui/ChipsInput";
 
-const PLATFORM_CONFIG: Record<string, { label: string; emoji: string }> = {
-  instagram: { label: "Instagram", emoji: "📸" },
-  facebook: { label: "Facebook", emoji: "📘" },
-  tiktok: { label: "TikTok", emoji: "🎵" },
-  twitter: { label: "X / Twitter", emoji: "🐦" },
-  linkedin: { label: "LinkedIn", emoji: "💼" },
-  youtube: { label: "YouTube", emoji: "🎬" },
-  pinterest: { label: "Pinterest", emoji: "📌" },
-};
+// Platform config now uses PlatformIcon component
 
 const TONE_OPTIONS = [
   "Profesional", "Inspiracional", "Humorístico",
@@ -214,7 +207,6 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
       ) : (
         <div className="space-y-2">
           {accounts.map((acc) => {
-            const config = PLATFORM_CONFIG[acc.platform] || { label: acc.platform, emoji: "🌐" };
             const hasContext = !!acc.context_id;
             const healthLabel = hasContext ? "Listo" : "Sin contexto";
             const healthDesc = hasContext
@@ -222,10 +214,10 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
               : "Falta contexto — haz click en Actualizar para configurar";
             return (
               <div key={acc.id} className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 p-3">
-                <span className="text-lg">{config.emoji}</span>
+                <PlatformIcon platform={acc.platform} size={20} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{acc.username}</p>
-                  <p className="text-xs text-muted-foreground">{config.label}</p>
+                  <p className="text-xs text-muted-foreground">{getPlatformLabel(acc.platform)}</p>
                 </div>
                 {/* Health indicator */}
                 <div className="flex items-center gap-1.5 cursor-help" title={healthDesc}>

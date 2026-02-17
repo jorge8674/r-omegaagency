@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Copy, Bookmark, RotateCcw, Trash2, Loader2, CheckCircle, Download } from "lucide-react";
+import { PlatformIcon, getPlatformLabel } from "@/components/icons/PlatformIcon";
+import { ContentTypeIcon } from "@/components/icons/ContentTypeIcon";
 import { useClients } from "@/pages/ContentGenerator/hooks/useClients";
 import { listSocialAccounts } from "@/lib/api/socialAccounts";
 import {
@@ -16,10 +18,7 @@ import {
   generateImage, CONTENT_TYPE_LABELS, type ContentType, type GeneratedContent,
 } from "@/lib/api/contentLab";
 
-const PLATFORM_EMOJI: Record<string, string> = {
-  instagram: "📸", facebook: "📘", tiktok: "🎵",
-  twitter: "🐦", linkedin: "💼", youtube: "🎬", pinterest: "📌",
-};
+// Platform display now uses PlatformIcon component
 
 export default function ContentLab() {
   const { toast } = useToast();
@@ -191,7 +190,7 @@ export default function ContentLab() {
                   {accounts.map((acc) => (
                     <SelectItem key={acc.id} value={acc.id}>
                       <span className="flex items-center gap-2">
-                        {PLATFORM_EMOJI[acc.platform] || "🌐"} {acc.username}
+                        <PlatformIcon platform={acc.platform} size={14} /> {acc.username}
                         {!acc.context_id && (
                           <span className="text-[10px] text-destructive ml-1">sin contexto</span>
                         )}
@@ -225,7 +224,10 @@ export default function ContentLab() {
                         : "border-border/50 hover:border-primary/50"
                     }`}
                   >
-                    <span>{info.emoji} {info.label}</span>
+                    <span className="flex items-center gap-1.5">
+                      <ContentTypeIcon type={type} size={14} className={contentType === type ? "text-primary" : "text-muted-foreground"} />
+                      {info.label}
+                    </span>
                     <p className="text-[10px] text-muted-foreground">{info.desc}</p>
                   </button>
                 ))}
@@ -304,12 +306,12 @@ export default function ContentLab() {
             <div className="rounded-lg border border-border/50 bg-card p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span>{CONTENT_TYPE_LABELS[currentResult.content_type as ContentType]?.emoji}</span>
+                  <ContentTypeIcon type={currentResult.content_type as ContentType} size={16} className="text-primary" />
                   <span className="font-semibold capitalize">
                     {CONTENT_TYPE_LABELS[currentResult.content_type as ContentType]?.label}
                   </span>
-                  <span className="text-xs text-muted-foreground">
-                    {PLATFORM_EMOJI[currentResult.platform || ""] || ""} {currentResult.platform}
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <PlatformIcon platform={currentResult.platform || ""} size={12} /> {currentResult.platform}
                   </span>
                 </div>
                 <span className="text-xs text-muted-foreground">{currentResult.tokens_used} tokens</span>
@@ -391,8 +393,8 @@ export default function ContentLab() {
                     onClick={() => setCurrentResult(item)}
                     className="flex items-start gap-3 p-3 rounded-lg border border-border/30 hover:bg-muted/30 cursor-pointer transition-colors"
                   >
-                    <span className="text-lg shrink-0">
-                      {CONTENT_TYPE_LABELS[item.content_type as ContentType]?.emoji}
+                    <span className="shrink-0">
+                      <ContentTypeIcon type={item.content_type as ContentType} size={16} className="text-primary" />
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.prompt}</p>
@@ -400,9 +402,7 @@ export default function ContentLab() {
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       {item.is_saved && <Bookmark className="h-3.5 w-3.5 fill-current text-primary" />}
-                      <span className="text-xs text-muted-foreground">
-                        {PLATFORM_EMOJI[item.platform || ""] || ""}
-                      </span>
+                      <PlatformIcon platform={item.platform || ""} size={14} />
                     </div>
                   </div>
                 ))}

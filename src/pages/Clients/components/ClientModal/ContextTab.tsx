@@ -263,19 +263,24 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
           <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
             <input
               type="file"
-              accept=".pdf,.doc,.docx"
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.svg,.gif"
               className="hidden"
               id="brand-guide-upload"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
+                  const maxSize = 10 * 1024 * 1024;
+                  if (file.size > maxSize) {
+                    toast({ title: "Archivo muy grande", description: "Máximo 10MB", variant: "destructive" });
+                    return;
+                  }
                   toast({ title: `Archivo seleccionado: ${file.name}` });
                 }
               }}
             />
             <label htmlFor="brand-guide-upload" className="cursor-pointer">
-              <p className="text-sm text-muted-foreground">Click para adjuntar PDF, guía de marca...</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">PDF, DOC hasta 10MB</p>
+              <p className="text-sm text-muted-foreground">Click para adjuntar archivos de marca</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">PDF, DOC, PPT, XLS, PNG, JPG, SVG — hasta 10MB</p>
             </label>
           </div>
         </div>

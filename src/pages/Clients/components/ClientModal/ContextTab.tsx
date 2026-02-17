@@ -50,10 +50,11 @@ export interface ContextTabRef {
 
 interface ContextTabProps {
   client: { id: string; plan: string } | null;
+  onAccountsCreated?: () => void;
 }
 
 export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
-  ({ client }, ref) => {
+  ({ client, onAccountsCreated }, ref) => {
     const { toast } = useToast();
 
     // Context fields

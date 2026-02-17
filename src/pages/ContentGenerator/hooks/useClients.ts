@@ -40,17 +40,19 @@ export function useClients() {
     }
   }, [toast]);
 
-  const handleCreate = useCallback(async (payload: ClientCreate) => {
+  const handleCreate = useCallback(async (payload: ClientCreate): Promise<ClientProfile | undefined> => {
     setIsSaving(true);
     setError(null);
     try {
       const result = await createClient(payload);
       if (result.data) setClients((prev) => [result.data!, ...prev]);
       toast({ title: "✅ Cliente creado" });
+      return result.data ?? undefined;
     } catch (e: unknown) {
       const msg = (e as Error).message;
       setError(msg);
       toast({ title: "Error creando cliente", description: msg, variant: "destructive" });
+      return undefined;
     } finally {
       setIsSaving(false);
     }

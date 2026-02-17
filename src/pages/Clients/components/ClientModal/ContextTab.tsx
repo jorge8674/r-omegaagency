@@ -14,6 +14,7 @@ import {
 import { ChipsInput } from "@/components/ui/ChipsInput";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Palette, X } from "lucide-react";
+import { BrandFilesUpload } from "./BrandFilesUpload";
 import type { Platform, ContextData } from "@/lib/api/socialAccounts";
 
 const PLATFORMS = [
@@ -258,31 +259,8 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
         </div>
 
         {/* Upload guía de marca */}
-        <div className="border-t border-border pt-4 space-y-2">
-          <Label className="text-xs font-medium">Adjuntar guía de marca (PDF)</Label>
-          <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.svg,.gif"
-              className="hidden"
-              id="brand-guide-upload"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const maxSize = 25 * 1024 * 1024;
-                  if (file.size > maxSize) {
-                    toast({ title: "Archivo muy grande", description: "Máximo 25MB por archivo", variant: "destructive" });
-                    return;
-                  }
-                  toast({ title: `Archivo seleccionado: ${file.name}` });
-                }
-              }}
-            />
-            <label htmlFor="brand-guide-upload" className="cursor-pointer">
-              <p className="text-sm text-muted-foreground">Click para adjuntar archivos de marca</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">PDF, DOC, PPT, XLS, PNG, JPG, SVG — hasta 25MB por archivo</p>
-            </label>
-          </div>
+        <div className="border-t border-border pt-4">
+          <BrandFilesUpload client={client} />
         </div>
       </div>
     );

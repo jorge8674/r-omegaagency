@@ -1,14 +1,16 @@
 // src/pages/Clients/components/ClientModal/index.tsx
 // Responsabilidad: Tab controller + modal wrapper + state management
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { InfoTab } from "./InfoTab";
-import { ContextTab } from "./ContextTab";
+import { ContextTab, type ContextTabRef } from "./ContextTab";
 import { AccountsTab } from "./AccountsTab";
+import { createAccountWithContext } from "@/lib/api/socialAccounts";
 import type {
   ClientProfile, ClientCreate, ClientUpdate,
   ClientPlan, SubscriptionStatus,
@@ -25,6 +27,8 @@ interface ClientModalProps {
 
 export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, isSaving }: ClientModalProps) {
   const isEdit = !!client;
+  const { toast } = useToast();
+  const contextTabRef = useRef<ContextTabRef>(null);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -37,6 +41,7 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
   const [trialActive, setTrialActive] = useState(false);
   const [trialEndsAt, setTrialEndsAt] = useState("");
   const [statusActive, setStatusActive] = useState(true);
+  const [savingAll, setSavingAll] = useState(false);
 
   useEffect(() => {
     if (client) {
@@ -59,27 +64,56 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
   }, [client, open]);
 
   const handleSave = useCallback(async () => {
-    if (isEdit && client) {
-      await onUpdate(client.id, {
-        name, phone: phone || null, company: company || null,
-        plan, notes: notes || null,
-        status: statusActive ? "active" : "inactive",
-        subscription_status: subscriptionStatus,
-        trial_active: trialActive,
-      });
-    } else {
-      await onSubmit({
-        name, email, password,
-        phone: phone || null, company: company || null,
-        plan, notes: notes || null,
-      });
+    setSavingAll(true);
+    try {
+      // 1. Save client info
+      if (isEdit && client) {
+        await onUpdate(client.id, {
+          name, phone: phone || null, company: company || null,
+          plan, notes: notes || null,
+          status: statusActive ? "active" : "inactive",
+          subscription_status: subscriptionStatus,
+          trial_active: trialActive,
+        });
+      } else {
+        await onSubmit({
+          name, email, password,
+          phone: phone || null, company: company || null,
+          plan, notes: notes || null,
+        });
+      }
+
+      // 2. Save context + pending accounts (if any data in ContextTab)
+      if (isEdit && client && contextTabRef.current) {
+        const contextData = contextTabRef.current.getData();
+        if (contextData && contextData.pendingAccounts.length > 0) {
+          for (const acc of contextData.pendingAccounts) {
+            await createAccountWithContext({
+              client_id: client.id,
+              platform: acc.platform,
+              username: acc.username,
+              profile_url: acc.profile_url,
+              context: contextData.context,
+            });
+          }
+          toast({ title: `${contextData.pendingAccounts.length} cuenta(s) creada(s) con contexto` });
+        }
+      }
+
+      onOpenChange(false);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Error desconocido";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    } finally {
+      setSavingAll(false);
     }
-    onOpenChange(false);
-  }, [isEdit, client, name, email, password, phone, company, plan, notes, statusActive, subscriptionStatus, trialActive, onUpdate, onSubmit, onOpenChange]);
+  }, [isEdit, client, name, email, password, phone, company, plan, notes, statusActive, subscriptionStatus, trialActive, onUpdate, onSubmit, onOpenChange, toast]);
 
   const isValid = name.trim().length > 0
     && email.trim().length > 0
     && (isEdit || password.trim().length >= 6);
+
+  const busy = isSaving || savingAll;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,8 +149,8 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
 
           <TabsContent value="context">
             <ContextTab
+              ref={contextTabRef}
               client={client ? { id: client.id, plan: client.plan } : null}
-              onAccountCreated={() => {}}
             />
           </TabsContent>
 
@@ -131,8 +165,8 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
 
         <div className="flex justify-end gap-3 mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button className="gradient-primary" onClick={handleSave} disabled={!isValid || isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button className="gradient-primary" onClick={handleSave} disabled={!isValid || busy}>
+            {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isEdit ? "Guardar Cambios" : "Crear Cliente"}
           </Button>
         </div>

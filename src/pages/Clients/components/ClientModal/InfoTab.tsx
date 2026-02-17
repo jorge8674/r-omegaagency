@@ -88,8 +88,27 @@ export function InfoTab({
         }
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Error desconocido";
-      toast({ title: "Error", description: message, variant: "destructive" });
+      let errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      try {
+        const jsonStart = errorMessage.indexOf("{");
+        if (jsonStart !== -1) {
+          const parsed = JSON.parse(errorMessage.slice(jsonStart));
+          if (parsed?.detail && Array.isArray(parsed.detail)) {
+            const fieldMessages: Record<string, string> = {
+              password: "La contraseña debe tener al menos 8 caracteres",
+              email: "El email no es válido",
+              name: "El nombre es requerido",
+              plan: "El plan no es válido",
+            };
+            const firstError = parsed.detail[0];
+            const field = firstError?.loc?.[firstError.loc.length - 1];
+            errorMessage = fieldMessages[field] || firstError?.msg || errorMessage;
+          } else if (typeof parsed?.detail === "string") {
+            errorMessage = parsed.detail;
+          }
+        }
+      } catch { /* usa mensaje original */ }
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     }
   }, [isEdit, client, name, email, password, phone, company, plan, notes, statusActive, subscriptionStatus, trialActive, onUpdate, onSubmit, onCreated, onUpdated, toast]);
 

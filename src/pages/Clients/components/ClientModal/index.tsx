@@ -54,9 +54,9 @@ export function ClientModal({
     setActiveTab("context");
   }, []);
 
-  // Called by InfoTab on successful update
+  // Called by InfoTab on successful update — advance to context
   const handleUpdated = useCallback(() => {
-    // No extra action needed
+    setActiveTab("context");
   }, []);
 
   const title = isEditMode
@@ -109,7 +109,7 @@ export function ClientModal({
           </TabsContent>
         </Tabs>
 
-        {isEditMode && (
+        {isEditMode && activeTab !== "info" && (
           <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
             <p className="text-xs text-muted-foreground">✅ Cambios guardados automáticamente</p>
             <Button className="gradient-primary" onClick={() => handleOpenChange(false)}>

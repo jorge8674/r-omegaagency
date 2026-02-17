@@ -199,7 +199,7 @@ export function InfoTab({
       <div className="flex justify-end pt-2">
         <Button className="gradient-primary" onClick={handleSave} disabled={!isValid || isSaving}>
           {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEdit ? "Guardar Cambios" : "Crear Cuenta"}
+          {isEdit ? "Guardar y Continuar →" : "Crear Cuenta"}
         </Button>
       </div>
     </div>

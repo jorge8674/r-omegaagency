@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useClients } from "../ContentGenerator/hooks/useClients";
 import { ClientsTable } from "./components/ClientsTable";
-import { ClientModal } from "./components/ClientModal";
+import { ClientModal } from "./components/ClientModal/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

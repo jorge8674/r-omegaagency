@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,7 +33,11 @@ export default function ContentLab() {
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const { clients } = useClients();
+  const { clients, loadClients } = useClients();
+
+  useEffect(() => {
+    loadClients();
+  }, [loadClients]);
 
   const { data: accountsData } = useQuery({
     queryKey: ["social-accounts", selectedClientId],

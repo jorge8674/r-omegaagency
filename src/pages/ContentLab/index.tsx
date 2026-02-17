@@ -8,12 +8,12 @@ import {
   SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Copy, Bookmark, RotateCcw, Trash2, Loader2, CheckCircle } from "lucide-react";
+import { Sparkles, Copy, Bookmark, RotateCcw, Trash2, Loader2, CheckCircle, Download } from "lucide-react";
 import { useClients } from "@/pages/ContentGenerator/hooks/useClients";
 import { listSocialAccounts } from "@/lib/api/socialAccounts";
 import {
   generateContent, listGeneratedContent, toggleSaveContent, deleteContent,
-  CONTENT_TYPE_LABELS, type ContentType, type GeneratedContent,
+  generateImage, CONTENT_TYPE_LABELS, type ContentType, type GeneratedContent,
 } from "@/lib/api/contentLab";
 
 const PLATFORM_EMOJI: Record<string, string> = {
@@ -33,6 +33,8 @@ export default function ContentLab() {
   const [currentResult, setCurrentResult] = useState<GeneratedContent | null>(null);
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [imageStyle, setImageStyle] = useState<"realistic" | "cartoon" | "minimal">("realistic");
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const { clients, loadClients } = useClients();
 
@@ -115,6 +117,24 @@ export default function ContentLab() {
     queryClient.invalidateQueries({ queryKey: ["content-history"] });
     if (currentResult?.id === contentId) setCurrentResult(null);
     toast({ title: "Eliminado" });
+  };
+
+  const handleGenerateImage = async () => {
+    if (!selectedAccountId || !prompt.trim()) return;
+    setIsGeneratingImage(true);
+    try {
+      const result = await generateImage(selectedAccountId, prompt, imageStyle);
+      if (result.data) {
+        setCurrentResult(result.data);
+        queryClient.invalidateQueries({ queryKey: ["content-history"] });
+        toast({ title: "✅ Imagen generada" });
+      }
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Error desconocido";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setIsGeneratingImage(false);
+    }
   };
 
   return (
@@ -210,6 +230,31 @@ export default function ContentLab() {
                   </button>
                 ))}
               </div>
+
+              {contentType === "image" && (
+                <div className="space-y-2 mt-3">
+                  <Label>Estilo de imagen</Label>
+                  <div className="flex gap-2">
+                    {([
+                      { value: "realistic", label: "📸 Realista" },
+                      { value: "cartoon", label: "🎨 Ilustración" },
+                      { value: "minimal", label: "⬜ Minimal" },
+                    ] as const).map((s) => (
+                      <button
+                        key={s.value}
+                        onClick={() => setImageStyle(s.value)}
+                        className={`flex-1 py-2 px-3 rounded-lg border text-sm transition-all ${
+                          imageStyle === s.value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/50 hover:border-primary/50"
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Idioma */}
@@ -241,13 +286,13 @@ export default function ContentLab() {
 
             <Button
               className="w-full"
-              onClick={handleGenerate}
-              disabled={isGenerating || !selectedAccountId || !prompt.trim()}
+              onClick={contentType === "image" ? handleGenerateImage : handleGenerate}
+              disabled={(contentType === "image" ? isGeneratingImage : isGenerating) || !selectedAccountId || !prompt.trim()}
             >
-              {isGenerating ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generando...</>
+              {(contentType === "image" ? isGeneratingImage : isGenerating) ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {contentType === "image" ? "Creando imagen..." : "Generando..."}</>
               ) : (
-                <><Sparkles className="mr-2 h-4 w-4" /> Generar Contenido</>
+                <><Sparkles className="mr-2 h-4 w-4" /> {contentType === "image" ? "Generar Imagen 🖼️" : "Generar Contenido"}</>
               )}
             </Button>
           </div>
@@ -270,30 +315,62 @@ export default function ContentLab() {
                 <span className="text-xs text-muted-foreground">{currentResult.tokens_used} tokens</span>
               </div>
 
-              <div className="bg-muted/30 rounded-lg p-4 min-h-[200px] whitespace-pre-wrap text-sm leading-relaxed">
-                {currentResult.generated_text}
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleCopy}>
-                  {copied ? <CheckCircle className="mr-1 h-4 w-4 text-green-500" /> : <Copy className="mr-1 h-4 w-4" />}
-                  {copied ? "Copiado" : "Copiar"}
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleSave(currentResult.id)}>
-                  <Bookmark className={`mr-1 h-4 w-4 ${currentResult.is_saved ? "fill-current" : ""}`} />
-                  {currentResult.is_saved ? "Guardado" : "Guardar"}
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleGenerate} disabled={isGenerating}>
-                  <RotateCcw className="mr-1 h-4 w-4" /> Regenerar
-                </Button>
-                <Button
-                  variant="ghost" size="sm"
-                  className="text-destructive hover:text-destructive ml-auto"
-                  onClick={() => handleDelete(currentResult.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              {currentResult.content_type === "image" ? (
+                <div className="space-y-3">
+                  <img
+                    src={currentResult.generated_text}
+                    alt="Generated"
+                    className="w-full rounded-lg border border-border/50"
+                  />
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleCopy}>
+                      <Copy className="mr-1 h-4 w-4" /> Copiar URL
+                    </Button>
+                    <a href={currentResult.generated_text} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm">
+                        <Download className="mr-1 h-4 w-4" /> Descargar
+                      </Button>
+                    </a>
+                    <Button variant="outline" size="sm" onClick={() => handleSave(currentResult.id)}>
+                      <Bookmark className={`mr-1 h-4 w-4 ${currentResult.is_saved ? "fill-current" : ""}`} />
+                      {currentResult.is_saved ? "Guardado" : "Guardar"}
+                    </Button>
+                    <Button
+                      variant="ghost" size="sm"
+                      className="text-destructive hover:text-destructive ml-auto"
+                      onClick={() => handleDelete(currentResult.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-muted/30 rounded-lg p-4 min-h-[200px] whitespace-pre-wrap text-sm leading-relaxed">
+                    {currentResult.generated_text}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleCopy}>
+                      {copied ? <CheckCircle className="mr-1 h-4 w-4 text-green-500" /> : <Copy className="mr-1 h-4 w-4" />}
+                      {copied ? "Copiado" : "Copiar"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleSave(currentResult.id)}>
+                      <Bookmark className={`mr-1 h-4 w-4 ${currentResult.is_saved ? "fill-current" : ""}`} />
+                      {currentResult.is_saved ? "Guardado" : "Guardar"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleGenerate} disabled={isGenerating}>
+                      <RotateCcw className="mr-1 h-4 w-4" /> Regenerar
+                    </Button>
+                    <Button
+                      variant="ghost" size="sm"
+                      className="text-destructive hover:text-destructive ml-auto"
+                      onClick={() => handleDelete(currentResult.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-border/50 bg-card/50 p-12 text-center">

@@ -152,7 +152,44 @@ export function ContextTab({ client, onAccountCreated }: ContextTabProps) {
           <Label className="text-xs">Descripcion</Label>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe tu negocio y propuesta de valor..." rows={3} />
         </div>
+      </div>
 
+      {/* Agregar Cuenta Social — justo después de Descripción */}
+      <div className="border-t border-border pt-5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground">Agregar Cuenta Social</h3>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Plataforma</Label>
+            <Select value={platform} onValueChange={(v) => setPlatform(v as Platform)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PLATFORMS.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Nombre de usuario *</Label>
+            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="@usuario" />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs">URL del perfil (opcional)</Label>
+          <Input value={profileUrl} onChange={(e) => setProfileUrl(e.target.value)} placeholder="https://instagram.com/usuario" />
+        </div>
+
+        <Button className="w-full gradient-primary" onClick={handleCreateAccount} disabled={!username.trim() || isCreating}>
+          {isCreating && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+          <Plus className="mr-1 h-3 w-3" />
+          Crear Cuenta con Contexto
+        </Button>
+      </div>
+
+      {/* Resto del contexto */}
+      <div className="space-y-4">
         <div className="space-y-1.5">
           <Label className="text-xs">Website URL</Label>
           <Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://ejemplo.com" />
@@ -185,40 +222,6 @@ export function ContextTab({ client, onAccountCreated }: ContextTabProps) {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Agregar Cuenta */}
-      <div className="border-t border-border pt-5 space-y-4">
-        <h3 className="text-sm font-semibold text-foreground">Agregar Cuenta Social</h3>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Plataforma</Label>
-            <Select value={platform} onValueChange={(v) => setPlatform(v as Platform)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {PLATFORMS.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Nombre de usuario *</Label>
-            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="@usuario" />
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs">URL del perfil (opcional)</Label>
-          <Input value={profileUrl} onChange={(e) => setProfileUrl(e.target.value)} placeholder="https://instagram.com/usuario" />
-        </div>
-
-        <Button className="w-full gradient-primary" onClick={handleCreateAccount} disabled={!username.trim() || isCreating}>
-          {isCreating && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-          <Plus className="mr-1 h-3 w-3" />
-          Crear Cuenta con Contexto
-        </Button>
       </div>
 
       {/* Upload placeholder */}

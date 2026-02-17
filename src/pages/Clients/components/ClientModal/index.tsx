@@ -88,7 +88,7 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar Cliente" : "Nuevo Cliente"}</DialogTitle>
+          <DialogTitle>🔥 {isEdit ? "EDITAR (NUEVO)" : "CREAR (NUEVO)"}</DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="info" className="mt-2">

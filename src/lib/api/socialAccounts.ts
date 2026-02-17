@@ -88,10 +88,11 @@ export interface SocialAccountWithContextUpdate {
 export async function createAccountWithContext(
   data: SocialAccountWithContextCreate
 ): Promise<ApiResponse<SocialAccountProfile>> {
+  const { client_id, ...body } = data;
   return apiCall<ApiResponse<SocialAccountProfile>>(
-    "/social-accounts/with-context/",
+    `/social-accounts/with-context/?client_id=${client_id}`,
     "POST",
-    data as unknown as Record<string, unknown>
+    body as unknown as Record<string, unknown>
   );
 }
 

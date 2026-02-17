@@ -28,6 +28,7 @@ export default function ContentLab() {
   const [selectedClientId, setSelectedClientId] = useState("");
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [contentType, setContentType] = useState<ContentType>("post");
+  const [language, setLanguage] = useState("es");
   const [prompt, setPrompt] = useState("");
   const [currentResult, setCurrentResult] = useState<GeneratedContent | null>(null);
   const [copied, setCopied] = useState(false);
@@ -78,7 +79,8 @@ export default function ContentLab() {
     }
     setIsGenerating(true);
     try {
-      const result = await generateContent(selectedAccountId, contentType, prompt);
+      const extraInstructions = language === "en" ? "Write entirely in English" : undefined;
+      const result = await generateContent(selectedAccountId, contentType, prompt, extraInstructions);
       if (result.data) {
         setCurrentResult(result.data);
         queryClient.invalidateQueries({ queryKey: ["content-history"] });
@@ -208,6 +210,20 @@ export default function ContentLab() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Idioma */}
+            <div className="space-y-1.5">
+              <Label>Idioma</Label>
+              <Select value={language} onValueChange={setLanguage}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="es">🇵🇷 Español</SelectItem>
+                  <SelectItem value="en">🇺🇸 English</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Prompt */}

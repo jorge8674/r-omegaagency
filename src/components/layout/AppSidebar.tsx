@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   Users,
-  Sparkles,
   FlaskConical,
   CalendarDays,
   BarChart3,
@@ -41,7 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Contenido", url: "/content", icon: Sparkles },
+  
   { title: "Content Lab", url: "/content-lab", icon: FlaskConical },
   { title: "Calendario", url: "/calendar", icon: CalendarDays },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },

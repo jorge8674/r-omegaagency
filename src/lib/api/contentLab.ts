@@ -2,7 +2,7 @@ import { apiCall } from "./core";
 
 export type ContentType =
   | "post" | "caption" | "story" | "ad"
-  | "reel_script" | "bio" | "hashtags" | "email";
+  | "reel_script" | "bio" | "hashtags" | "email" | "image";
 
 export const CONTENT_TYPE_LABELS: Record<ContentType, { label: string; emoji: string; desc: string }> = {
   post:        { label: "Post",         emoji: "📝", desc: "Post completo para feed" },
@@ -13,6 +13,7 @@ export const CONTENT_TYPE_LABELS: Record<ContentType, { label: string; emoji: st
   bio:         { label: "Bio",          emoji: "👤", desc: "Biografía del perfil" },
   hashtags:    { label: "Hashtags",     emoji: "#️⃣", desc: "Set de 20-30 hashtags" },
   email:       { label: "Email",        emoji: "📧", desc: "Email de marketing" },
+  image:       { label: "Imagen",      emoji: "🖼️", desc: "Imagen con DALL-E 3" },
 };
 
 export interface GeneratedContent {
@@ -74,4 +75,15 @@ export async function toggleSaveContent(contentId: string): Promise<GenerateResp
 
 export async function deleteContent(contentId: string): Promise<GenerateResponse> {
   return apiCall<GenerateResponse>(`/content-lab/${contentId}/`, "DELETE");
+}
+
+export async function generateImage(
+  accountId: string,
+  prompt: string,
+  style: string
+): Promise<GenerateResponse> {
+  return apiCall<GenerateResponse>(
+    `/content-lab/generate-image/?account_id=${accountId}&prompt=${encodeURIComponent(prompt)}&style=${style}`,
+    "POST"
+  );
 }

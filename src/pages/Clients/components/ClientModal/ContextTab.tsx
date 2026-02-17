@@ -2,6 +2,7 @@
 // Responsabilidad: Contexto de marca + lista local de cuentas sociales pendientes
 
 import { useState, forwardRef, useImperativeHandle, useCallback } from "react";
+import { createAccountWithContext } from "@/lib/api/socialAccounts";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,6 +60,7 @@ interface ContextTabProps {
 export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
   ({ client, onAccountsCreated }, ref) => {
     const { toast } = useToast();
+    const [isSaving, setIsSaving] = useState(false);
 
     // Context fields
     const [businessName, setBusinessName] = useState("");
@@ -267,7 +269,52 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
 
         {/* Guardar y Continuar */}
         <div className="flex justify-end pt-2">
-          <Button className="gradient-primary" onClick={() => onAccountsCreated?.()}>
+          <Button
+            className="gradient-primary"
+            onClick={async () => {
+              if (!client) return;
+              if (pendingAccounts.length === 0) {
+                toast({
+                  title: "Agrega al menos una cuenta",
+                  description: "Necesitas agregar una cuenta social antes de continuar",
+                  variant: "destructive",
+                });
+                return;
+              }
+              setIsSaving(true);
+              try {
+                for (const account of pendingAccounts) {
+                  await createAccountWithContext({
+                    client_id: client.id,
+                    platform: account.platform,
+                    username: account.username,
+                    profile_url: account.profile_url,
+                    context: {
+                      business_name: businessName,
+                      industry,
+                      description,
+                      website_url: websiteUrl,
+                      keywords,
+                      forbidden_words: forbiddenWords,
+                      forbidden_topics: forbiddenTopics,
+                      tones: selectedTones,
+                      goals: selectedGoals,
+                    },
+                  });
+                }
+                setPendingAccounts([]);
+                toast({ title: `✅ ${pendingAccounts.length} cuenta(s) guardadas` });
+                onAccountsCreated?.();
+              } catch (error: unknown) {
+                const msg = error instanceof Error ? error.message : "Error guardando cuentas";
+                toast({ title: "Error al guardar", description: msg, variant: "destructive" });
+              } finally {
+                setIsSaving(false);
+              }
+            }}
+            disabled={isSaving || pendingAccounts.length === 0}
+          >
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Guardar y Continuar
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>

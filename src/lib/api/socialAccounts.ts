@@ -42,10 +42,11 @@ export async function listSocialAccounts(clientId: string): Promise<ListResponse
 }
 
 export async function createSocialAccount(accountData: SocialAccountCreate): Promise<ApiResponse<SocialAccountProfile>> {
+  const { client_id, ...body } = accountData;
   return apiCall<ApiResponse<SocialAccountProfile>>(
-    "/social-accounts/",
+    `/social-accounts/?client_id=${client_id}`,
     "POST",
-    accountData as unknown as Record<string, unknown>
+    body as unknown as Record<string, unknown>
   );
 }
 

@@ -146,45 +146,41 @@ export function InfoTab({
         <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas adicionales..." rows={3} />
       </div>
 
-      {/* Estado — solo visible en edición */}
-      {isEdit && (
-        <>
-          <Separator />
-          <p className="text-sm font-medium text-muted-foreground">Estado y suscripción</p>
+      {/* Estado y suscripción — siempre visible */}
+      <Separator />
+      <p className="text-sm font-medium text-muted-foreground">Estado y suscripción</p>
 
-          <div className="space-y-2">
-            <Label>Estado de suscripción</Label>
-            <Select value={subscriptionStatus} onValueChange={(v) => setSubscriptionStatus(v as SubscriptionStatus)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="trial">Trial</SelectItem>
-                <SelectItem value="active">Activa</SelectItem>
-                <SelectItem value="past_due">Mora</SelectItem>
-                <SelectItem value="canceled">Cancelada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="space-y-2">
+        <Label>Estado de suscripción</Label>
+        <Select value={subscriptionStatus} onValueChange={(v) => setSubscriptionStatus(v as SubscriptionStatus)}>
+          <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="trial">Trial</SelectItem>
+            <SelectItem value="active">Activa</SelectItem>
+            <SelectItem value="past_due">Mora</SelectItem>
+            <SelectItem value="canceled">Cancelada</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-          <div className="flex items-center justify-between">
-            <Label>Trial activo</Label>
-            <Switch checked={trialActive} onCheckedChange={setTrialActive} />
-          </div>
-          <div className="space-y-2">
-            <Label>Fin del trial</Label>
-            <Input type="date" value={trialEndsAt} onChange={(e) => setTrialEndsAt(e.target.value)} />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label>Cliente activo</Label>
-            <Switch checked={statusActive} onCheckedChange={setStatusActive} />
-          </div>
-        </>
-      )}
+      <div className="flex items-center justify-between">
+        <Label>Trial activo</Label>
+        <Switch checked={trialActive} onCheckedChange={setTrialActive} />
+      </div>
+      <div className="space-y-2">
+        <Label>Fin del trial</Label>
+        <Input type="date" value={trialEndsAt} onChange={(e) => setTrialEndsAt(e.target.value)} />
+      </div>
+      <div className="flex items-center justify-between">
+        <Label>Cliente activo</Label>
+        <Switch checked={statusActive} onCheckedChange={setStatusActive} />
+      </div>
 
       {/* Save button — self-contained */}
       <div className="flex justify-end pt-2">
         <Button className="gradient-primary" onClick={handleSave} disabled={!isValid || isSaving}>
           {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEdit ? "Guardar Cambios" : "Crear Cliente"}
+          {isEdit ? "Guardar Cambios" : "Crear Cuenta"}
         </Button>
       </div>
     </div>

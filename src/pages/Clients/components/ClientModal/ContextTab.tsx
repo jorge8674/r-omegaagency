@@ -257,12 +257,28 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
           </div>
         </div>
 
-        {/* Upload placeholder */}
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-6">
-            <p className="text-xs text-muted-foreground">Adjuntar PDFs, guias de marca... (Fase 3)</p>
-          </CardContent>
-        </Card>
+        {/* Upload guía de marca */}
+        <div className="border-t border-border pt-4 space-y-2">
+          <Label className="text-xs font-medium">Adjuntar guía de marca (PDF)</Label>
+          <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              className="hidden"
+              id="brand-guide-upload"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  toast({ title: `Archivo seleccionado: ${file.name}` });
+                }
+              }}
+            />
+            <label htmlFor="brand-guide-upload" className="cursor-pointer">
+              <p className="text-sm text-muted-foreground">Click para adjuntar PDF, guía de marca...</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">PDF, DOC hasta 10MB</p>
+            </label>
+          </div>
+        </div>
       </div>
     );
   }

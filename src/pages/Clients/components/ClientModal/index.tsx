@@ -110,9 +110,10 @@ export function ClientModal({
         </Tabs>
 
         {isEditMode && (
-          <div className="flex justify-end mt-4">
-            <Button variant="outline" onClick={() => handleOpenChange(false)}>
-              Cerrar
+          <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
+            <p className="text-xs text-muted-foreground">✅ Cambios guardados automáticamente</p>
+            <Button className="gradient-primary" onClick={() => handleOpenChange(false)}>
+              Guardar y Cerrar
             </Button>
           </div>
         )}

@@ -53,6 +53,12 @@ const GOAL_OPTIONS = [
   "Ventas", "Comunidad", "Retención", "Awareness", "Leads",
 ];
 
+const PLAN_LIMITS: Record<string, number> = {
+  basic: 2,
+  pro: 5,
+  enterprise: 999,
+};
+
 interface AccountsTabProps {
   clientId: string | null;
   plan: string;
@@ -190,6 +196,11 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
         <p className="text-xs text-muted-foreground mt-1">
           Agrega cuentas desde el tab Contexto. Aquí puedes editar el contexto de cada cuenta o eliminarla.
         </p>
+      </div>
+
+      <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded flex justify-between">
+        <span>Plan {plan.charAt(0).toUpperCase() + plan.slice(1)}</span>
+        <span>{accounts.length} / {PLAN_LIMITS[plan] === 999 ? "∞" : PLAN_LIMITS[plan]} cuentas</span>
       </div>
 
       {isLoading ? (

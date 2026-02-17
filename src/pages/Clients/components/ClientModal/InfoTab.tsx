@@ -148,6 +148,17 @@ export function InfoTab({
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label>Plan *</Label>
+        <Select value={plan} onValueChange={(v) => setPlan(v as ClientPlan)}>
+          <SelectTrigger><SelectValue placeholder="Seleccionar plan..." /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="basic">Básico</SelectItem>
+            <SelectItem value="pro">Pro</SelectItem>
+            <SelectItem value="enterprise">Enterprise</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="space-y-2">
         <Label>Notas</Label>

@@ -1,5 +1,5 @@
 // src/pages/Clients/components/ClientModal/AccountsTab.tsx
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +84,9 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
   const [selectedTones, setSelectedTones] = useState<string[]>([]);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
 
+  // Context health cache: accountId -> score (0-5)
+  const [contextScores, setContextScores] = useState<Record<string, number>>({});
+
   const { data: accountsData, isLoading } = useQuery({
     queryKey: ["social-accounts-railway", clientId],
     queryFn: () => listSocialAccounts(clientId!),
@@ -91,6 +94,40 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
   });
 
   const accounts = accountsData?.data ?? [];
+
+  // Fetch context for each account to compute health scores
+  useEffect(() => {
+    if (accounts.length === 0) return;
+    const fetchScores = async () => {
+      const scores: Record<string, number> = {};
+      await Promise.all(
+        accounts.map(async (acc) => {
+          if (!acc.context_id) {
+            scores[acc.id] = 0;
+            return;
+          }
+          try {
+            const result = await apiCall<{ data: { context?: Record<string, unknown> } }>(
+              `/social-accounts/with-context/${acc.id}/`
+            );
+            const ctx = result?.data?.context;
+            if (!ctx) { scores[acc.id] = 0; return; }
+            let score = 0;
+            if (ctx.business_name) score++;
+            if (ctx.industry) score++;
+            if (ctx.business_description || ctx.description) score++;
+            if (Array.isArray(ctx.keywords) && ctx.keywords.length > 0) score++;
+            if (Array.isArray(ctx.tones) && ctx.tones.length > 0) score++;
+            scores[acc.id] = score;
+          } catch {
+            scores[acc.id] = 0;
+          }
+        })
+      );
+      setContextScores(scores);
+    };
+    fetchScores();
+  }, [accounts.length, accounts.map(a => a.id).join(",")]);
 
   const deleteMutation = useMutation({
     mutationFn: deleteSocialAccount,
@@ -215,7 +252,14 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
         <div className="space-y-2">
           {accounts.map((acc) => {
             const config = PLATFORM_CONFIG[acc.platform] || { label: acc.platform, emoji: "🌐" };
-            const hasContext = !!acc.context_id;
+            const score = contextScores[acc.id] ?? -1; // -1 = loading
+            const isComplete = score >= 5;
+            const isLoading2 = score === -1;
+            const healthColor = isLoading2 ? "bg-muted-foreground/30" : isComplete ? "bg-green-500" : "bg-red-500";
+            const healthLabel = isLoading2 ? "..." : isComplete ? "OK" : `${score}/5`;
+            const healthTitle = isLoading2 ? "Cargando..." : isComplete
+              ? "Contexto completo"
+              : `Faltan ${5 - score} campo(s): nombre, industria, descripción, keywords, tono`;
             return (
               <div key={acc.id} className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 p-3">
                 <span className="text-lg">{config.emoji}</span>
@@ -224,9 +268,9 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
                   <p className="text-xs text-muted-foreground">{config.label}</p>
                 </div>
                 {/* Health indicator */}
-                <div className="flex items-center gap-1.5" title={hasContext ? "Contexto configurado" : "Sin contexto — configura para Content Lab"}>
-                  <div className={`h-2.5 w-2.5 rounded-full ${hasContext ? "bg-green-500" : "bg-red-500"}`} />
-                  <span className="text-[10px] text-muted-foreground">{hasContext ? "OK" : "Pendiente"}</span>
+                <div className="flex items-center gap-1.5" title={healthTitle}>
+                  <div className={`h-2.5 w-2.5 rounded-full ${healthColor}`} />
+                  <span className="text-[10px] text-muted-foreground">{healthLabel}</span>
                 </div>
                 <Button
                   variant="outline"

@@ -24,12 +24,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Wifi, Trash2, Loader2 } from "lucide-react";
 
 const PLATFORMS = [
-  { value: "instagram", label: "Instagram", emoji: "📸" },
-  { value: "facebook", label: "Facebook", emoji: "📘" },
-  { value: "tiktok", label: "TikTok", emoji: "🎵" },
-  { value: "twitter", label: "X / Twitter", emoji: "🐦" },
-  { value: "linkedin", label: "LinkedIn", emoji: "💼" },
-  { value: "youtube", label: "YouTube", emoji: "🎬" },
+  { value: "instagram", label: "Instagram" },
+  { value: "facebook", label: "Facebook" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "twitter", label: "X / Twitter" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "youtube", label: "YouTube" },
 ];
 
 interface ClientSocialAccountsProps {
@@ -103,7 +103,7 @@ export function ClientSocialAccounts({ clientId, organizationId }: ClientSocialA
   };
 
   const platformConfig = (p: string) =>
-    PLATFORMS.find((pl) => pl.value === p) || { label: p, emoji: "🌐" };
+    PLATFORMS.find((pl) => pl.value === p) || { label: p };
 
   return (
     <Card className="border-border/50 bg-card/60">
@@ -130,7 +130,7 @@ export function ClientSocialAccounts({ clientId, organizationId }: ClientSocialA
                   <SelectContent>
                     {PLATFORMS.map((p) => (
                       <SelectItem key={p.value} value={p.value}>
-                        {p.emoji} {p.label}
+                        {p.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -188,7 +188,6 @@ export function ClientSocialAccounts({ clientId, organizationId }: ClientSocialA
                   key={acc.id}
                   className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 p-2.5"
                 >
-                  <span className="text-lg">{config.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{acc.account_name}</p>
                     <p className="text-xs text-muted-foreground">

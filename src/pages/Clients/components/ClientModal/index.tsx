@@ -37,8 +37,6 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
   const [trialActive, setTrialActive] = useState(false);
   const [trialEndsAt, setTrialEndsAt] = useState("");
   const [statusActive, setStatusActive] = useState(true);
-  const [selectedTones, setSelectedTones] = useState<string[]>([]);
-  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
 
   useEffect(() => {
     if (client) {
@@ -57,7 +55,6 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
       setCompany(""); setPlan("basic"); setNotes("");
       setSubscriptionStatus("trial"); setTrialActive(false);
       setTrialEndsAt(""); setStatusActive(true);
-      setSelectedTones([]); setSelectedGoals([]);
     }
   }, [client, open]);
 
@@ -118,9 +115,8 @@ export function ClientModal({ open, onOpenChange, client, onSubmit, onUpdate, is
 
           <TabsContent value="context">
             <ContextTab
-              isEdit={isEdit} clientId={client?.id ?? null}
-              selectedTones={selectedTones} onTonesChange={setSelectedTones}
-              selectedGoals={selectedGoals} onGoalsChange={setSelectedGoals}
+              client={client ? { id: client.id, plan: client.plan } : null}
+              onAccountCreated={() => {}}
             />
           </TabsContent>
 

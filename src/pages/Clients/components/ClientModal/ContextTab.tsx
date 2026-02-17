@@ -196,10 +196,12 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
             <Input value={profileUrl} onChange={(e) => setProfileUrl(e.target.value)} placeholder="https://instagram.com/usuario" />
           </div>
 
-          <Button size="sm" variant="outline" onClick={handleAddAccount} disabled={!username.trim()}>
-            <Plus className="mr-1 h-3 w-3" />
-            Agregar
-          </Button>
+          <div className="flex justify-end">
+            <Button size="sm" className="gradient-primary" onClick={handleAddAccount} disabled={!username.trim()}>
+              <Plus className="mr-1 h-3 w-3" />
+              Agregar
+            </Button>
+          </div>
 
           {/* Pending accounts list */}
           {pendingAccounts.length > 0 && (

@@ -1,68 +1,119 @@
 // src/pages/Clients/components/ClientModal/InfoTab.tsx
-// Responsabilidad: Campos de perfil básico + estado/suscripción
+// Responsabilidad: Campos de perfil básico + estado/suscripción + save propio
 
+import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select, SelectContent, SelectItem,
   SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import type { ClientPlan, SubscriptionStatus } from "@/lib/api/clients";
+import type {
+  ClientProfile, ClientCreate, ClientUpdate,
+  ClientPlan, SubscriptionStatus,
+} from "@/lib/api/clients";
 
 interface InfoTabProps {
-  isEdit: boolean;
-  name: string;
-  onNameChange: (v: string) => void;
-  email: string;
-  onEmailChange: (v: string) => void;
-  password: string;
-  onPasswordChange: (v: string) => void;
-  phone: string;
-  onPhoneChange: (v: string) => void;
-  company: string;
-  onCompanyChange: (v: string) => void;
-  plan: ClientPlan;
-  onPlanChange: (v: ClientPlan) => void;
-  notes: string;
-  onNotesChange: (v: string) => void;
-  subscriptionStatus: SubscriptionStatus;
-  onSubscriptionStatusChange: (v: SubscriptionStatus) => void;
-  trialActive: boolean;
-  onTrialActiveChange: (v: boolean) => void;
-  trialEndsAt: string;
-  onTrialEndsAtChange: (v: string) => void;
-  statusActive: boolean;
-  onStatusActiveChange: (v: boolean) => void;
+  client: ClientProfile | null;
+  onSubmit: (payload: ClientCreate) => Promise<ClientProfile | undefined>;
+  onUpdate: (id: string, payload: ClientUpdate) => Promise<void>;
+  isSaving: boolean;
+  onCreated: (client: ClientProfile) => void;
+  onUpdated: () => void;
 }
 
 export function InfoTab({
-  isEdit, name, onNameChange, email, onEmailChange,
-  password, onPasswordChange, phone, onPhoneChange,
-  company, onCompanyChange, plan, onPlanChange,
-  notes, onNotesChange, subscriptionStatus, onSubscriptionStatusChange,
-  trialActive, onTrialActiveChange, trialEndsAt, onTrialEndsAtChange,
-  statusActive, onStatusActiveChange,
+  client, onSubmit, onUpdate, isSaving, onCreated, onUpdated,
 }: InfoTabProps) {
+  const isEdit = !!client;
+  const { toast } = useToast();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
+  const [plan, setPlan] = useState<ClientPlan>("basic");
+  const [notes, setNotes] = useState("");
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>("trial");
+  const [trialActive, setTrialActive] = useState(false);
+  const [trialEndsAt, setTrialEndsAt] = useState("");
+  const [statusActive, setStatusActive] = useState(true);
+
+  useEffect(() => {
+    if (client) {
+      setName(client.name);
+      setEmail(client.email);
+      setPhone(client.phone ?? "");
+      setCompany(client.company ?? "");
+      setPlan(client.plan);
+      setNotes(client.notes ?? "");
+      setSubscriptionStatus(client.subscription_status);
+      setTrialActive(client.trial_active);
+      setTrialEndsAt(client.trial_ends_at ?? "");
+      setStatusActive(client.status === "active");
+    } else {
+      setName(""); setEmail(""); setPassword(""); setPhone("");
+      setCompany(""); setPlan("basic"); setNotes("");
+      setSubscriptionStatus("trial"); setTrialActive(false);
+      setTrialEndsAt(""); setStatusActive(true);
+    }
+  }, [client]);
+
+  const handleSave = useCallback(async () => {
+    try {
+      if (isEdit && client) {
+        await onUpdate(client.id, {
+          name, phone: phone || null, company: company || null,
+          plan, notes: notes || null,
+          status: statusActive ? "active" : "inactive",
+          subscription_status: subscriptionStatus,
+          trial_active: trialActive,
+        });
+        onUpdated();
+      } else {
+        const result = await onSubmit({
+          name, email, password,
+          phone: phone || null, company: company || null,
+          plan, notes: notes || null,
+        });
+        if (result) {
+          onCreated(result);
+        }
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Error desconocido";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    }
+  }, [isEdit, client, name, email, password, phone, company, plan, notes, statusActive, subscriptionStatus, trialActive, onUpdate, onSubmit, onCreated, onUpdated, toast]);
+
+  const isValid = name.trim().length > 0
+    && email.trim().length > 0
+    && (isEdit || password.trim().length >= 6);
+
   return (
     <div className="space-y-4 mt-4">
       {/* Perfil básico */}
       <div className="space-y-2">
         <Label>Nombre *</Label>
-        <Input value={name} onChange={(e) => onNameChange(e.target.value)} placeholder="Nombre del cliente" />
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del cliente" />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label>Email *</Label>
-          <Input type="email" value={email} onChange={(e) => onEmailChange(e.target.value)} placeholder="email@ejemplo.com" disabled={isEdit} />
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@ejemplo.com" disabled={isEdit} />
         </div>
         {!isEdit && (
           <div className="space-y-2">
             <Label>Password *</Label>
-            <Input type="password" value={password} onChange={(e) => onPasswordChange(e.target.value)} placeholder="Mín. 6 caracteres" />
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mín. 6 caracteres" />
           </div>
         )}
       </div>
@@ -70,17 +121,17 @@ export function InfoTab({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label>Teléfono</Label>
-          <Input value={phone} onChange={(e) => onPhoneChange(e.target.value)} placeholder="+1 234 567 890" />
+          <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 234 567 890" />
         </div>
         <div className="space-y-2">
           <Label>Empresa</Label>
-          <Input value={company} onChange={(e) => onCompanyChange(e.target.value)} placeholder="Empresa S.A." />
+          <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Empresa S.A." />
         </div>
       </div>
 
       <div className="space-y-2">
         <Label>Plan</Label>
-        <Select value={plan} onValueChange={(v) => onPlanChange(v as ClientPlan)}>
+        <Select value={plan} onValueChange={(v) => setPlan(v as ClientPlan)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="basic">Básico</SelectItem>
@@ -92,7 +143,7 @@ export function InfoTab({
 
       <div className="space-y-2">
         <Label>Notas</Label>
-        <Textarea value={notes} onChange={(e) => onNotesChange(e.target.value)} placeholder="Notas adicionales..." rows={3} />
+        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas adicionales..." rows={3} />
       </div>
 
       {/* Estado — solo visible en edición */}
@@ -103,7 +154,7 @@ export function InfoTab({
 
           <div className="space-y-2">
             <Label>Estado de suscripción</Label>
-            <Select value={subscriptionStatus} onValueChange={(v) => onSubscriptionStatusChange(v as SubscriptionStatus)}>
+            <Select value={subscriptionStatus} onValueChange={(v) => setSubscriptionStatus(v as SubscriptionStatus)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="trial">Trial</SelectItem>
@@ -116,18 +167,26 @@ export function InfoTab({
 
           <div className="flex items-center justify-between">
             <Label>Trial activo</Label>
-            <Switch checked={trialActive} onCheckedChange={onTrialActiveChange} />
+            <Switch checked={trialActive} onCheckedChange={setTrialActive} />
           </div>
           <div className="space-y-2">
             <Label>Fin del trial</Label>
-            <Input type="date" value={trialEndsAt} onChange={(e) => onTrialEndsAtChange(e.target.value)} />
+            <Input type="date" value={trialEndsAt} onChange={(e) => setTrialEndsAt(e.target.value)} />
           </div>
           <div className="flex items-center justify-between">
             <Label>Cliente activo</Label>
-            <Switch checked={statusActive} onCheckedChange={onStatusActiveChange} />
+            <Switch checked={statusActive} onCheckedChange={setStatusActive} />
           </div>
         </>
       )}
+
+      {/* Save button — self-contained */}
+      <div className="flex justify-end pt-2">
+        <Button className="gradient-primary" onClick={handleSave} disabled={!isValid || isSaving}>
+          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isEdit ? "Guardar Cambios" : "Crear Cliente"}
+        </Button>
+      </div>
     </div>
   );
 }

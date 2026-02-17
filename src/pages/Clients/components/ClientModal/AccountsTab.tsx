@@ -215,6 +215,7 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
         <div className="space-y-2">
           {accounts.map((acc) => {
             const config = PLATFORM_CONFIG[acc.platform] || { label: acc.platform, emoji: "🌐" };
+            const hasContext = !!acc.context_id;
             return (
               <div key={acc.id} className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 p-3">
                 <span className="text-lg">{config.emoji}</span>
@@ -222,7 +223,11 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
                   <p className="text-sm font-medium truncate">{acc.username}</p>
                   <p className="text-xs text-muted-foreground">{config.label}</p>
                 </div>
-                {acc.is_active && <div className="h-2 w-2 rounded-full bg-primary" />}
+                {/* Health indicator */}
+                <div className="flex items-center gap-1.5" title={hasContext ? "Contexto configurado" : "Sin contexto — configura para Content Lab"}>
+                  <div className={`h-2.5 w-2.5 rounded-full ${hasContext ? "bg-green-500" : "bg-red-500"}`} />
+                  <span className="text-[10px] text-muted-foreground">{hasContext ? "OK" : "Pendiente"}</span>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"

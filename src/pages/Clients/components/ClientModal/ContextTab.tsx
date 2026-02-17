@@ -1,7 +1,7 @@
 // src/pages/Clients/components/ClientModal/ContextTab.tsx
 // Responsabilidad: Contexto de marca + lista local de cuentas sociales pendientes
 
-import { useState, forwardRef, useImperativeHandle } from "react";
+import { useState, forwardRef, useImperativeHandle, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { ChipsInput } from "@/components/ui/ChipsInput";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Palette, X } from "lucide-react";
+import { Plus, Palette, X, Loader2, ArrowRight } from "lucide-react";
 import { BrandFilesUpload } from "./BrandFilesUpload";
 import type { Platform, ContextData } from "@/lib/api/socialAccounts";
 
@@ -33,6 +33,8 @@ const TONE_OPTIONS = [
 ];
 
 const GOAL_OPTIONS = ["Ventas", "Comunidad", "Retención", "Awareness", "Leads"];
+
+const REQUIRED_CONTEXT_FIELDS = ["businessName", "industry", "description", "keywords", "selectedTones"] as const;
 
 export interface PendingAccount {
   platform: Platform;
@@ -261,6 +263,14 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
         {/* Upload guía de marca */}
         <div className="border-t border-border pt-4">
           <BrandFilesUpload client={client} />
+        </div>
+
+        {/* Guardar y Continuar */}
+        <div className="flex justify-end pt-2">
+          <Button className="gradient-primary" onClick={() => onAccountsCreated?.()}>
+            Guardar y Continuar
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       </div>
     );

@@ -109,7 +109,7 @@ export function ClientModal({
           </TabsContent>
         </Tabs>
 
-        {isEditMode && activeTab !== "info" && (
+        {isEditMode && activeTab === "accounts" && (
           <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
             <p className="text-xs text-muted-foreground">✅ Cambios guardados automáticamente</p>
             <Button className="gradient-primary" onClick={() => handleOpenChange(false)}>

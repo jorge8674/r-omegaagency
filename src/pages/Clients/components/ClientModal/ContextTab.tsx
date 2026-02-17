@@ -269,9 +269,9 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  const maxSize = 10 * 1024 * 1024;
+                  const maxSize = 25 * 1024 * 1024;
                   if (file.size > maxSize) {
-                    toast({ title: "Archivo muy grande", description: "Máximo 10MB", variant: "destructive" });
+                    toast({ title: "Archivo muy grande", description: "Máximo 25MB por archivo", variant: "destructive" });
                     return;
                   }
                   toast({ title: `Archivo seleccionado: ${file.name}` });
@@ -280,7 +280,7 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
             />
             <label htmlFor="brand-guide-upload" className="cursor-pointer">
               <p className="text-sm text-muted-foreground">Click para adjuntar archivos de marca</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">PDF, DOC, PPT, XLS, PNG, JPG, SVG — hasta 10MB</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">PDF, DOC, PPT, XLS, PNG, JPG, SVG — hasta 25MB por archivo</p>
             </label>
           </div>
         </div>

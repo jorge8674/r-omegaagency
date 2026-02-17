@@ -1,0 +1,57 @@
+import { apiCall } from "./core";
+
+export type Platform = "instagram" | "facebook" | "tiktok" | "twitter" | "linkedin" | "youtube" | "pinterest";
+
+export interface SocialAccountProfile {
+  id: string;
+  client_id: string;
+  platform: Platform;
+  username: string;
+  profile_url: string | null;
+  context_id: string | null;
+  scraping_enabled: boolean;
+  scraped_data: Record<string, unknown>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SocialAccountCreate {
+  client_id: string;
+  platform: string;
+  username: string;
+  profile_url?: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  error?: string | null;
+}
+
+interface ListResponse {
+  success: boolean;
+  data: SocialAccountProfile[];
+  total: number;
+  message?: string;
+}
+
+export async function listSocialAccounts(clientId: string): Promise<ListResponse> {
+  return apiCall<ListResponse>(`/social-accounts/?client_id=${clientId}`);
+}
+
+export async function createSocialAccount(accountData: SocialAccountCreate): Promise<ApiResponse<SocialAccountProfile>> {
+  return apiCall<ApiResponse<SocialAccountProfile>>(
+    "/social-accounts/",
+    "POST",
+    accountData as unknown as Record<string, unknown>
+  );
+}
+
+export async function deleteSocialAccount(accountId: string): Promise<ApiResponse<{ deleted: boolean }>> {
+  return apiCall<ApiResponse<{ deleted: boolean }>>(
+    `/social-accounts/${accountId}/`,
+    "DELETE"
+  );
+}

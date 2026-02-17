@@ -1,10 +1,5 @@
-// src/pages/Clients/components/ClientModal/AccountsTab.tsx
-// Responsabilidad: CRUD de cuentas sociales del cliente dentro del modal
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,8 +8,13 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Loader2, Share2, Pencil } from "lucide-react";
-import type { ClientPlan } from "@/lib/api/clients";
+import { Plus, Trash2, Loader2, Share2 } from "lucide-react";
+import {
+  listSocialAccounts,
+  createSocialAccount,
+  deleteSocialAccount,
+  type SocialAccountCreate,
+} from "@/lib/api/socialAccounts";
 
 const PLATFORMS = [
   { value: "instagram", label: "Instagram", emoji: "📸" },
@@ -23,9 +23,10 @@ const PLATFORMS = [
   { value: "twitter", label: "X / Twitter", emoji: "🐦" },
   { value: "linkedin", label: "LinkedIn", emoji: "💼" },
   { value: "youtube", label: "YouTube", emoji: "🎬" },
+  { value: "pinterest", label: "Pinterest", emoji: "📌" },
 ];
 
-const PLAN_LIMITS: Record<ClientPlan, number> = {
+const PLAN_LIMITS: Record<string, number> = {
   basic: 2,
   pro: 5,
   enterprise: 999,
@@ -33,114 +34,75 @@ const PLAN_LIMITS: Record<ClientPlan, number> = {
 
 interface AccountsTabProps {
   clientId: string | null;
-  plan: ClientPlan;
+  plan: string;
   isEdit: boolean;
 }
 
 export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { profile } = useOrganization();
-  const organizationId = profile?.organization_id;
 
   const [platform, setPlatform] = useState("instagram");
-  const [accountName, setAccountName] = useState("");
-  const [accountUrl, setAccountUrl] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [username, setUsername] = useState("");
+  const [profileUrl, setProfileUrl] = useState("");
 
-  const limit = PLAN_LIMITS[plan];
+  const limit = PLAN_LIMITS[plan] ?? 2;
 
-  const { data: accounts = [], isLoading } = useQuery({
-    queryKey: ["social_accounts", clientId],
-    queryFn: async () => {
-      if (!clientId) return [];
-      const { data, error } = await supabase
-        .from("social_accounts")
-        .select("*")
-        .eq("client_id", clientId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+  const { data: accountsData, isLoading } = useQuery({
+    queryKey: ["social-accounts-railway", clientId],
+    queryFn: () => listSocialAccounts(clientId!),
     enabled: !!clientId && isEdit,
   });
 
+  const accounts = accountsData?.data ?? [];
+
   const createMutation = useMutation({
     mutationFn: async () => {
-      if (!clientId || !organizationId) throw new Error("Missing IDs");
-      const { error } = await supabase.from("social_accounts").insert({
+      if (!clientId) throw new Error("Missing client ID");
+      const payload: SocialAccountCreate = {
         client_id: clientId,
-        organization_id: organizationId,
         platform,
-        account_name: accountName.trim(),
-        account_url: accountUrl.trim() || null,
-        connected: true,
-      });
-      if (error) throw error;
+        username: username.trim(),
+        profile_url: profileUrl.trim() || undefined,
+      };
+      return createSocialAccount(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["social_accounts", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["social-accounts-railway", clientId] });
       resetForm();
-      toast({ title: "Cuenta agregada" });
+      toast({ title: "✅ Cuenta agregada" });
     },
-    onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async () => {
-      if (!editingId) return;
-      const { error } = await supabase.from("social_accounts").update({
-        platform,
-        account_name: accountName.trim(),
-        account_url: accountUrl.trim() || null,
-      }).eq("id", editingId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["social_accounts", clientId] });
-      resetForm();
-      toast({ title: "Cuenta actualizada" });
-    },
-    onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) =>
+      toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("social_accounts").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: deleteSocialAccount,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["social_accounts", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["social-accounts-railway", clientId] });
       toast({ title: "Cuenta eliminada" });
     },
-    onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) =>
+      toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const resetForm = () => {
     setPlatform("instagram");
-    setAccountName("");
-    setAccountUrl("");
-    setEditingId(null);
-  };
-
-  const startEdit = (acc: typeof accounts[number]) => {
-    setEditingId(acc.id);
-    setPlatform(acc.platform);
-    setAccountName(acc.account_name);
-    setAccountUrl(acc.account_url ?? "");
+    setUsername("");
+    setProfileUrl("");
   };
 
   const handleSubmit = () => {
-    if (!accountName.trim()) return;
-    if (editingId) {
-      updateMutation.mutate();
-    } else {
-      if (accounts.length >= limit) {
-        toast({ title: "Límite alcanzado", description: `Plan ${plan}: máximo ${limit} cuentas`, variant: "destructive" });
-        return;
-      }
-      createMutation.mutate();
+    if (!username.trim()) return;
+    if (accounts.length >= limit) {
+      toast({
+        title: "Límite alcanzado",
+        description: `Plan ${plan}: máximo ${limit} cuentas`,
+        variant: "destructive",
+      });
+      return;
     }
+    createMutation.mutate();
   };
 
   const platformConfig = (p: string) =>
@@ -159,8 +121,8 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
     );
   }
 
-  const isBusy = createMutation.isPending || updateMutation.isPending;
-  const atLimit = accounts.length >= limit && !editingId;
+  const isBusy = createMutation.isPending;
+  const atLimit = accounts.length >= limit;
 
   return (
     <div className="space-y-4 mt-4">
@@ -173,38 +135,44 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {PLATFORMS.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>{p.emoji} {p.label}</SelectItem>
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.emoji} {p.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Nombre de cuenta *</Label>
-            <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="@usuario" />
+            <Label className="text-xs">Nombre de usuario *</Label>
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="@usuario"
+            />
           </div>
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs">URL del perfil</Label>
-          <Input value={accountUrl} onChange={(e) => setAccountUrl(e.target.value)} placeholder="https://instagram.com/usuario" />
+          <Input
+            value={profileUrl}
+            onChange={(e) => setProfileUrl(e.target.value)}
+            placeholder="https://instagram.com/usuario"
+          />
         </div>
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
             {accounts.length}/{limit === 999 ? "∞" : limit} cuentas
           </p>
-          <div className="flex gap-2">
-            {editingId && (
-              <Button variant="ghost" size="sm" onClick={resetForm}>Cancelar</Button>
-            )}
-            <Button
-              size="sm"
-              className="gradient-primary"
-              onClick={handleSubmit}
-              disabled={!accountName.trim() || isBusy || atLimit}
-            >
-              {isBusy && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-              {editingId ? "Guardar" : <><Plus className="mr-1 h-3 w-3" />Agregar</>}
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            className="gradient-primary"
+            onClick={handleSubmit}
+            disabled={!username.trim() || isBusy || atLimit}
+          >
+            {isBusy && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+            <Plus className="mr-1 h-3 w-3" />
+            Agregar
+          </Button>
         </div>
       </div>
 
@@ -228,16 +196,18 @@ export function AccountsTab({ clientId, plan, isEdit }: AccountsTabProps) {
               >
                 <span className="text-lg">{config.emoji}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{acc.account_name}</p>
+                  <p className="text-sm font-medium truncate">{acc.username}</p>
                   <p className="text-xs text-muted-foreground">{config.label}</p>
                 </div>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(acc)}>
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
+                {acc.is_active && (
+                  <div className="h-2 w-2 rounded-full bg-success" />
+                )}
                 <Button
-                  variant="ghost" size="icon"
+                  variant="ghost"
+                  size="icon"
                   className="h-7 w-7 text-muted-foreground hover:text-destructive"
                   onClick={() => deleteMutation.mutate(acc.id)}
+                  disabled={deleteMutation.isPending}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>

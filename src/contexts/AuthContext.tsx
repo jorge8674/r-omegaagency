@@ -7,6 +7,7 @@ export interface AuthUser {
   reseller_id: string | null;
   client_id?: string | null;
   redirect_to: string;
+  plan?: string;
 }
 
 interface AuthContextType {

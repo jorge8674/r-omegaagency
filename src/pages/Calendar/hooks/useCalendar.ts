@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { addMonths, subMonths } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +14,14 @@ import { buildCalendarDays } from "../types";
 export function useCalendar() {
   const { toast } = useToast();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [searchParams] = useSearchParams();
 
+  /* ─── Prefilled from Content Lab ───────────────── */
+  const prefilledContentId = searchParams.get("content_id");
+  const prefilledAccountId = searchParams.get("account_id");
+  const prefilledContentType = searchParams.get("content_type");
+  const prefilledText = searchParams.get("text");
+  const prefilledTab = searchParams.get("tab");
   /* ─── Posts query ────────────────────────────────── */
   const { data: posts = [], isLoading: postsLoading } = useQuery<Post[]>({
     queryKey: ["posts"],
@@ -121,5 +129,7 @@ export function useCalendar() {
     approvePost,
     fetchingOptimal, optimalResult, fetchOptimalTimes,
     goToPrev, goToNext, goToToday,
+    prefilledTab, prefilledText, prefilledContentId,
+    prefilledAccountId, prefilledContentType,
   } as const;
 }

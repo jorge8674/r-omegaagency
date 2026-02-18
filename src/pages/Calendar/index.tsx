@@ -7,6 +7,7 @@ import { OptimalTimes } from "./components/OptimalTimes";
 
 export default function CalendarPage() {
   const cal = useCalendar();
+  const defaultTab = cal.prefilledTab || "calendar";
 
   return (
     <div className="space-y-6">
@@ -15,7 +16,7 @@ export default function CalendarPage() {
         <p className="text-muted-foreground">Visualiza, programa y gestiona publicaciones</p>
       </div>
 
-      <Tabs defaultValue="calendar">
+      <Tabs defaultValue={defaultTab}>
         <TabsList>
           <TabsTrigger value="calendar">Calendario</TabsTrigger>
           <TabsTrigger value="schedule">Agendar Post</TabsTrigger>
@@ -35,7 +36,12 @@ export default function CalendarPage() {
 
         <TabsContent value="schedule" className="mt-4">
           <div className="grid gap-4 lg:grid-cols-2">
-            <ScheduleForm scheduling={cal.scheduling} onSubmit={cal.schedulePost} />
+            <ScheduleForm
+              scheduling={cal.scheduling}
+              onSubmit={cal.schedulePost}
+              prefilledText={cal.prefilledText}
+              prefilledContentType={cal.prefilledContentType}
+            />
             <OptimalTimes
               fetching={cal.fetchingOptimal}
               result={cal.optimalResult}

@@ -13,7 +13,7 @@ export const CONTENT_TYPE_LABELS: Record<ContentType, { label: string; emoji: st
   bio:         { label: "Bio",          emoji: "👤", desc: "Biografía del perfil" },
   hashtags:    { label: "Hashtags",     emoji: "#️⃣", desc: "Set de 20-30 hashtags" },
   email:       { label: "Email",        emoji: "📧", desc: "Email de marketing" },
-  image:       { label: "Imagen",      emoji: "🖼️", desc: "Imagen con DALL-E 3" },
+  image:       { label: "Imagen",      emoji: "",   desc: "Imagen con DALL-E 3" },
 };
 
 export interface GeneratedContent {
@@ -30,6 +30,8 @@ export interface GeneratedContent {
   is_saved: boolean;
   created_at: string;
 }
+
+export type ImageStyle = "realistic" | "cartoon" | "minimal";
 
 interface GenerateResponse {
   success: boolean;
@@ -80,10 +82,15 @@ export async function deleteContent(contentId: string): Promise<GenerateResponse
 export async function generateImage(
   accountId: string,
   prompt: string,
-  style: string
+  style: ImageStyle
 ): Promise<GenerateResponse> {
+  const params = new URLSearchParams({
+    account_id: accountId,
+    prompt,
+    style,
+  });
   return apiCall<GenerateResponse>(
-    `/content-lab/generate-image/?account_id=${accountId}&prompt=${encodeURIComponent(prompt)}&style=${style}`,
+    `/content-lab/generate-image/?${params.toString()}`,
     "POST"
   );
 }

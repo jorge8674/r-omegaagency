@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,20 @@ import { PLATFORMS } from "../types";
 interface ScheduleFormProps {
   scheduling: boolean;
   onSubmit: (values: ScheduleFormValues) => Promise<void>;
+  prefilledText?: string | null;
+  prefilledContentType?: string | null;
 }
 
-export function ScheduleForm({ scheduling, onSubmit }: ScheduleFormProps) {
+export function ScheduleForm({ scheduling, onSubmit, prefilledText, prefilledContentType }: ScheduleFormProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [platform, setPlatform] = useState<Platform>("instagram");
   const [scheduledAt, setScheduledAt] = useState("");
+
+  useEffect(() => {
+    if (prefilledText) setContent(prefilledText);
+    if (prefilledContentType) setTitle(prefilledContentType);
+  }, [prefilledText, prefilledContentType]);
 
   const handleSubmit = async (): Promise<void> => {
     await onSubmit({ title, content, platform, scheduledAt });

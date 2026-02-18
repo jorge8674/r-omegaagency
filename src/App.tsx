@@ -15,7 +15,7 @@ import Clients from "./pages/Clients/index";
 import ClientDetail from "./pages/ClientDetail";
 
 import ContentLab from "./pages/ContentLab/index";
-import CalendarPage from "./pages/Calendar";
+import CalendarPage from "./pages/Calendar/index";
 import Media from "./pages/Media";
 import Analytics from "./pages/Analytics";
 import CrisisRoom from "./pages/CrisisRoom";

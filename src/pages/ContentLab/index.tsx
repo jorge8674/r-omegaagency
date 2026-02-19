@@ -1,9 +1,12 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Brain } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useClients } from "@/pages/ContentGenerator/hooks/useClients";
 import { listSocialAccounts } from "@/lib/api/socialAccounts";
 import { listGeneratedContent } from "@/lib/api/contentLab";
+import { getClientContext } from "@/lib/api/context";
 import { useContentLab } from "./hooks/useContentLab";
 import { useScheduleBlocks } from "./hooks/useScheduleBlocks";
 import { ConfigPanel } from "./components/ConfigPanel";
@@ -34,6 +37,13 @@ export default function ContentLab() {
   });
   const accounts = accountsData?.data || [];
 
+  const { data: ctxData } = useQuery({
+    queryKey: ["client-context", selectedClientId],
+    queryFn: () => getClientContext(selectedClientId!),
+    enabled: !!selectedClientId,
+  });
+  const hasClientContext = !!ctxData?.data;
+
   const { data: historyData } = useQuery({
     queryKey: ["content-history", selectedAccountId, selectedClientId],
     queryFn: () => listGeneratedContent(
@@ -56,6 +66,18 @@ export default function ContentLab() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-primary" /> Content Lab
+          {hasClientContext && selectedClientId && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="secondary" className="ml-2 gap-1 bg-emerald-500/15 text-emerald-600 border-emerald-500/30">
+                    <Brain className="h-3 w-3" /> Contexto activo
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>El contenido se genera con el perfil de este cliente</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Genera contenido con IA personalizado por cuenta y contexto de marca.

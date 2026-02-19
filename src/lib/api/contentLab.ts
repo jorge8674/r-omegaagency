@@ -45,22 +45,39 @@ interface ListResponse {
   total: number;
 }
 
-export async function generateContent(
+export async function generateText(
   accountId: string,
-  contentType: ContentType,
+  contentType: string,
   brief: string,
   language?: string
-): Promise<GenerateResponse> {
+): Promise<GeneratedContent> {
   const params = new URLSearchParams({
     account_id: accountId,
     content_type: contentType,
-    brief,
+    brief: brief,
   });
   if (language) params.append("language", language);
-  return apiCall<GenerateResponse>(
-    `/content-lab/generate/?${params.toString()}`,
-    "POST"
+
+  const token = localStorage.getItem("omega_token");
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+  const API_BASE =
+    import.meta.env.VITE_API_URL ||
+    "https://omegaraisen-production-2031.up.railway.app/api/v1";
+
+  const response = await fetch(
+    `${API_BASE}/content-lab/generate/?${params.toString()}`,
+    {
+      method: "POST",
+      headers: { ...authHeader },
+    }
   );
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(`API Error ${response.status}: ${errorText || response.statusText}`);
+  }
+
+  return response.json();
 }
 
 export async function listGeneratedContent(

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
-  generateContent, toggleSaveContent, deleteContent,
+  generateText, toggleSaveContent, deleteContent,
   generateImage, type ContentType, type ImageStyle, type GeneratedContent,
 } from "@/lib/api/contentLab";
 
@@ -43,10 +43,9 @@ export function useContentLab() {
     }
     setIsGenerating(true);
     try {
-      const result = await generateContent(selectedAccountId, contentType, prompt, language);
-      const content = (result.data ?? result) as GeneratedContent;
-      if (content?.generated_text) {
-        setCurrentResult(content);
+      const result = await generateText(selectedAccountId, contentType, prompt, language);
+      if (result?.generated_text) {
+        setCurrentResult(result as GeneratedContent);
         invalidateHistory();
         toast({ title: "Contenido generado exitosamente" });
       }

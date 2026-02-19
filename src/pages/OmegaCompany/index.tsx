@@ -1,6 +1,6 @@
-// 130 lines
+// 143 lines
 import { useState } from "react";
-import { RefreshCw, BarChart2, Network, Activity, FileText, Cpu } from "lucide-react";
+import { RefreshCw, BarChart2, Network, Activity, FileText, Cpu, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -12,17 +12,19 @@ import { OmegaActivityFeed } from "./components/OmegaActivityFeed";
 import { OmegaOrgChart } from "./components/OmegaOrgChart";
 import { OmegaDirectorBar } from "./components/OmegaDirectorBar";
 import { ReportsTab } from "./components/ReportsTab";
+import { AgentMemoryViewer } from "./components/AgentMemoryViewer";
 import { UpcomingPosts } from "./components/UpcomingPosts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-type Section = "resumen" | "organizacion" | "actividad" | "reportes";
+type Section = "resumen" | "organizacion" | "actividad" | "reportes" | "memoria";
 
 const SECTIONS: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "resumen",      label: "Resumen",      icon: BarChart2 },
   { id: "organizacion", label: "Organización", icon: Network   },
   { id: "actividad",    label: "Actividad",    icon: Activity  },
   { id: "reportes",     label: "Reportes",     icon: FileText  },
+  { id: "memoria",      label: "Memorias IA",  icon: Brain     },
 ];
 
 export default function OmegaCompany() {
@@ -128,6 +130,8 @@ export default function OmegaCompany() {
       )}
 
       {active === "reportes" && <ReportsTab />}
+
+      {active === "memoria" && <AgentMemoryViewer />}
     </div>
   );
 }

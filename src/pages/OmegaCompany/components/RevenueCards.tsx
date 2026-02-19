@@ -36,8 +36,8 @@ function StatCard({
 }
 
 export function RevenueCards({ stats, loading }: Props) {
-  const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+  const fmt = (n: number | undefined | null) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(Number(n ?? 0));
 
   if (loading) {
     return (
@@ -54,30 +54,37 @@ export function RevenueCards({ stats, loading }: Props) {
     );
   }
 
+  const mrr = Number(stats?.mrr ?? 0);
+  const arr = Number(stats?.arr ?? 0);
+  const activeClients = stats?.active_clients ?? 0;
+  const newClients = stats?.new_clients_this_month ?? 0;
+  const activeResellers = stats?.active_resellers ?? 0;
+  const trialResellers = stats?.trial_resellers ?? 0;
+
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <StatCard
         title="MRR"
-        value={stats ? fmt(stats.mrr) : "—"}
+        value={fmt(mrr)}
         sub="desde Stripe"
         icon={DollarSign}
       />
       <StatCard
         title="ARR"
-        value={stats ? fmt(stats.arr) : "—"}
+        value={fmt(arr)}
         sub="proyectado"
         icon={TrendingUp}
       />
       <StatCard
         title="Clientes"
-        value={stats?.active_clients ?? "—"}
-        sub={stats ? `+${stats.new_clients_this_month} este mes` : "Sin datos"}
+        value={activeClients}
+        sub={`+${newClients} este mes`}
         icon={Users}
       />
       <StatCard
         title="Resellers"
-        value={stats?.active_resellers ?? "—"}
-        sub={stats ? `${stats.trial_resellers} en trial` : "Sin datos"}
+        value={activeResellers}
+        sub={`${trialResellers} en trial`}
         icon={Building2}
       />
     </div>

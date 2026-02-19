@@ -7,6 +7,7 @@ import { RevenueCards } from "./components/RevenueCards";
 import { ResellersTable } from "./components/ResellersTable";
 import { ContentAgentsStats } from "./components/ContentAgentsStats";
 import { OmegaActivityFeed } from "./components/OmegaActivityFeed";
+import { OmegaAgentsSection } from "./components/OmegaAgentsSection";
 import { UpcomingPosts } from "./components/UpcomingPosts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -70,6 +71,16 @@ export default function OmegaCompany() {
           Contenido & Agentes
         </h2>
         <ContentAgentsStats stats={stats} loading={statsLoading} />
+      </div>
+
+      <Separator className="opacity-40" />
+
+      {/* Section 3b — Live Agents */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          🤖 Sistema de Agentes
+        </h2>
+        <OmegaAgentsSection />
       </div>
 
       <Separator className="opacity-40" />

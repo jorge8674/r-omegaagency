@@ -45,11 +45,15 @@ async function sendToBackend(
   const response = await fetch(`${API_BASE}/nova/chat/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, context_docs: contextDocs }),
+    body: JSON.stringify({
+      messages: messages.slice(-10), // últimos 10 mensajes
+      context_docs: contextDocs,
+    }),
   });
 
   if (!response.ok) {
-    throw new Error(`Chat failed: ${response.status}`);
+    const errText = await response.text().catch(() => "");
+    throw new Error(`Chat failed: ${response.status}${errText ? ` - ${errText}` : ""}`);
   }
 
   const data = await response.json() as { role: string; content: string };
@@ -99,7 +103,7 @@ export function useNovaChat() {
         setError((e as Error).message ?? "Error desconocido");
         setMessages([...nextMessages, {
           role: "assistant",
-          content: "⚠️ Error al comunicarme con el servidor. Por favor intenta de nuevo.",
+          content: "⚠️ Error al comunicarme con NOVA. Verifica que el backend esté activo.",
         }]);
       }
     } finally {

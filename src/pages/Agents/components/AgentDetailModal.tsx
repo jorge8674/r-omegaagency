@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bot, Zap } from "lucide-react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { Bot, Zap, CheckCircle, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { executeAgent } from "@/lib/api/agentsCrud";
 import { listClients } from "@/lib/api/clients";
-import { useQuery } from "@tanstack/react-query";
 import type { Agent } from "../types";
 import { STATUS_DOT, DEPARTMENT_LABELS } from "../types";
 import { AgentPerformanceTab } from "./AgentPerformanceTab";
@@ -28,6 +26,8 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
   const qc = useQueryClient();
   const [clientId, setClientId] = useState("");
   const [brief, setBrief] = useState("");
+  const [platform, setPlatform] = useState("instagram");
+  const [execResult, setExecResult] = useState<unknown>(null);
 
   const { data: clientsRaw } = useQuery({
     queryKey: ["clients-for-agent"],
@@ -35,11 +35,12 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
     enabled: open,
     staleTime: 60_000,
   });
-  const clients = ((clientsRaw as { data?: { id: string; name: string }[] })?.data ?? []);
+  const clients = (clientsRaw?.data ?? []);
 
   const exec = useMutation({
-    mutationFn: () => executeAgent(agent!.id, clientId, brief),
-    onSuccess: () => {
+    mutationFn: () => executeAgent(agent!.id, clientId, brief, platform),
+    onSuccess: (res) => {
+      setExecResult(res.data);
       toast({ title: "Agente ejecutado" });
       qc.invalidateQueries({ queryKey: ["agent-executions", agent!.id] });
     },
@@ -67,7 +68,6 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
             <TabsTrigger value="actions">Acciones</TabsTrigger>
           </TabsList>
 
-          {/* TAB 1 — Overview */}
           <TabsContent value="overview" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-muted-foreground">Departamento:</span>{" "}
@@ -93,28 +93,38 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
             )}
           </TabsContent>
 
-          {/* TAB 2 — Performance */}
           <TabsContent value="performance" className="mt-4">
             <AgentPerformanceTab agent={agent} />
           </TabsContent>
 
-          {/* TAB 3 — Logs */}
           <TabsContent value="logs" className="mt-4">
             <AgentLogsTab agentId={agent.id} />
           </TabsContent>
 
-          {/* TAB 4 — Actions */}
           <TabsContent value="actions" className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Cliente</label>
-              <Select value={clientId} onValueChange={setClientId}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger>
-                <SelectContent>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Cliente</label>
+                <Select value={clientId} onValueChange={setClientId}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger>
+                  <SelectContent>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Plataforma</label>
+                <Select value={platform} onValueChange={setPlatform}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["instagram", "facebook", "tiktok", "linkedin", "twitter"].map((p) => (
+                      <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Brief / Instrucción</label>
@@ -132,6 +142,17 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
               <Zap className="h-4 w-4 mr-2" />
               {exec.isPending ? "Ejecutando..." : "Ejecutar Agente"}
             </Button>
+
+            {execResult && (
+              <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-success">
+                  <CheckCircle className="h-4 w-4" /> Resultado
+                </div>
+                <pre className="text-xs text-muted-foreground whitespace-pre-wrap max-h-40 overflow-y-auto">
+                  {typeof execResult === "string" ? execResult : JSON.stringify(execResult, null, 2)}
+                </pre>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>

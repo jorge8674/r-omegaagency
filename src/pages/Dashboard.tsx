@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, checkBackendHealth } from "@/lib/api";
-import { getSystemStats } from "@/lib/api/system";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,10 +30,28 @@ export default function Dashboard() {
     refetchInterval: 30000,
   });
 
-  const { data: systemStats, refetch: refetchStats } = useQuery({
+  const { data: systemStats, isLoading: statsLoading, refetch: refetchStats } = useQuery({
     queryKey: ["system-stats"],
-    queryFn: getSystemStats,
+    queryFn: async () => {
+      const res = await fetch(
+        "https://omegaraisen-production-2031.up.railway.app/api/v1/system/stats",
+        { headers: { "Content-Type": "application/json" } }
+      );
+      if (!res.ok) throw new Error(`Stats error ${res.status}`);
+      const data = await res.json() as {
+        total_endpoints: number;
+        total_agents: number;
+        active_agents: number;
+        total_clients: number;
+        content_generated_today: number;
+        agent_executions_today: number;
+      };
+      console.log("[system-stats]", data);
+      return data;
+    },
     refetchInterval: 30000,
+    staleTime: 10000,
+    retry: 1,
   });
 
   const { data: systemState, isLoading: stateLoading, refetch: refetchState } = useQuery({
@@ -135,7 +152,7 @@ export default function Dashboard() {
             <div>
               <p className="text-sm text-muted-foreground">Agentes Online</p>
               <p className="text-2xl font-display font-bold">
-                {systemStats ? `${systemStats.active_agents}/${systemStats.total_agents}` : <Skeleton className="h-8 w-16" />}
+                {statsLoading ? <Skeleton className="h-8 w-16" /> : `${systemStats?.active_agents ?? "—"}/${systemStats?.total_agents ?? "—"}`}
               </p>
             </div>
           </CardContent>
@@ -148,7 +165,7 @@ export default function Dashboard() {
             <div>
               <p className="text-sm text-muted-foreground">Endpoints</p>
               <p className="text-2xl font-display font-bold">
-                {systemStats?.total_endpoints ?? <Skeleton className="h-8 w-16" />}
+                {statsLoading ? <Skeleton className="h-8 w-16" /> : `${systemStats?.total_endpoints ?? "—"}`}
               </p>
             </div>
           </CardContent>

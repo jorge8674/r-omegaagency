@@ -45,8 +45,9 @@ export function useContentLab() {
     try {
       const extra = language === "en" ? "Write entirely in English" : undefined;
       const result = await generateContent(selectedAccountId, contentType, prompt, extra);
-      if (result.data) {
-        setCurrentResult(result.data);
+      const content = (result.data ?? result) as GeneratedContent;
+      if (content?.generated_text) {
+        setCurrentResult(content);
         invalidateHistory();
         toast({ title: "Contenido generado exitosamente" });
       }
@@ -71,8 +72,9 @@ export function useContentLab() {
     setIsGeneratingImage(true);
     try {
       const result = await generateImage(selectedAccountId, prompt, imageStyle);
-      if (result.data) {
-        setCurrentResult(result.data);
+      const content = (result.data ?? result) as GeneratedContent;
+      if (content?.generated_text) {
+        setCurrentResult(content);
         invalidateHistory();
         toast({ title: "Imagen generada exitosamente" });
       }

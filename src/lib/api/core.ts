@@ -2,7 +2,7 @@ import type { ApiMethod, ApiHealthResponse } from "@/types/shared.types";
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
-  "https://omegaraisen-production.up.railway.app/api/v1";
+  "https://omegaraisen-production-2031.up.railway.app/api/v1";
 
 export { API_BASE };
 

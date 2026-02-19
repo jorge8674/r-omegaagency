@@ -1,5 +1,5 @@
-// 95 lines
 import { useState, useEffect, useCallback, useRef } from "react";
+import { loadContextDocs } from "./NovaChatContext";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -43,13 +43,18 @@ export function useNovaChat() {
     let assistantContent = "";
 
     try {
+      const contextDocs = loadContextDocs();
+      const contextBlock = contextDocs.length > 0
+        ? `\n\nDocumentos de contexto adicional que Ibrain te ha dado:\n${contextDocs.map((d) => `--- ${d.name} ---\n${d.content}`).join("\n\n")}`
+        : "";
+
       const res = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages, contextBlock }),
         signal: abortRef.current.signal,
       });
 

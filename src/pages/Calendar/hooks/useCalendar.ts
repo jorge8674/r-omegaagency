@@ -35,10 +35,12 @@ export function useCalendar() {
   });
 
   /* ─── Scheduled posts (Railway API) ────────────── */
+  const clientId = localStorage.getItem("omega_context_client_id") || localStorage.getItem("omega_client_id");
+
   const { data: apiPosts = [] } = useQuery<Post[]>({
-    queryKey: ["calendar-api-posts"],
+    queryKey: ["calendar-api-posts", clientId],
     queryFn: async () => {
-      const res = await listScheduledPosts();
+      const res = await listScheduledPosts(undefined, clientId || undefined);
       const posts = res.data ?? res.items ?? [];
       return posts.map((sp) => ({
         id: sp.id,
@@ -53,6 +55,7 @@ export function useCalendar() {
         updated_at: sp.updated_at,
       }));
     },
+    enabled: !!clientId,
     retry: 1,
   });
 

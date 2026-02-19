@@ -1,3 +1,4 @@
+// 130 lines
 import { useState } from "react";
 import { RefreshCw, BarChart2, Network, Activity, FileText, Cpu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +10,8 @@ import { ResellersTable } from "./components/ResellersTable";
 import { ContentAgentsStats } from "./components/ContentAgentsStats";
 import { OmegaActivityFeed } from "./components/OmegaActivityFeed";
 import { OmegaOrgChart } from "./components/OmegaOrgChart";
-import { OmegaReportes } from "./components/OmegaReportes";
+import { OmegaDirectorBar } from "./components/OmegaDirectorBar";
+import { ReportsTab } from "./components/ReportsTab";
 import { UpcomingPosts } from "./components/UpcomingPosts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -59,6 +61,16 @@ export default function OmegaCompany() {
           </Button>
         </div>
       </div>
+
+      {/* ── NOVA + Director Bar ───────────────────────────────────── */}
+      <div className="space-y-2">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Sistema de agentes OMEGA
+        </p>
+        <OmegaDirectorBar />
+      </div>
+
+      <Separator className="opacity-30" />
 
       {/* ── Section Chips ────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2 border-b border-border/40 pb-4">
@@ -115,14 +127,7 @@ export default function OmegaCompany() {
         </div>
       )}
 
-      {active === "reportes" && (
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Reportes de desarrollo
-          </h2>
-          <OmegaReportes />
-        </div>
-      )}
+      {active === "reportes" && <ReportsTab />}
     </div>
   );
 }

@@ -33,6 +33,7 @@ export default function CalendarPage() {
             onPrevMonth={cal.goToPrev}
             onNextMonth={cal.goToNext}
             onToday={cal.goToToday}
+            onRefresh={cal.refetchCalendar}
           />
         </TabsContent>
 

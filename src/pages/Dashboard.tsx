@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, checkBackendHealth } from "@/lib/api";
-import { getSystemStats } from "@/lib/api/system";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,12 +50,6 @@ export default function Dashboard() {
     retry: 1,
   });
 
-  const { data: systemStats, refetch: refetchStats } = useQuery({
-    queryKey: ["system-stats"],
-    queryFn: getSystemStats,
-    refetchInterval: 30000,
-    retry: 1,
-  });
 
   const loading = stateLoading && agentsLoading && alertsLoading && healthLoading;
   const isOnline = health?.status === "healthy";
@@ -88,7 +82,7 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const refreshAll = async () => {
     setRefreshing(true);
-    await Promise.all([refetchHealth(), refetchState(), refetchAgents(), refetchAlerts(), refetchStats()]);
+    await Promise.all([refetchHealth(), refetchState(), refetchAgents(), refetchAlerts()]);
     setRefreshing(false);
     toast({ title: "✅ Actualizado", description: "Datos del sistema refrescados" });
   };
@@ -143,7 +137,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Endpoints</p>
-              <p className="text-2xl font-display font-bold">{systemStats?.total_endpoints ?? "—"}</p>
+              <p className="text-2xl font-display font-bold">92</p>
             </div>
           </CardContent>
         </Card>

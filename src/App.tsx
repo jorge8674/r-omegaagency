@@ -12,6 +12,7 @@ import AuthRegister from "./pages/AuthRegister";
 import AuthReset from "./pages/AuthReset";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients/index";
+import AgentsPage from "./pages/Agents/index";
 import ClientDetail from "./pages/ClientDetail";
 
 import ContentLab from "./pages/ContentLab/index";
@@ -79,6 +80,7 @@ const App = () => (
               {[
                 { path: "/clients", el: <Clients /> },
                 { path: "/clients/:id", el: <ClientDetail /> },
+                { path: "/agents", el: <AgentsPage /> },
                 
                 { path: "/content-lab", el: <ContentLab /> },
                 { path: "/calendar", el: <CalendarPage /> },

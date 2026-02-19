@@ -38,16 +38,22 @@ export function useCalendar() {
   });
 
   /* ─── Discover real client_id from /clients/ ────── */
-  const { data: firstClientId } = useQuery<string | null>({
-    queryKey: ["my-first-client"],
+  const { data: clientsData } = useQuery({
+    queryKey: ["my-clients-list"],
     queryFn: async () => {
       const res = await listClients();
-      const clients = res.data ?? [];
-      return clients.length > 0 ? (clients[0] as { id: string }).id : null;
+      return (res.data ?? []) as { id: string; name: string }[];
     },
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });
+
+  const firstClientId = clientsData?.[0]?.id ?? null;
+  const clientNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    (clientsData ?? []).forEach((c) => { map[c.id] = c.name; });
+    return map;
+  }, [clientsData]);
 
   /* ─── Scheduled posts (Railway API) ────────────── */
   const { data: apiPosts = [] } = useQuery<Post[]>({
@@ -55,18 +61,25 @@ export function useCalendar() {
     queryFn: async () => {
       const res = await listScheduledPosts(undefined, firstClientId!);
       const posts = res.data ?? res.items ?? [];
-      return posts.map((sp) => ({
-        id: sp.id,
-        organization_id: "",
-        title: sp.text_content.slice(0, 40) || sp.content_type,
-        body: sp.text_content,
-        platform: sp.content_type,
-        status: sp.status,
-        scheduled_at: `${sp.scheduled_date}T${sp.scheduled_time}`,
-        published_at: sp.published_at,
-        created_at: sp.created_at,
-        updated_at: sp.updated_at,
-      }));
+      return posts.map((sp) => {
+        const clientName = clientNameMap[sp.client_id] || "Cliente";
+        const cleanText = sp.text_content
+          .replace(/https?:\/\/\S+/g, "").replace(/---/g, "").trim();
+        const firstLine = cleanText.split("\n").find((l) => l.trim().length > 5) || sp.content_type;
+        const label = firstLine.replace(/[*#🌟🎉🚀✨🕊️🔗]/g, "").trim().slice(0, 30);
+        return {
+          id: sp.id,
+          organization_id: "",
+          title: `${clientName} — ${label}`,
+          body: sp.text_content,
+          platform: sp.content_type,
+          status: sp.status,
+          scheduled_at: `${sp.scheduled_date}T${sp.scheduled_time}`,
+          published_at: sp.published_at,
+          created_at: sp.created_at,
+          updated_at: sp.updated_at,
+        };
+      });
     },
     enabled: !!firstClientId,
     retry: 1,

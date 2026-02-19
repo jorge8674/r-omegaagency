@@ -7,10 +7,12 @@ import { AuthProvider as OmegaAuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { OmegaProtectedRoute } from "@/components/auth/OmegaProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { NovaChatWrapper } from "@/components/NovaChat/NovaChatWrapper";
 import AuthLogin from "./pages/AuthLogin";
 import AuthRegister from "./pages/AuthRegister";
 import AuthReset from "./pages/AuthReset";
 import Dashboard from "./pages/Dashboard";
+import OmegaDepartment from "./pages/OmegaDepartment/index";
 import Clients from "./pages/Clients/index";
 import AgentsPage from "./pages/Agents/index";
 import ClientDetail from "./pages/ClientDetail";
@@ -41,6 +43,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <NovaChatWrapper />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -60,6 +63,11 @@ const App = () => (
               <Route path="/omega" element={
                 <OmegaProtectedRoute allowedRoles={["owner"]}>
                   <AppLayout><OmegaCompany /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+              <Route path="/omega/department/:dept" element={
+                <OmegaProtectedRoute allowedRoles={["owner"]}>
+                  <AppLayout><OmegaDepartment /></AppLayout>
                 </OmegaProtectedRoute>
               } />
 

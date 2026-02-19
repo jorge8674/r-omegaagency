@@ -16,38 +16,46 @@ import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
+const DATE_RANGES = [
+  { value: "7d", label: "7 días" },
+  { value: "30d", label: "30 días" },
+  { value: "90d", label: "90 días" },
+] as const;
+
 export default function Analytics() {
   const { toast } = useToast();
   const [selectedClient, setSelectedClient] = useState("all");
+  const [dateRangeKey, setDateRangeKey] = useState("30d");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined,
   });
 
-  const { loading, growthData, engagementData, heatmapData, topPosts, avgEngagement, totalFollowers } =
-    useAnalyticsData();
+  const { loading, growthData, engagementData, heatmapData, topPosts, avgEngagement, totalFollowers, bestTime } =
+    useAnalyticsData(selectedClient, dateRangeKey);
   const { clients } = useDashboardData();
 
   // Backend analytics state
   const [metricsInput, setMetricsInput] = useState('{"platform": "instagram", "metrics": {"followers": 5000, "engagement_rate": 0.03}}');
   const [analyzingMetrics, setAnalyzingMetrics] = useState(false);
-  const [metricsResult, setMetricsResult] = useState<any>(null);
+  const [metricsResult, setMetricsResult] = useState<Record<string, unknown> | null>(null);
   const [generatingInsights, setGeneratingInsights] = useState(false);
-  const [insightsResult, setInsightsResult] = useState<any>(null);
+  const [insightsResult, setInsightsResult] = useState<Record<string, unknown> | null>(null);
   const [forecasting, setForecasting] = useState(false);
-  const [forecastResult, setForecastResult] = useState<any>(null);
+  const [forecastResult, setForecastResult] = useState<Record<string, unknown> | null>(null);
   const [generatingReport, setGeneratingReport] = useState(false);
-  const [reportResult, setReportResult] = useState<any>(null);
+  const [reportResult, setReportResult] = useState<Record<string, unknown> | null>(null);
 
   const handleAnalyzeMetrics = async () => {
     setAnalyzingMetrics(true);
     try {
       const data = JSON.parse(metricsInput);
       const result = await api.analyzeMetrics(data);
-      setMetricsResult(result);
+      setMetricsResult(result as Record<string, unknown>);
       toast({ title: "✅ Métricas analizadas" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setAnalyzingMetrics(false);
     }
@@ -56,12 +64,12 @@ export default function Analytics() {
   const handleGenerateInsights = async () => {
     setGeneratingInsights(true);
     try {
-      const data = metricsInput;
-      const result = await api.generateInsights(data);
-      setInsightsResult(result);
+      const result = await api.generateInsights(metricsInput);
+      setInsightsResult(result as Record<string, unknown>);
       toast({ title: "✅ Insights generados" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setGeneratingInsights(false);
     }
@@ -70,12 +78,12 @@ export default function Analytics() {
   const handleForecast = async () => {
     setForecasting(true);
     try {
-      const data = metricsInput;
-      const result = await api.forecast(data);
-      setForecastResult(result);
+      const result = await api.forecast(metricsInput);
+      setForecastResult(result as Record<string, unknown>);
       toast({ title: "✅ Forecast generado" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setForecasting(false);
     }
@@ -85,18 +93,19 @@ export default function Analytics() {
     setGeneratingReport(true);
     try {
       const result = await api.generateMonthlyReport("default");
-      setReportResult(result);
+      setReportResult(result as Record<string, unknown>);
       toast({ title: "✅ Reporte generado" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setGeneratingReport(false);
     }
   };
 
-  const ResultBlock = ({ data }: { data: any }) => (
+  const ResultBlock = ({ data }: { data: Record<string, unknown> }) => (
     <div className="rounded-lg bg-secondary/50 p-3 mt-3">
-      <pre className="text-sm whitespace-pre-wrap overflow-x-auto">{typeof data === "string" ? data : JSON.stringify(data, null, 2)}</pre>
+      <pre className="text-sm whitespace-pre-wrap overflow-x-auto">{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
 
@@ -122,18 +131,32 @@ export default function Analytics() {
         </TabsList>
 
         <TabsContent value="historical" className="space-y-6 mt-4">
-          <AnalyticsFilters
-            clients={clients.map((c) => ({ id: c.id, name: c.name }))}
-            selectedClient={selectedClient}
-            onClientChange={setSelectedClient}
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-          />
+          <div className="flex flex-wrap items-center gap-3">
+            <AnalyticsFilters
+              clients={clients.map((c) => ({ id: c.id, name: c.name }))}
+              selectedClient={selectedClient}
+              onClientChange={setSelectedClient}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
+            <div className="flex gap-1 ml-auto">
+              {DATE_RANGES.map((r) => (
+                <Button
+                  key={r.value}
+                  size="sm"
+                  variant={dateRangeKey === r.value ? "default" : "outline"}
+                  onClick={() => setDateRangeKey(r.value)}
+                >
+                  {r.label}
+                </Button>
+              ))}
+            </div>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
-            <StatsCard title="Seguidores Totales" value={totalFollowers.toLocaleString()} icon={TrendingUp} subtitle="Todas las plataformas" />
-            <StatsCard title="Engagement Promedio" value={`${avgEngagement}%`} icon={Heart} subtitle="Likes + comentarios + shares" />
-            <StatsCard title="Mejor Horario" value="19:00 – 21:00" icon={Clock} subtitle="Mayor interacción" />
+            <StatsCard title="Seguidores Totales" value={totalFollowers ? totalFollowers.toLocaleString() : "—"} icon={TrendingUp} subtitle="Todas las plataformas" />
+            <StatsCard title="Engagement Promedio" value={avgEngagement ? `${avgEngagement}%` : "—"} icon={Heart} subtitle="Likes + comentarios + shares" />
+            <StatsCard title="Mejor Horario" value={bestTime} icon={Clock} subtitle="Mayor interacción" />
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -174,13 +197,13 @@ export default function Analytics() {
           </Card>
 
           {metricsResult && (() => {
-            const mr = metricsResult?.data || metricsResult;
+            const mr = (metricsResult as Record<string, unknown>)?.data as Record<string, unknown> || metricsResult;
             return (
               <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
                 <CardHeader className="pb-2"><CardTitle className="text-sm">Análisis de Métricas</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-4 gap-3">
-                    {Object.entries(mr.metrics || {}).map(([key, val]) => (
+                    {Object.entries((mr.metrics as Record<string, unknown>) || {}).map(([key, val]) => (
                       <div key={key} className="bg-secondary/50 rounded-lg p-3 text-center">
                         <p className="text-2xl font-bold text-primary">{String(val)}</p>
                         <p className="text-xs text-muted-foreground mt-1">{key.replace(/_/g, ' ')}</p>
@@ -190,7 +213,7 @@ export default function Analytics() {
                   {mr.ai_insights && (
                     <div className="bg-secondary/50 rounded-lg p-4">
                       <p className="text-xs text-muted-foreground mb-2">💡 AI Insights</p>
-                      <div className="text-sm leading-relaxed whitespace-pre-line">{mr.ai_insights}</div>
+                      <div className="text-sm leading-relaxed whitespace-pre-line">{String(mr.ai_insights)}</div>
                     </div>
                   )}
                 </CardContent>
@@ -198,8 +221,8 @@ export default function Analytics() {
             );
           })()}
           {insightsResult && (() => {
-            const ir = insightsResult?.data || insightsResult;
-            const insightsText = ir?.insights || ir?.response_text || '';
+            const ir = (insightsResult as Record<string, unknown>)?.data as Record<string, unknown> || insightsResult;
+            const insightsText = String(ir?.insights || ir?.response_text || '');
             return (
               <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
                 <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Brain className="h-4 w-4 text-primary" /> Insights</CardTitle></CardHeader>
@@ -209,11 +232,11 @@ export default function Analytics() {
                       <div className="text-sm leading-relaxed whitespace-pre-line">{insightsText}</div>
                     </div>
                   )}
-                  {ir?.metrics_analyzed?.length > 0 && (
-                    <p className="text-xs text-muted-foreground">Métricas analizadas: {ir.metrics_analyzed.join(', ')}</p>
+                  {Array.isArray((ir as Record<string, unknown>)?.metrics_analyzed) && (
+                    <p className="text-xs text-muted-foreground">Métricas analizadas: {((ir as Record<string, unknown>).metrics_analyzed as string[]).join(', ')}</p>
                   )}
                   {ir?.generated_at && (
-                    <p className="text-xs text-muted-foreground">Generado: {new Date(ir.generated_at).toLocaleString('es-ES')}</p>
+                    <p className="text-xs text-muted-foreground">Generado: {new Date(String(ir.generated_at)).toLocaleString('es-ES')}</p>
                   )}
                   {!insightsText && <ResultBlock data={insightsResult} />}
                 </CardContent>
@@ -222,8 +245,8 @@ export default function Analytics() {
           })()}
 
           {forecastResult && (() => {
-            const fr = forecastResult?.data || forecastResult;
-            const forecastList = fr?.forecast || [];
+            const fr = (forecastResult as Record<string, unknown>)?.data as Record<string, unknown> || forecastResult;
+            const forecastList = (fr?.forecast || []) as Record<string, unknown>[];
             return (
               <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
                 <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><LineChart className="h-4 w-4 text-primary" /> Forecast</CardTitle></CardHeader>
@@ -237,8 +260,8 @@ export default function Analytics() {
                         <span className="text-right">Alcance</span>
                       </div>
                       <div className="max-h-80 overflow-y-auto space-y-1">
-                        {forecastList.map((f: any, i: number) => {
-                          const date = f.date || f.label || f.metric || `Día ${i + 1}`;
+                        {forecastList.map((f, i) => {
+                          const date = String(f.date || f.label || f.metric || `Día ${i + 1}`);
                           const followers = f.followers ?? f.value ?? f.predicted_followers;
                           const engagement = f.engagement_rate ?? f.engagement;
                           const reach = f.reach ?? f.predicted_reach;
@@ -261,7 +284,7 @@ export default function Analytics() {
                     </div>
                   ) : (
                     <div className="bg-secondary/50 rounded-lg p-4 text-center">
-                      <p className="text-sm text-muted-foreground">{fr?.message || forecastResult?.message || 'No hay datos suficientes para forecast.'}</p>
+                      <p className="text-sm text-muted-foreground">{String((fr as Record<string, unknown>)?.message || (forecastResult as Record<string, unknown>)?.message || 'No hay datos suficientes para forecast.')}</p>
                     </div>
                   )}
                 </CardContent>
@@ -270,15 +293,15 @@ export default function Analytics() {
           })()}
 
           {reportResult && (() => {
-            const rr = reportResult?.data || reportResult;
+            const rr = (reportResult as Record<string, unknown>)?.data as Record<string, unknown> || reportResult;
             return (
               <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-                <CardHeader className="pb-2"><CardTitle className="text-sm">📊 Reporte Mensual — {rr?.client_name || ''}</CardTitle></CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">📊 Reporte Mensual — {String(rr?.client_name || '')}</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   {rr?.overall_score != null && (
                     <div className="flex items-center gap-3">
                       <div className="bg-primary/20 rounded-lg p-3 text-center">
-                        <p className="text-3xl font-bold text-primary">{rr.overall_score}/10</p>
+                        <p className="text-3xl font-bold text-primary">{String(rr.overall_score)}/10</p>
                         <p className="text-xs text-muted-foreground">Score General</p>
                       </div>
                     </div>
@@ -286,49 +309,49 @@ export default function Analytics() {
                   {rr?.executive_summary && (
                     <div className="bg-secondary/50 rounded-lg p-4">
                       <p className="text-xs text-muted-foreground mb-2 font-semibold">Resumen Ejecutivo</p>
-                      <div className="text-sm leading-relaxed whitespace-pre-line">{rr.executive_summary}</div>
+                      <div className="text-sm leading-relaxed whitespace-pre-line">{String(rr.executive_summary)}</div>
                     </div>
                   )}
-                  {rr?.key_wins?.length > 0 && (
+                  {Array.isArray(rr?.key_wins) && (rr.key_wins as string[]).length > 0 && (
                     <div>
                       <p className="text-xs font-semibold text-primary mb-1">🏆 Logros Clave</p>
-                      {rr.key_wins.map((w: string, i: number) => (
+                      {(rr.key_wins as string[]).map((w, i) => (
                         <p key={i} className="text-sm text-muted-foreground">✅ {w}</p>
                       ))}
                     </div>
                   )}
-                  {rr?.sections?.map((sec: any, si: number) => (
+                  {Array.isArray(rr?.sections) && (rr.sections as Record<string, unknown>[]).map((sec, si) => (
                     <div key={si} className="bg-secondary/30 rounded-lg p-3 space-y-2">
-                      <p className="font-medium text-sm">{sec.title}</p>
-                      {sec.metrics?.length > 0 && (
+                      <p className="font-medium text-sm">{String(sec.title)}</p>
+                      {Array.isArray(sec.metrics) && (sec.metrics as Record<string, unknown>[]).length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          {sec.metrics.map((m: any, mi: number) => (
+                          {(sec.metrics as Record<string, unknown>[]).map((m, mi) => (
                             <div key={mi} className="bg-secondary/50 rounded-lg p-2 text-center">
-                              <p className="text-lg font-bold text-primary">{typeof m.current_value === 'number' && m.current_value < 1 ? (m.current_value * 100).toFixed(1) + '%' : m.current_value?.toLocaleString()}</p>
-                              <p className="text-xs text-muted-foreground">{m.metric_name?.replace(/_/g, ' ')}</p>
+                              <p className="text-lg font-bold text-primary">{typeof m.current_value === 'number' && m.current_value < 1 ? (m.current_value * 100).toFixed(1) + '%' : String(m.current_value)}</p>
+                              <p className="text-xs text-muted-foreground">{String(m.metric_name || '').replace(/_/g, ' ')}</p>
                               {m.change_percentage != null && (
                                 <p className={`text-xs font-semibold ${m.is_positive ? 'text-green-500' : 'text-destructive'}`}>
-                                  {m.is_positive ? '↑' : '↓'} {m.change_percentage}%
+                                  {m.is_positive ? '↑' : '↓'} {String(m.change_percentage)}%
                                 </p>
                               )}
                             </div>
                           ))}
                         </div>
                       )}
-                      {sec.recommendations?.length > 0 && (
+                      {Array.isArray(sec.recommendations) && (sec.recommendations as string[]).length > 0 && (
                         <div>
                           <p className="text-xs text-muted-foreground font-semibold mb-1">Recomendaciones:</p>
-                          {sec.recommendations.map((r: string, ri: number) => (
+                          {(sec.recommendations as string[]).map((r, ri) => (
                             <p key={ri} className="text-sm">💡 {r}</p>
                           ))}
                         </div>
                       )}
                     </div>
                   ))}
-                  {rr?.next_period_goals?.length > 0 && (
+                  {Array.isArray(rr?.next_period_goals) && (rr.next_period_goals as string[]).length > 0 && (
                     <div>
                       <p className="text-xs font-semibold text-primary mb-1">🎯 Metas Próximo Período</p>
-                      {rr.next_period_goals.map((g: string, i: number) => (
+                      {(rr.next_period_goals as string[]).map((g, i) => (
                         <p key={i} className="text-sm text-muted-foreground">• {g}</p>
                       ))}
                     </div>

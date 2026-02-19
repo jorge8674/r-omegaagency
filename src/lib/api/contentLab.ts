@@ -14,7 +14,7 @@ export const CONTENT_TYPE_LABELS: Record<ContentType, { label: string; emoji: st
   hashtags:    { label: "Hashtags",     emoji: "#️⃣", desc: "Set de 20-30 hashtags" },
   email:       { label: "Email",        emoji: "📧", desc: "Email de marketing" },
   image:       { label: "Imagen",      emoji: "",   desc: "Imagen con DALL-E 3" },
-  video:       { label: "Video/Reel",  emoji: "",   desc: "Video corto con Runway AI" },
+  video:       { label: "Video/Reel",  emoji: "",   desc: "Video corto con IA" },
 };
 
 export interface GeneratedContent {
@@ -35,6 +35,14 @@ export interface GeneratedContent {
 export type ImageStyle = "realistic" | "cartoon" | "minimal";
 export type VideoStyle = "realistic" | "cinematic" | "animated";
 export type VideoDuration = 5 | 10;
+export type VideoProvider = "runway" | "kling" | "hunyuan" | "wan";
+
+export const VIDEO_PROVIDER_LABELS: Record<VideoProvider, { label: string; badge: string }> = {
+  runway:  { label: "Runway Gen-3",  badge: "Runway Gen-3" },
+  kling:   { label: "Kling v2",      badge: "Kling v2" },
+  hunyuan: { label: "Hunyuan",       badge: "Hunyuan" },
+  wan:     { label: "Wan",           badge: "Wan" },
+};
 
 interface GenerateResponse {
   success: boolean;
@@ -60,11 +68,7 @@ export async function generateText(
     brief: brief,
     language: language || "es",
   });
-
-  return apiCall(
-    `/content-lab/generate/?${params.toString()}`,
-    "POST"
-  );
+  return apiCall(`/content-lab/generate/?${params.toString()}`, "POST");
 }
 
 export async function listGeneratedContent(
@@ -92,11 +96,7 @@ export async function generateImage(
   prompt: string,
   style: ImageStyle
 ): Promise<GenerateResponse> {
-  const params = new URLSearchParams({
-    account_id: accountId,
-    prompt,
-    style,
-  });
+  const params = new URLSearchParams({ account_id: accountId, prompt, style });
   return apiCall<GenerateResponse>(
     `/content-lab/generate-image/?${params.toString()}`,
     "POST"
@@ -117,6 +117,24 @@ export async function generateVideo(
   });
   return apiCall<GenerateResponse>(
     `/content-lab/generate-video-runway/?${params.toString()}`,
+    "POST"
+  );
+}
+
+export async function generateVideoFal(
+  accountId: string,
+  prompt: string,
+  duration: VideoDuration,
+  model: "kling" | "hunyuan" | "wan"
+): Promise<GenerateResponse> {
+  const params = new URLSearchParams({
+    account_id: accountId,
+    prompt,
+    duration: String(duration),
+    model,
+  });
+  return apiCall<GenerateResponse>(
+    `/content-lab/generate-video-fal/?${params.toString()}`,
     "POST"
   );
 }

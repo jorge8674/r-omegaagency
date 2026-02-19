@@ -5,8 +5,7 @@ import LandingHero from "@/components/landing/LandingHero";
 import LandingSections from "@/components/landing/LandingSections";
 import LandingContact from "@/components/landing/LandingContact";
 import LandingFooter from "@/components/landing/LandingFooter";
-
-const API_BASE = import.meta.env.VITE_API_URL || "https://omegaraisen-production.up.railway.app/api/v1";
+import { API_BASE } from "@/lib/api/core";
 
 type Status = "loading" | "ok" | "suspended" | "not_found" | "error";
 
@@ -54,7 +53,10 @@ const LandingPage: React.FC = () => {
   if (status === "not_found" || status === "error") return (
     <div style={{ minHeight: "100vh", background: "#0D0E12", color: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Syne, sans-serif", gap: 16 }}>
       <div style={{ fontSize: 56, opacity: 0.2 }}>404</div>
-      <p style={{ fontSize: 20, opacity: 0.5 }}>Agencia no encontrada</p>
+      <p style={{ fontSize: 20, opacity: 0.7 }}>Esta agencia no existe o no está disponible</p>
+      <a href="/" style={{ marginTop: 16, padding: "10px 24px", borderRadius: 8, background: "rgba(255,255,255,0.1)", color: "white", textDecoration: "none", fontSize: 14, border: "1px solid rgba(255,255,255,0.15)" }}>
+        ← Volver al inicio
+      </a>
     </div>
   );
 

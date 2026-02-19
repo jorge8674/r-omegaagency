@@ -5,7 +5,9 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api";
 import { apiCall } from "@/lib/api/core";
+import { listScheduledPosts } from "@/lib/api/calendar";
 import type { ScheduledPost } from "@/lib/api/calendar";
+import { listClients } from "@/lib/api/clients";
 import { useToast } from "@/hooks/use-toast";
 import type { Post } from "@/types/post";
 import type { QueueItem, ScheduleFormValues, OptimalTimesResult } from "../types";
@@ -35,17 +37,23 @@ export function useCalendar() {
     },
   });
 
-  /* ─── Scheduled posts (Railway API) ────────────── */
-  const userId = localStorage.getItem("omega_client_id") || "";
-
-  const { data: apiPosts = [] } = useQuery<Post[]>({
-    queryKey: ["calendar-api-posts", userId],
+  /* ─── Discover real client_id from /clients/ ────── */
+  const { data: firstClientId } = useQuery<string | null>({
+    queryKey: ["my-first-client"],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (userId) params.set("user_id", userId);
-      const res = await apiCall<{ data?: ScheduledPost[]; items?: ScheduledPost[] }>(
-        `/calendar/?${params.toString()}`,
-      );
+      const res = await listClients();
+      const clients = res.data ?? [];
+      return clients.length > 0 ? (clients[0] as { id: string }).id : null;
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  /* ─── Scheduled posts (Railway API) ────────────── */
+  const { data: apiPosts = [] } = useQuery<Post[]>({
+    queryKey: ["calendar-api-posts", firstClientId],
+    queryFn: async () => {
+      const res = await listScheduledPosts(undefined, firstClientId!);
       const posts = res.data ?? res.items ?? [];
       return posts.map((sp) => ({
         id: sp.id,
@@ -60,7 +68,7 @@ export function useCalendar() {
         updated_at: sp.updated_at,
       }));
     },
-    enabled: !!userId,
+    enabled: !!firstClientId,
     retry: 1,
   });
 

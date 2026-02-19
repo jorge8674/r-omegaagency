@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { loadContextDocs } from "./NovaChatContext";
 
 export interface ChatMessage {
-  role: "user" | "assistant" | "system";
+  role: "user" | "assistant";
   content: string;
   timestamp?: string;
 }
@@ -14,6 +14,7 @@ const API_BASE =
 
 function saveLocal(msgs: ChatMessage[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
+  console.log("💾 Guardado en localStorage:", msgs.length, "mensajes");
 }
 
 function saveSilent(msgs: ChatMessage[]): void {
@@ -21,24 +22,29 @@ function saveSilent(msgs: ChatMessage[]): void {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ data_type: "chat_history", content: msgs }),
-  }).catch((err) => console.warn("Backend save failed (non-critical)", err));
+  })
+    .then(() => console.log("💾 Guardado en backend"))
+    .catch((err) => console.warn("⚠️ Backend save failed (non-critical)", err));
 }
 
-async function loadHistory(): Promise<ChatMessage[]> {
+async function loadRemoteHistory(): Promise<ChatMessage[]> {
   try {
     const res = await fetch(`${API_BASE}/nova/data/?type=chat_history`);
     if (res.ok) {
       const data = await res.json() as { content?: ChatMessage[] };
       if (Array.isArray(data.content) && data.content.length > 0) {
+        console.log("✅ Historial cargado desde backend:", data.content.length, "mensajes");
         return data.content;
       }
     }
   } catch {
-    console.warn("Loading from localStorage fallback");
+    console.warn("⚠️ Backend load failed, usando localStorage");
   }
   try {
     const local = localStorage.getItem(STORAGE_KEY);
-    return local ? (JSON.parse(local) as ChatMessage[]) : [];
+    const parsed = local ? (JSON.parse(local) as ChatMessage[]) : [];
+    console.log("✅ Historial cargado desde localStorage:", parsed.length, "mensajes");
+    return parsed;
   } catch { return []; }
 }
 
@@ -47,8 +53,12 @@ export function useNovaChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Ref para evitar stale closure en send
+  const messagesRef = useRef<ChatMessage[]>([]);
+  messagesRef.current = messages;
+
   useEffect(() => {
-    loadHistory().then(setMessages);
+    loadRemoteHistory().then(setMessages);
   }, []);
 
   const send = useCallback(async (text: string) => {
@@ -61,8 +71,12 @@ export function useNovaChat() {
       timestamp: new Date().toISOString(),
     };
 
-    const historyWithUser = [...messages, userMsg];
+    // Leer del ref para garantizar historial actualizado
+    const historyWithUser = [...messagesRef.current, userMsg];
     setMessages(historyWithUser);
+
+    console.log("📤 Enviando al backend:", historyWithUser.length, "mensajes");
+
     setIsLoading(true);
 
     try {
@@ -75,7 +89,10 @@ export function useNovaChat() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: historyWithUser, // historial completo — backend toma los últimos 10
+          messages: historyWithUser.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
           context_docs: contextDocs,
         }),
       });
@@ -86,6 +103,8 @@ export function useNovaChat() {
       }
 
       const data = await response.json() as { role: string; content: string };
+      console.log("📥 Respuesta de NOVA recibida");
+
       const assistantMsg: ChatMessage = {
         role: "assistant",
         content: data.content,
@@ -97,24 +116,25 @@ export function useNovaChat() {
       saveLocal(finalHistory);
       saveSilent(finalHistory);
     } catch (e) {
-      if ((e as Error).name !== "AbortError") {
-        setError((e as Error).message ?? "Error desconocido");
-        setMessages([...historyWithUser, {
-          role: "assistant",
-          content: "⚠️ Error al comunicarme con NOVA. Verifica que el backend esté activo.",
-          timestamp: new Date().toISOString(),
-        }]);
-      }
+      const errMsg = (e as Error).message ?? "Error desconocido";
+      console.error("❌ Error en chat:", errMsg);
+      setError(errMsg);
+      setMessages([...historyWithUser, {
+        role: "assistant",
+        content: "⚠️ Error al comunicarme con NOVA. Verifica que el backend esté activo.",
+        timestamp: new Date().toISOString(),
+      }]);
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading]);
+  }, [isLoading]);
 
   const clearHistory = useCallback(() => {
-    if (!confirm("¿Estás seguro? Esto borrará toda la conversación con NOVA.")) return;
+    if (!confirm("¿Borrar toda la conversación con NOVA?")) return;
     setMessages([]);
     localStorage.removeItem(STORAGE_KEY);
     saveSilent([]);
+    console.log("🗑️ Historial borrado");
   }, []);
 
   return { messages, isLoading, error, send, clearHistory };

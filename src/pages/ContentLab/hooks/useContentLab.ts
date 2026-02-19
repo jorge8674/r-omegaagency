@@ -15,8 +15,8 @@ export function useContentLab() {
   const [contentType, setContentType] = useState<ContentType>("post");
   const [language, setLanguage] = useState("es");
   const [prompt, setPrompt] = useState("");
-  const [currentResult, setCurrentResult] = useState<GeneratedContent | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [results, setResults] = useState<GeneratedContent[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageStyle, setImageStyle] = useState<ImageStyle>("realistic");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -45,7 +45,7 @@ export function useContentLab() {
     try {
       const result = await generateText(selectedAccountId, contentType, prompt, language);
       if (result) {
-        setCurrentResult(result as GeneratedContent);
+        setResults(prev => [result as GeneratedContent, ...prev]);
         invalidateHistory();
         toast({ title: "Contenido generado exitosamente" });
       }
@@ -72,7 +72,7 @@ export function useContentLab() {
       const result = await generateImage(selectedAccountId, prompt, imageStyle);
       const content = (result.data ?? result) as GeneratedContent;
       if (content?.generated_text) {
-        setCurrentResult(content);
+        setResults(prev => [content, ...prev]);
         invalidateHistory();
         toast({ title: "Imagen generada exitosamente" });
       }
@@ -84,44 +84,47 @@ export function useContentLab() {
     }
   };
 
-  const handleCopy = async (): Promise<void> => {
-    if (!currentResult) return;
-    await navigator.clipboard.writeText(currentResult.generated_text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async (index: number): Promise<void> => {
+    const item = results[index];
+    if (!item) return;
+    await navigator.clipboard.writeText(item.generated_text);
+    setCopiedId(item.id ?? `idx-${index}`);
+    setTimeout(() => setCopiedId(null), 2000);
     toast({ title: "Copiado al portapapeles" });
   };
 
   const handleSave = async (contentId: string): Promise<void> => {
     await toggleSaveContent(contentId);
     invalidateHistory();
-    if (currentResult?.id === contentId) {
-      setCurrentResult((prev) => prev ? { ...prev, is_saved: !prev.is_saved } : null);
-    }
+    setResults(prev => prev.map(r =>
+      r.id === contentId ? { ...r, is_saved: !r.is_saved } : r
+    ));
   };
 
-  const handleDelete = async (contentId: string): Promise<void> => {
-    await deleteContent(contentId);
-    invalidateHistory();
-    if (currentResult?.id === contentId) setCurrentResult(null);
+  const handleDelete = async (contentId: string, index: number): Promise<void> => {
+    if (contentId) {
+      await deleteContent(contentId);
+      invalidateHistory();
+    }
+    setResults(prev => prev.filter((_, i) => i !== index));
     toast({ title: "Eliminado" });
   };
 
   const selectClient = (clientId: string) => {
     setSelectedClientId(clientId);
     setSelectedAccountId("");
-    setCurrentResult(null);
+    setResults([]);
   };
 
   const selectAccount = (accountId: string) => {
     setSelectedAccountId(accountId);
-    setCurrentResult(null);
+    setResults([]);
   };
 
   return {
     selectedClientId, selectedAccountId, contentType, language,
-    prompt, currentResult, copied, isGenerating, imageStyle, isGeneratingImage,
-    setContentType, setLanguage, setPrompt, setImageStyle, setCurrentResult,
+    prompt, results, copiedId, isGenerating, imageStyle, isGeneratingImage,
+    setContentType, setLanguage, setPrompt, setImageStyle, setResults,
     selectClient, selectAccount,
     handleGenerate, handleGenerateImage, handleCopy, handleSave, handleDelete,
   };

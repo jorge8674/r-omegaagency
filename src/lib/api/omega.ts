@@ -47,9 +47,43 @@ export interface OmegaRevenue {
   breakdown: { plan: string; count: number; revenue: number }[];
 }
 
+export type OrgAgentStatus = "active" | "online" | "in_task" | "idle" | "in_training" | "inactive" | "error";
+
+export interface OrgSubAgent {
+  id: string;
+  code: string;
+  name: string;
+  status: OrgAgentStatus;
+  description?: string;
+}
+
+export interface OrgDirector {
+  id: string;
+  code: string;
+  name: string;
+  department: string;
+  status: OrgAgentStatus;
+  sub_agents: OrgSubAgent[];
+  tasks_today: number;
+  performance_score: number;
+}
+
+export interface OrgChart {
+  ceo: {
+    id: string;
+    code: string;
+    name: string;
+    status: OrgAgentStatus;
+  };
+  directors: OrgDirector[];
+  total_agents: number;
+  total_departments: number;
+}
+
 export const omegaApi = {
   getDashboard: () => apiCall<OmegaDashboardStats>("/omega/dashboard/"),
   getResellers: () => apiCall<OmegaReseller[]>("/omega/resellers/"),
   getActivity: () => apiCall<OmegaActivityResponse>("/omega/activity/"),
   getRevenue: () => apiCall<OmegaRevenue>("/omega/revenue/"),
+  getOrgChart: () => apiCall<OrgChart>("/omega/org-chart/"),
 };

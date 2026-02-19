@@ -1,91 +1,69 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { loadContextDocs } from "./NovaChatContext";
-import { omegaApi } from "@/lib/api/omega";
 
 export interface ChatMessage {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
+  timestamp?: string;
 }
 
 const STORAGE_KEY = "nova_chat_history";
-const MAX_MESSAGES = 50;
 const API_BASE =
   import.meta.env.VITE_API_URL ||
   "https://omegaraisen-production-2031.up.railway.app/api/v1";
 
-function loadLocalHistory(): ChatMessage[] {
+function saveLocal(msgs: ChatMessage[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
+}
+
+function saveSilent(msgs: ChatMessage[]): void {
+  fetch(`${API_BASE}/nova/data/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data_type: "chat_history", content: msgs }),
+  }).catch((err) => console.warn("Backend save failed (non-critical)", err));
+}
+
+async function loadHistory(): Promise<ChatMessage[]> {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]") as ChatMessage[];
+    const res = await fetch(`${API_BASE}/nova/data/?type=chat_history`);
+    if (res.ok) {
+      const data = await res.json() as { content?: ChatMessage[] };
+      if (Array.isArray(data.content) && data.content.length > 0) {
+        return data.content;
+      }
+    }
+  } catch {
+    console.warn("Loading from localStorage fallback");
+  }
+  try {
+    const local = localStorage.getItem(STORAGE_KEY);
+    return local ? (JSON.parse(local) as ChatMessage[]) : [];
   } catch { return []; }
 }
 
-function saveLocalHistory(msgs: ChatMessage[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-MAX_MESSAGES)));
-}
-
-async function persistHistory(msgs: ChatMessage[]): Promise<void> {
-  try {
-    await omegaApi.saveNovaData("chat_history", msgs.slice(-MAX_MESSAGES));
-  } catch { /* silent — localStorage is the fallback */ }
-}
-
-async function loadRemoteHistory(): Promise<ChatMessage[] | null> {
-  try {
-    const res = await omegaApi.loadNovaData("chat_history");
-    const content = res?.content;
-    if (Array.isArray(content) && content.length > 0) return content as ChatMessage[];
-    return null;
-  } catch { return null; }
-}
-
-async function sendToBackend(
-  messages: ChatMessage[],
-  contextDocs: { name: string; content: string }[]
-): Promise<ChatMessage> {
-  const response = await fetch(`${API_BASE}/nova/chat/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      messages: messages.slice(-10), // últimos 10 mensajes
-      context_docs: contextDocs,
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text().catch(() => "");
-    throw new Error(`Chat failed: ${response.status}${errText ? ` - ${errText}` : ""}`);
-  }
-
-  const data = await response.json() as { role: string; content: string };
-  return { role: "assistant", content: data.content };
-}
-
 export function useNovaChat() {
-  const [messages, setMessages] = useState<ChatMessage[]>(loadLocalHistory);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    loadRemoteHistory().then((remote) => {
-      if (remote) setMessages(remote);
-    });
+    loadHistory().then(setMessages);
   }, []);
-
-  useEffect(() => {
-    saveLocalHistory(messages);
-  }, [messages]);
 
   const send = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return;
     setError(null);
 
-    const userMsg: ChatMessage = { role: "user", content: text.trim() };
-    const nextMessages = [...messages, userMsg].slice(-MAX_MESSAGES);
-    setMessages(nextMessages);
-    setIsLoading(true);
+    const userMsg: ChatMessage = {
+      role: "user",
+      content: text.trim(),
+      timestamp: new Date().toISOString(),
+    };
 
-    abortRef.current = new AbortController();
+    const historyWithUser = [...messages, userMsg];
+    setMessages(historyWithUser);
+    setIsLoading(true);
 
     try {
       const contextDocs = loadContextDocs().map((d) => ({
@@ -93,17 +71,38 @@ export function useNovaChat() {
         content: d.content,
       }));
 
-      const assistantMsg = await sendToBackend(nextMessages, contextDocs);
+      const response = await fetch(`${API_BASE}/nova/chat/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: historyWithUser, // historial completo — backend toma los últimos 10
+          context_docs: contextDocs,
+        }),
+      });
 
-      const finalMsgs = [...nextMessages, assistantMsg];
-      setMessages(finalMsgs);
-      persistHistory(finalMsgs).catch(() => {});
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        throw new Error(`Chat failed: ${response.status}${errText ? ` - ${errText}` : ""}`);
+      }
+
+      const data = await response.json() as { role: string; content: string };
+      const assistantMsg: ChatMessage = {
+        role: "assistant",
+        content: data.content,
+        timestamp: new Date().toISOString(),
+      };
+
+      const finalHistory = [...historyWithUser, assistantMsg];
+      setMessages(finalHistory);
+      saveLocal(finalHistory);
+      saveSilent(finalHistory);
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
         setError((e as Error).message ?? "Error desconocido");
-        setMessages([...nextMessages, {
+        setMessages([...historyWithUser, {
           role: "assistant",
           content: "⚠️ Error al comunicarme con NOVA. Verifica que el backend esté activo.",
+          timestamp: new Date().toISOString(),
         }]);
       }
     } finally {
@@ -112,9 +111,10 @@ export function useNovaChat() {
   }, [messages, isLoading]);
 
   const clearHistory = useCallback(() => {
+    if (!confirm("¿Estás seguro? Esto borrará toda la conversación con NOVA.")) return;
     setMessages([]);
     localStorage.removeItem(STORAGE_KEY);
-    persistHistory([]).catch(() => {});
+    saveSilent([]);
   }, []);
 
   return { messages, isLoading, error, send, clearHistory };

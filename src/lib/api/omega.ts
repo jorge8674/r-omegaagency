@@ -1,5 +1,26 @@
 import { apiCall } from "./core";
 
+export interface NovaDataResponse {
+  data_type: string;
+  content: unknown[];
+  updated_at: string | null;
+}
+
+export interface AgentMemory {
+  id: string;
+  agent_code: string;
+  memory_type: string;
+  content: Record<string, unknown>;
+  updated_at: string;
+}
+
+export interface AgentMemoryResponse {
+  agent_code: string;
+  total: number;
+  memories: AgentMemory[];
+}
+
+
 export interface OmegaDashboardStats {
   mrr: number;
   arr: number;
@@ -111,7 +132,12 @@ export const omegaApi = {
   getOrgChart:   () => getOrgChartWithFallback(),
   // Nova dual-storage
   saveNovaData:  (data_type: string, content: unknown) =>
-    apiCall<void>("/nova/data/", "POST", { data_type, content }),
+    apiCall<{ success: boolean; data_type: string; updated_at: string }>("/nova/data/", "POST", { data_type, content }),
   loadNovaData:  (data_type: string) =>
-    apiCall<{ content: unknown }>(`/nova/data/?type=${data_type}`, "GET"),
+    apiCall<NovaDataResponse>(`/nova/data/?type=${data_type}`, "GET"),
+  // Agent Memory
+  getAgentMemory: (agent_code: string) =>
+    apiCall<AgentMemoryResponse>(`/nova/agent-memory/?agent_code=${agent_code}`, "GET"),
+  saveAgentMemory: (agent_code: string, memory_type: string, content: Record<string, unknown>) =>
+    apiCall<{ success: boolean; id: string; agent_code: string }>("/nova/agent-memory/", "POST", { agent_code, memory_type, content }),
 };

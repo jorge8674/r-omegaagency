@@ -246,13 +246,6 @@ export function AppSidebar() {
           </div>
         )}
 
-        {/* System status - at the very bottom */}
-        <div className="flex items-center gap-2 rounded-lg bg-sidebar-accent/50 p-2 group-data-[collapsible=icon]:justify-center mt-1">
-          <div className={`h-2 w-2 rounded-full shrink-0 ${isOnline ? 'bg-success' : 'bg-destructive'}`} />
-          <span className="text-xs text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-            {isOnline ? "Sistema activo" : "Sin conexión"}
-          </span>
-        </div>
       </SidebarFooter>
     </Sidebar>
   );

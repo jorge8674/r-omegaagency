@@ -26,10 +26,10 @@ export function useCalendarBlocks() {
       if (startDate) params.set("start_date", startDate);
       if (endDate) params.set("end_date", endDate);
       if (status) params.set("status", status);
-      const res = await apiCall<{ data: ScheduledPost[] }>(
+      const res = await apiCall<{ data?: ScheduledPost[]; items?: ScheduledPost[] }>(
         `/calendar/?${params.toString()}`,
       );
-      setState({ items: res.data ?? [], loading: false });
+      setState({ items: res.data ?? res.items ?? [], loading: false });
     } catch {
       setState(prev => ({ ...prev, loading: false }));
     }

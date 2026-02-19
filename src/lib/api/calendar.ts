@@ -46,7 +46,8 @@ interface ScheduleResponse {
 
 interface ListScheduleResponse {
   success: boolean;
-  data: ScheduledPost[];
+  data?: ScheduledPost[];
+  items?: ScheduledPost[];
   total: number;
 }
 

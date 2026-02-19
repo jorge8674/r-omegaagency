@@ -20,10 +20,11 @@ export function executeAgent(
   id: string,
   clientId: string,
   brief: string,
+  platform?: string,
 ): Promise<{ success: boolean; data: unknown }> {
   return apiCall(`/agents/${id}/execute/`, "POST", {
     client_id: clientId,
-    brief,
+    input_data: { brief, platform: platform || "instagram" },
   });
 }
 

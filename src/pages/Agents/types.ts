@@ -78,7 +78,7 @@ export const DEPARTMENT_LABELS: Record<string, string> = {
 
 export const STATUS_DOT: Record<AgentStatus, string> = {
   active: "bg-success",
-  running: "bg-warning",
+  running: "bg-warning animate-pulse",
   inactive: "bg-muted-foreground",
   error: "bg-destructive",
 };

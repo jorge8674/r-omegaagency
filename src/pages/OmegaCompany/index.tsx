@@ -1,26 +1,26 @@
 import { useState } from "react";
-import { RefreshCw, BarChart2, Users, Bot, Network, Activity, Cpu } from "lucide-react";
+import { RefreshCw, BarChart2, Network, Activity, FileText, Cpu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { useOmegaDashboard } from "./hooks/useOmegaDashboard";
 import { RevenueCards } from "./components/RevenueCards";
 import { ResellersTable } from "./components/ResellersTable";
 import { ContentAgentsStats } from "./components/ContentAgentsStats";
 import { OmegaActivityFeed } from "./components/OmegaActivityFeed";
-import { OmegaAgentsSection } from "./components/OmegaAgentsSection";
 import { OmegaOrgChart } from "./components/OmegaOrgChart";
+import { OmegaReportes } from "./components/OmegaReportes";
 import { UpcomingPosts } from "./components/UpcomingPosts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-type Section = "resumen" | "resellers" | "agentes" | "organizacion" | "actividad";
+type Section = "resumen" | "organizacion" | "actividad" | "reportes";
 
 const SECTIONS: { id: Section; label: string; icon: React.ElementType }[] = [
-  { id: "resumen",      label: "Resumen",       icon: BarChart2 },
-  { id: "resellers",   label: "Resellers",      icon: Users     },
-  { id: "agentes",     label: "Agentes",        icon: Bot       },
-  { id: "organizacion",label: "Organización",   icon: Network   },
-  { id: "actividad",   label: "Actividad",      icon: Activity  },
+  { id: "resumen",      label: "Resumen",      icon: BarChart2 },
+  { id: "organizacion", label: "Organización", icon: Network   },
+  { id: "actividad",    label: "Actividad",    icon: Activity  },
+  { id: "reportes",     label: "Reportes",     icon: FileText  },
 ];
 
 export default function OmegaCompany() {
@@ -35,7 +35,7 @@ export default function OmegaCompany() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* ── Header ─────────────────────────────────────────────── */}
+      {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Cpu className="h-6 w-6 text-primary shrink-0" />
@@ -60,7 +60,7 @@ export default function OmegaCompany() {
         </div>
       </div>
 
-      {/* ── Section Chips ───────────────────────────────────────── */}
+      {/* ── Section Chips ────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2 border-b border-border/40 pb-4">
         {SECTIONS.map(({ id, label, icon: Icon }) => (
           <button
@@ -78,33 +78,23 @@ export default function OmegaCompany() {
         ))}
       </div>
 
-      {/* ── Content ─────────────────────────────────────────────── */}
+      {/* ── Content ──────────────────────────────────────────────── */}
       {active === "resumen" && (
-        <RevenueCards stats={stats} loading={statsLoading} />
-      )}
-
-      {active === "resellers" && (
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Resellers
-          </h2>
-          <ResellersTable resellers={resellers} loading={resellersLoading} />
-        </div>
-      )}
-
-      {active === "agentes" && (
         <div className="space-y-6">
+          <RevenueCards stats={stats} loading={statsLoading} />
+          <Separator className="opacity-40" />
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Resellers
+            </h2>
+            <ResellersTable resellers={resellers} loading={resellersLoading} />
+          </div>
+          <Separator className="opacity-40" />
           <div className="space-y-3">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Contenido &amp; Agentes
             </h2>
             <ContentAgentsStats stats={stats} loading={statsLoading} />
-          </div>
-          <div className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              🤖 Sistema de Agentes
-            </h2>
-            <OmegaAgentsSection />
           </div>
         </div>
       )}
@@ -122,6 +112,15 @@ export default function OmegaCompany() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <OmegaActivityFeed activity={activity} loading={activityLoading} />
           <UpcomingPosts />
+        </div>
+      )}
+
+      {active === "reportes" && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Reportes de desarrollo
+          </h2>
+          <OmegaReportes />
         </div>
       )}
     </div>

@@ -11,24 +11,33 @@ interface ScheduledPost {
   id: string;
   scheduled_at: string;
   platform: string;
-  client_name: string;
   title: string;
   status: string;
 }
 
+interface CalendarResponse {
+  posts?: ScheduledPost[];
+  items?: ScheduledPost[];
+}
+
+// /omega/upcoming-posts/ returns 404 — fallback to calendar endpoint
 export function UpcomingPosts() {
   const { data, isLoading } = useQuery({
-    queryKey: ["omega-upcoming-posts"],
-    queryFn: () => apiCall<ScheduledPost[]>("/omega/upcoming-posts/"),
+    queryKey: ["omega-upcoming-posts-fallback"],
+    queryFn: () => apiCall<CalendarResponse | ScheduledPost[]>("/calendar/posts/"),
     refetchInterval: 60000,
-    retry: 1,
-    staleTime: 0,
+    retry: 0,
+    staleTime: 30000,
   });
 
   const today = startOfToday();
   const in7Days = addDays(today, 7);
 
-  const posts = (data ?? []).filter((p) => {
+  const rawPosts: ScheduledPost[] = Array.isArray(data)
+    ? data
+    : (data as CalendarResponse)?.posts ?? (data as CalendarResponse)?.items ?? [];
+
+  const posts = rawPosts.filter((p) => {
     const d = new Date(p.scheduled_at);
     return isWithinInterval(d, { start: today, end: in7Days });
   });
@@ -38,7 +47,7 @@ export function UpcomingPosts() {
       <Card className="border-border/50 bg-card/80">
         <CardHeader><Skeleton className="h-5 w-48" /></CardHeader>
         <CardContent className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-10 w-full" />
           ))}
         </CardContent>
@@ -58,7 +67,7 @@ export function UpcomingPosts() {
         {posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
             <CalendarDays className="mb-2 h-8 w-8 opacity-30" />
-            <p className="text-sm">Sin posts programados</p>
+            <p className="text-sm">Sin posts programados esta semana</p>
           </div>
         ) : (
           <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
@@ -74,7 +83,6 @@ export function UpcomingPosts() {
                   {post.platform}
                 </Badge>
                 <p className="flex-1 truncate text-xs">{post.title}</p>
-                <span className="shrink-0 text-xs text-muted-foreground">{post.client_name}</span>
               </div>
             ))}
           </div>

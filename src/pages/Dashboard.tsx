@@ -135,7 +135,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Endpoints</p>
-              <p className="text-2xl font-display font-bold">84</p>
+              <p className="text-2xl font-display font-bold">92</p>
             </div>
           </CardContent>
         </Card>

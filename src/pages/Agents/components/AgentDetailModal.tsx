@@ -73,22 +73,24 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
               <div><span className="text-muted-foreground">Departamento:</span>{" "}
                 <Badge variant="secondary">{DEPARTMENT_LABELS[agent.department]}</Badge>
               </div>
-              <div><span className="text-muted-foreground">Modelo:</span> {agent.model}</div>
-              <div><span className="text-muted-foreground">API Key Env:</span> {agent.api_key_env}</div>
+              <div><span className="text-muted-foreground">Categoría:</span> {agent.category}</div>
+              <div><span className="text-muted-foreground">Versión:</span> v{agent.version}</div>
               <div><span className="text-muted-foreground">Última ejecución:</span>{" "}
-                {agent.last_execution ? new Date(agent.last_execution).toLocaleString("es-PR") : "—"}
+                {agent.last_executed_at ? new Date(agent.last_executed_at).toLocaleString("es-PR") : "—"}
               </div>
             </div>
             <div>
               <h4 className="text-sm font-medium mb-1">Descripción</h4>
               <p className="text-xs text-muted-foreground">{agent.description}</p>
             </div>
-            {agent.responsibilities?.length > 0 && (
+            {agent.capabilities?.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mb-1">Responsabilidades</h4>
-                <ul className="list-disc list-inside text-xs text-muted-foreground space-y-0.5">
-                  {agent.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
-                </ul>
+                <h4 className="text-sm font-medium mb-1">Capacidades</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {agent.capabilities.map((c, i) => (
+                    <Badge key={i} variant="outline" className="text-[10px]">{c}</Badge>
+                  ))}
+                </div>
               </div>
             )}
           </TabsContent>

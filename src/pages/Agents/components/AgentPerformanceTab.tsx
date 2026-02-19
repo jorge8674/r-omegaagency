@@ -22,7 +22,7 @@ export function AgentPerformanceTab({ agent }: Props) {
       {/* Metrics summary */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-lg border border-border/50 p-3 text-center">
-          <p className="text-2xl font-bold">{agent.total_tasks ?? 0}</p>
+          <p className="text-2xl font-bold">{agent.total_executions ?? 0}</p>
           <p className="text-xs text-muted-foreground">Total tareas</p>
         </div>
         <div className="rounded-lg border border-border/50 p-3 text-center">
@@ -30,7 +30,7 @@ export function AgentPerformanceTab({ agent }: Props) {
           <p className="text-xs text-muted-foreground">Tasa de éxito</p>
         </div>
         <div className="rounded-lg border border-border/50 p-3 text-center">
-          <p className="text-2xl font-bold">{agent.avg_response_time_ms ?? 0}ms</p>
+          <p className="text-2xl font-bold">{agent.avg_execution_time_ms ?? 0}ms</p>
           <p className="text-xs text-muted-foreground">Tiempo promedio</p>
         </div>
       </div>

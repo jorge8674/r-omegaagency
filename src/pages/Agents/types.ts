@@ -3,23 +3,29 @@
 export type AgentStatus = "active" | "running" | "inactive" | "error";
 
 export type AgentDepartment =
-  | "nucleo" | "contenido" | "video"
-  | "contexto" | "publicacion" | "analytics";
+  | "núcleo" | "contenido" | "video"
+  | "contexto" | "publicación" | "analytics";
 
 export interface Agent {
   id: string;
+  agent_id: string;
   name: string;
-  position: string;
-  department: AgentDepartment;
   description: string;
+  department: AgentDepartment;
+  category: string;
   status: AgentStatus;
-  model: string;
-  api_key_env: string;
-  responsibilities: string[];
-  last_execution: string | null;
-  total_tasks: number;
+  version: string;
+  capabilities: string[];
+  config: Record<string, unknown>;
+  total_executions: number;
+  successful_executions: number;
+  failed_executions: number;
   success_rate: number;
-  avg_response_time_ms: number;
+  avg_execution_time_ms: number;
+  last_executed_at: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AgentExecution {
@@ -39,15 +45,8 @@ export interface AgentLogEntry {
   message: string;
 }
 
-export interface AgentExecuteRequest {
-  client_id: string;
-  brief: string;
-}
-
 export interface AgentsListResponse {
-  success: boolean;
-  data: Agent[];
-  total: number;
+  items: Agent[];
 }
 
 export interface AgentDetailResponse {
@@ -67,18 +66,22 @@ export interface AgentLogsResponse {
 
 /* ─── Department labels & colors ─────────────── */
 
+export const DEPARTMENTS: AgentDepartment[] = [
+  "núcleo", "contenido", "video", "contexto", "publicación", "analytics",
+];
+
 export const DEPARTMENT_LABELS: Record<string, string> = {
-  nucleo: "Núcleo",
+  núcleo: "Núcleo",
   contenido: "Contenido",
   video: "Video",
   contexto: "Contexto",
-  publicacion: "Publicación",
+  publicación: "Publicación",
   analytics: "Analytics",
 };
 
 export const STATUS_DOT: Record<AgentStatus, string> = {
-  active: "bg-success",
-  running: "bg-warning animate-pulse",
+  active: "bg-emerald-500",
+  running: "bg-amber-400 animate-pulse",
   inactive: "bg-muted-foreground",
   error: "bg-destructive",
 };

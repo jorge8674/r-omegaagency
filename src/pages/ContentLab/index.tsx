@@ -19,9 +19,12 @@ export default function ContentLab() {
   const {
     selectedClientId, selectedAccountId, contentType, language,
     prompt, results, copiedId, isGenerating, imageStyle, isGeneratingImage,
+    videoStyle, videoDuration, isGeneratingVideo,
     setContentType, setLanguage, setPrompt, setImageStyle, setResults,
+    setVideoStyle, setVideoDuration,
     selectClient, selectAccount,
-    handleGenerate, handleGenerateImage, handleCopy, handleSave, handleDelete,
+    handleGenerate, handleGenerateImage, handleGenerateVideo,
+    handleCopy, handleSave, handleDelete,
   } = useContentLab();
 
   const { clients, loadClients } = useClients();
@@ -57,6 +60,12 @@ export default function ContentLab() {
   const selectedAccount = accounts.find(a => a.id === selectedAccountId);
   const hasContext = !!selectedAccount?.context_id;
 
+  const getGenerateHandler = () => {
+    if (contentType === "video") return () => handleGenerateVideo(hasContext);
+    if (contentType === "image") return () => handleGenerateImage(hasContext);
+    return () => handleGenerate(hasContext);
+  };
+
   const handleScheduleResult = (result: { generated_text: string; content_type: string }) => {
     schedule.addContent({ generated_text: result.generated_text, content_type: result.content_type });
   };
@@ -90,12 +99,14 @@ export default function ContentLab() {
             clients={clients} accounts={accounts}
             selectedClientId={selectedClientId} selectedAccountId={selectedAccountId}
             contentType={contentType} language={language} prompt={prompt}
-            imageStyle={imageStyle} isGenerating={isGenerating}
-            isGeneratingImage={isGeneratingImage} hasContext={hasContext}
+            imageStyle={imageStyle} videoStyle={videoStyle} videoDuration={videoDuration}
+            isGenerating={isGenerating} isGeneratingImage={isGeneratingImage}
+            isGeneratingVideo={isGeneratingVideo} hasContext={hasContext}
             onSelectClient={selectClient} onSelectAccount={selectAccount}
             onContentTypeChange={setContentType} onLanguageChange={setLanguage}
             onPromptChange={setPrompt} onImageStyleChange={setImageStyle}
-            onGenerate={contentType === "image" ? () => handleGenerateImage(hasContext) : () => handleGenerate(hasContext)}
+            onVideoStyleChange={setVideoStyle} onVideoDurationChange={setVideoDuration}
+            onGenerate={getGenerateHandler()}
           />
         </div>
 

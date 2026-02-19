@@ -3,7 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
   generateText, toggleSaveContent, deleteContent,
-  generateImage, type ContentType, type ImageStyle, type GeneratedContent,
+  generateImage, generateVideo,
+  type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type GeneratedContent,
 } from "@/lib/api/contentLab";
 
 export function useContentLab() {
@@ -20,6 +21,9 @@ export function useContentLab() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageStyle, setImageStyle] = useState<ImageStyle>("realistic");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [videoStyle, setVideoStyle] = useState<VideoStyle>("realistic");
+  const [videoDuration, setVideoDuration] = useState<VideoDuration>(5);
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
 
   const invalidateHistory = () =>
     queryClient.invalidateQueries({ queryKey: ["content-history"] });
@@ -34,11 +38,7 @@ export function useContentLab() {
       return;
     }
     if (!hasContext) {
-      toast({
-        title: "Esta cuenta no tiene contexto",
-        description: "Configura el contexto en Clientes → Editar",
-        variant: "destructive",
-      });
+      toast({ title: "Esta cuenta no tiene contexto", description: "Configura el contexto en Clientes → Editar", variant: "destructive" });
       return;
     }
     setIsGenerating(true);
@@ -60,11 +60,7 @@ export function useContentLab() {
   const handleGenerateImage = async (hasContext: boolean): Promise<void> => {
     if (!selectedAccountId || !prompt.trim()) return;
     if (!hasContext) {
-      toast({
-        title: "Esta cuenta no tiene contexto",
-        description: "Configura el contexto en Clientes → Editar",
-        variant: "destructive",
-      });
+      toast({ title: "Esta cuenta no tiene contexto", description: "Configura el contexto en Clientes → Editar", variant: "destructive" });
       return;
     }
     setIsGeneratingImage(true);
@@ -84,6 +80,29 @@ export function useContentLab() {
     }
   };
 
+  const handleGenerateVideo = async (hasContext: boolean): Promise<void> => {
+    if (!selectedAccountId || !prompt.trim()) return;
+    if (!hasContext) {
+      toast({ title: "Esta cuenta no tiene contexto", description: "Configura el contexto en Clientes → Editar", variant: "destructive" });
+      return;
+    }
+    setIsGeneratingVideo(true);
+    try {
+      const result = await generateVideo(selectedAccountId, prompt, videoDuration, videoStyle);
+      const content = (result.data ?? result) as GeneratedContent;
+      if (content?.generated_text) {
+        setResults(prev => [content, ...prev]);
+        invalidateHistory();
+        toast({ title: "Video generado exitosamente" });
+      }
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Error desconocido";
+      toast({ title: "Error al generar video", description: msg, variant: "destructive" });
+    } finally {
+      setIsGeneratingVideo(false);
+    }
+  };
+
   const handleCopy = async (index: number): Promise<void> => {
     const item = results[index];
     if (!item) return;
@@ -96,36 +115,26 @@ export function useContentLab() {
   const handleSave = async (contentId: string): Promise<void> => {
     await toggleSaveContent(contentId);
     invalidateHistory();
-    setResults(prev => prev.map(r =>
-      r.id === contentId ? { ...r, is_saved: !r.is_saved } : r
-    ));
+    setResults(prev => prev.map(r => r.id === contentId ? { ...r, is_saved: !r.is_saved } : r));
   };
 
   const handleDelete = async (contentId: string, index: number): Promise<void> => {
-    if (contentId) {
-      await deleteContent(contentId);
-      invalidateHistory();
-    }
+    if (contentId) { await deleteContent(contentId); invalidateHistory(); }
     setResults(prev => prev.filter((_, i) => i !== index));
     toast({ title: "Eliminado" });
   };
 
-  const selectClient = (clientId: string) => {
-    setSelectedClientId(clientId);
-    setSelectedAccountId("");
-    setResults([]);
-  };
-
-  const selectAccount = (accountId: string) => {
-    setSelectedAccountId(accountId);
-    setResults([]);
-  };
+  const selectClient = (clientId: string) => { setSelectedClientId(clientId); setSelectedAccountId(""); setResults([]); };
+  const selectAccount = (accountId: string) => { setSelectedAccountId(accountId); setResults([]); };
 
   return {
     selectedClientId, selectedAccountId, contentType, language,
     prompt, results, copiedId, isGenerating, imageStyle, isGeneratingImage,
+    videoStyle, videoDuration, isGeneratingVideo,
     setContentType, setLanguage, setPrompt, setImageStyle, setResults,
+    setVideoStyle, setVideoDuration,
     selectClient, selectAccount,
-    handleGenerate, handleGenerateImage, handleCopy, handleSave, handleDelete,
+    handleGenerate, handleGenerateImage, handleGenerateVideo,
+    handleCopy, handleSave, handleDelete,
   };
 }

@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -22,14 +21,15 @@ const TYPE_LABEL: Record<string, string> = {
   video_generated: "Video",
 };
 
-const TYPE_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  content_generated: "default",
-  post_scheduled: "secondary",
-  agent_execution: "outline",
-  agent_executed: "outline",
-  client_created: "default",
-  reseller_created: "default",
-  video_generated: "secondary",
+// Custom color classes per type (tailwind bg + text)
+const TYPE_COLOR: Record<string, string> = {
+  content_generated: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  post_scheduled:    "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+  agent_execution:   "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  agent_executed:    "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  client_created:    "bg-primary/20 text-primary border-primary/30",
+  reseller_created:  "bg-primary/20 text-primary border-primary/30",
+  video_generated:   "bg-purple-500/20 text-purple-400 border-purple-500/30",
 };
 
 export function OmegaActivityFeed({ activity, loading }: Props) {
@@ -74,12 +74,11 @@ export function OmegaActivityFeed({ activity, loading }: Props) {
                 key={`${item.timestamp}-${idx}`}
                 className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 px-3 py-2"
               >
-                <Badge
-                  variant={TYPE_VARIANT[item.type] ?? "outline"}
-                  className="shrink-0 text-[10px]"
+                <span
+                  className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${TYPE_COLOR[item.type] ?? "bg-muted/40 text-muted-foreground border-border/30"}`}
                 >
                   {TYPE_LABEL[item.type] ?? item.type}
-                </Badge>
+                </span>
                 <p className="flex-1 truncate text-xs">{item.description}</p>
                 <span className="shrink-0 text-[10px] text-muted-foreground">
                   {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: es })}

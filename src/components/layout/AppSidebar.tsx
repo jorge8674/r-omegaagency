@@ -14,6 +14,7 @@ import {
   Palette,
   LogOut,
   User,
+  Bot,
 } from "lucide-react";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
@@ -51,6 +52,7 @@ const mainItems = [
 
 const configItems = [
   { title: "Clientes", url: "/clients", icon: Users },
+  { title: "Agentes", url: "/agents", icon: Bot },
   { title: "Configuración", url: "/settings", icon: Settings },
 ];
 

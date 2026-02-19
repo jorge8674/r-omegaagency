@@ -7,6 +7,19 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { es } from "date-fns/locale";
 import type { CalendarDayData } from "../types";
 import { STATUS_COLORS, STATUS_LABELS, WEEKDAYS } from "../types";
+
+const CONTENT_LABEL: Record<string, string> = {
+  post: "Post", caption: "Caption", story: "Story",
+  reel: "Reel", hashtags: "Hashtags", email: "Email",
+  anuncio: "Anuncio", bio: "Bio", image: "Imagen",
+};
+
+function postLabel(post: { title?: string; platform?: string }): string {
+  const type = CONTENT_LABEL[post.platform ?? ""] || post.platform || "";
+  const raw = post.title || "";
+  const name = raw.length > 25 ? `${raw.slice(0, 25)}…` : raw;
+  return type ? `${name} — ${type}`.trim() : name;
+}
 import { DayDetailPanel } from "./DayDetailPanel";
 
 interface CalendarGridProps {
@@ -72,7 +85,7 @@ export function CalendarGrid({
                     {day.posts.slice(0, 3).map((post) => (
                       <div key={post.id} className="flex items-center gap-1 rounded px-1 py-0.5 bg-secondary/50 cursor-pointer hover:bg-secondary" title={post.title}>
                         <div className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_COLORS[post.status] ?? "bg-muted-foreground"}`} />
-                        <span className="text-[10px] truncate">{post.title}</span>
+                        <span className="text-[10px] truncate">{postLabel(post)}</span>
                       </div>
                     ))}
                     {day.posts.length > 3 && (

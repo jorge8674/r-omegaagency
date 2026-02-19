@@ -36,7 +36,9 @@ export function ResultPanel({
   }
 
   const isImage = result.content_type === "image";
-  const typeLabel = CONTENT_TYPE_LABELS[result.content_type as ContentType]?.label;
+  const meta = CONTENT_TYPE_LABELS[result.content_type as ContentType];
+  const typeLabel = meta?.label ?? result.content_type;
+  const typeEmoji = meta?.emoji ?? "📄";
 
   const handleAnalysis = (type: AnalysisType): void => {
     if (analysisResults[type]) {
@@ -53,7 +55,7 @@ export function ResultPanel({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ContentTypeIcon type={result.content_type as ContentType} size={16} className="text-primary" />
-          <span className="font-semibold capitalize">{typeLabel}</span>
+          <span className="font-semibold">{typeEmoji} {typeLabel}</span>
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <PlatformIcon platform={result.platform || ""} size={12} /> {result.platform}
           </span>

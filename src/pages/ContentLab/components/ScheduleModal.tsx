@@ -3,11 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCalendarBlocks } from "@/pages/Calendar/hooks/useCalendarBlocks";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { ScheduleBlockCard } from "./ScheduleBlockCard";
 import type { ScheduleBlock } from "../hooks/useScheduleBlocks";
 import type { ScheduleContentType } from "@/lib/api/calendar";
-import { format } from "date-fns";
 
 interface ScheduleModalProps {
   open: boolean;
@@ -35,6 +35,7 @@ export function ScheduleModal({
   onSetDateTime, onConfirmAll, onMarkSent, onMinimize, onClose,
 }: ScheduleModalProps) {
   const { toast } = useToast();
+  const qc = useQueryClient();
   const { scheduleBlock, submitting } = useCalendarBlocks();
 
   const allConfirmed = blocks.length > 0 && blocks.every(b => b.confirmed || b.items.length === 0);
@@ -62,6 +63,8 @@ export function ScheduleModal({
       onMarkSent(block.id);
     }
     toast({ title: "Bloques enviados al calendario ✓" });
+    void qc.invalidateQueries({ queryKey: ["calendar-api-posts"] });
+    void qc.invalidateQueries({ queryKey: ["posts"] });
   };
 
   return (

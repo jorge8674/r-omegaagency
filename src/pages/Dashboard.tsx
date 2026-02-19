@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Activity, Bot, AlertTriangle, Workflow, Loader2, Play, RefreshCw,
   CheckCircle2, XCircle, Server,
@@ -30,7 +31,7 @@ export default function Dashboard() {
     refetchInterval: 30000,
   });
 
-  const { data: systemStats, isLoading: statsLoading, refetch: refetchStats } = useQuery({
+  const { data: systemStats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useQuery({
     queryKey: ["system-stats"],
     queryFn: async () => {
       const res = await fetch(
@@ -46,12 +47,11 @@ export default function Dashboard() {
         content_generated_today: number;
         agent_executions_today: number;
       };
-      console.log("[system-stats]", data);
       return data;
     },
     refetchInterval: 30000,
-    staleTime: 10000,
-    retry: 1,
+    staleTime: 0,
+    retry: 0,
   });
 
   const { data: systemState, isLoading: stateLoading, refetch: refetchState } = useQuery({
@@ -151,9 +151,20 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Agentes Online</p>
-              <p className="text-2xl font-display font-bold">
-                {statsLoading ? <Skeleton className="h-8 w-16" /> : `${systemStats?.active_agents ?? "—"}/${systemStats?.total_agents ?? "—"}`}
-              </p>
+              <div className="flex items-center gap-1.5">
+                {statsLoading ? <Skeleton className="h-8 w-16" /> : (
+                  <>
+                    <p className="text-2xl font-display font-bold">
+                      {systemStats ? `${systemStats.active_agents}/${systemStats.total_agents}` : "—/—"}
+                    </p>
+                    {statsError && (
+                      <TooltipProvider><Tooltip><TooltipTrigger asChild>
+                        <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
+                      </TooltipTrigger><TooltipContent>Error cargando stats</TooltipContent></Tooltip></TooltipProvider>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -164,9 +175,20 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Endpoints</p>
-              <p className="text-2xl font-display font-bold">
-                {statsLoading ? <Skeleton className="h-8 w-16" /> : `${systemStats?.total_endpoints ?? "—"}`}
-              </p>
+              <div className="flex items-center gap-1.5">
+                {statsLoading ? <Skeleton className="h-8 w-16" /> : (
+                  <>
+                    <p className="text-2xl font-display font-bold">
+                      {systemStats ? `${systemStats.total_endpoints}` : "—"}
+                    </p>
+                    {statsError && (
+                      <TooltipProvider><Tooltip><TooltipTrigger asChild>
+                        <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
+                      </TooltipTrigger><TooltipContent>Error cargando stats</TooltipContent></Tooltip></TooltipProvider>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

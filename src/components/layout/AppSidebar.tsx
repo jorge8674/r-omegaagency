@@ -15,6 +15,7 @@ import {
   LogOut,
   User,
   Bot,
+  LayoutGrid,
 } from "lucide-react";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
@@ -58,6 +59,7 @@ const configItems = [
 
 const adminItems = [
   { title: "Resellers", url: "/admin/resellers", icon: Building2 },
+  { title: "OMEGA Company", url: "/omega", icon: LayoutGrid },
 ];
 
 const agencyItems = [

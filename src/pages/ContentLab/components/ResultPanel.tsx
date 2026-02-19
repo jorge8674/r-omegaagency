@@ -14,11 +14,12 @@ interface ResultPanelProps {
   onSave: (id: string) => void;
   onDelete: (id: string) => void;
   onRegenerate: () => void;
+  onSchedule?: () => void;
 }
 
 export function ResultPanel({
   result, copied, isGenerating,
-  onCopy, onSave, onDelete, onRegenerate,
+  onCopy, onSave, onDelete, onRegenerate, onSchedule,
 }: ResultPanelProps) {
   const { analysisLoading, analysisResults, runAnalysis } = useResultAnalysis();
   const [expandedAnalysis, setExpandedAnalysis] = useState<AnalysisType | null>(null);
@@ -80,6 +81,7 @@ export function ResultPanel({
         onDelete={onDelete}
         onRegenerate={onRegenerate}
         onAnalysis={handleAnalysis}
+        onSchedule={onSchedule || (() => {})}
       />
 
       {/* Analysis result */}

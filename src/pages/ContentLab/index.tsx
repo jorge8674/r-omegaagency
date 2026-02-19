@@ -5,9 +5,12 @@ import { useClients } from "@/pages/ContentGenerator/hooks/useClients";
 import { listSocialAccounts } from "@/lib/api/socialAccounts";
 import { listGeneratedContent } from "@/lib/api/contentLab";
 import { useContentLab } from "./hooks/useContentLab";
+import { useScheduleBlocks } from "./hooks/useScheduleBlocks";
 import { ConfigPanel } from "./components/ConfigPanel";
 import { ResultPanel } from "./components/ResultPanel";
 import { HistoryPanel } from "./components/HistoryPanel";
+import { ScheduleModal } from "./components/ScheduleModal";
+import { ScheduleMinBar } from "./components/ScheduleMinBar";
 
 export default function ContentLab() {
   const {
@@ -21,6 +24,9 @@ export default function ContentLab() {
   const { clients, loadClients } = useClients();
   useEffect(() => { loadClients(); }, [loadClients]);
 
+  const selectedClient = clients.find(c => c.id === selectedClientId);
+  const schedule = useScheduleBlocks(selectedClient?.plan);
+
   const { data: accountsData } = useQuery({
     queryKey: ["social-accounts", selectedClientId],
     queryFn: () => listSocialAccounts(selectedClientId),
@@ -32,14 +38,21 @@ export default function ContentLab() {
     queryKey: ["content-history", selectedAccountId, selectedClientId],
     queryFn: () => listGeneratedContent(
       selectedAccountId || undefined,
-      selectedAccountId ? undefined : selectedClientId || undefined
+      selectedAccountId ? undefined : selectedClientId || undefined,
     ),
     enabled: !!(selectedAccountId || selectedClientId),
   });
   const history = historyData?.data || [];
 
-  const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
+  const selectedAccount = accounts.find(a => a.id === selectedAccountId);
   const hasContext = !!selectedAccount?.context_id;
+
+  const handleScheduleResult = (result: { generated_text: string; content_type: string }) => {
+    schedule.addContent({
+      generated_text: result.generated_text,
+      content_type: result.content_type,
+    });
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -72,19 +85,17 @@ export default function ContentLab() {
             onLanguageChange={setLanguage}
             onPromptChange={setPrompt}
             onImageStyleChange={setImageStyle}
-            onGenerate={contentType === "image" ? () => handleGenerateImage(hasContext) : () => handleGenerate(hasContext)}
+            onGenerate={contentType === "image"
+              ? () => handleGenerateImage(hasContext)
+              : () => handleGenerate(hasContext)}
           />
         </div>
 
         <div className="lg:col-span-3 space-y-4">
           {results.length === 0 ? (
             <ResultPanel
-              result={null}
-              copied={false}
-              isGenerating={isGenerating}
-              onCopy={() => {}}
-              onSave={() => {}}
-              onDelete={() => {}}
+              result={null} copied={false} isGenerating={isGenerating}
+              onCopy={() => {}} onSave={() => {}} onDelete={() => {}}
               onRegenerate={() => handleGenerate(hasContext)}
             />
           ) : (
@@ -98,6 +109,7 @@ export default function ContentLab() {
                 onSave={(id) => handleSave(id)}
                 onDelete={(id) => handleDelete(id, index)}
                 onRegenerate={() => handleGenerate(hasContext)}
+                onSchedule={() => handleScheduleResult(result)}
               />
             ))
           )}
@@ -107,6 +119,33 @@ export default function ContentLab() {
           />
         </div>
       </div>
+
+      {/* Schedule modal (expanded) */}
+      {schedule.open && !schedule.minimized && (
+        <ScheduleModal
+          open
+          blocks={schedule.blocks}
+          activeIndex={schedule.activeIndex}
+          limits={schedule.limits}
+          accountId={selectedAccountId}
+          onSetActive={schedule.setActiveIndex}
+          onConfirmBlock={schedule.confirmBlock}
+          onDeleteBlock={schedule.deleteBlock}
+          onRemoveItem={schedule.removeContent}
+          onCreateBlock={schedule.createBlock}
+          onMinimize={() => schedule.setMinimized(true)}
+          onClose={schedule.reset}
+          onSuccess={schedule.reset}
+        />
+      )}
+
+      {/* Minimized bar */}
+      {schedule.minimized && schedule.blocks.length > 0 && (
+        <ScheduleMinBar
+          blockCount={schedule.blocks.length}
+          onExpand={() => { schedule.setMinimized(false); schedule.setOpen(true); }}
+        />
+      )}
     </div>
   );
 }

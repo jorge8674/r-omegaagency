@@ -8,6 +8,7 @@ import { ResellersTable } from "./components/ResellersTable";
 import { ContentAgentsStats } from "./components/ContentAgentsStats";
 import { OmegaActivityFeed } from "./components/OmegaActivityFeed";
 import { OmegaAgentsSection } from "./components/OmegaAgentsSection";
+import { OmegaOrgChart } from "./components/OmegaOrgChart";
 import { UpcomingPosts } from "./components/UpcomingPosts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -85,7 +86,19 @@ export default function OmegaCompany() {
 
       <Separator className="opacity-40" />
 
-      {/* Section 4 & 5 — Activity + Upcoming */}
+      <Separator className="opacity-40" />
+
+      {/* Section 4 — OMEGA Organization */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          OMEGA Organization
+        </h2>
+        <OmegaOrgChart />
+      </div>
+
+      <Separator className="opacity-40" />
+
+      {/* Section 5 & 6 — Activity + Upcoming */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <OmegaActivityFeed activity={activity} loading={activityLoading} />
         <UpcomingPosts />

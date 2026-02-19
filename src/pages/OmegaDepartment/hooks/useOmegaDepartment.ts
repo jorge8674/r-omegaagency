@@ -1,4 +1,4 @@
-// 65 lines
+// 78 lines
 import { useQuery } from "@tanstack/react-query";
 import { omegaApi, type OrgDirector, type OrgSubAgent } from "@/lib/api/omega";
 
@@ -21,14 +21,20 @@ export function loadReports(): DeptReport[] {
 
 export function saveReport(report: DeptReport): void {
   const list = loadReports();
-  list.unshift(report);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  // Avoid duplicates
+  if (!list.find((r) => r.id === report.id)) {
+    list.unshift(report);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    // Dual-persist (silent)
+    omegaApi.saveNovaData("reports", list).catch(() => {});
+  }
 }
 
 export function deleteReport(id: string): void {
   const list = loadReports().filter((r) => r.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
+
 
 export function generateMarkdown(director: OrgDirector, dept: string): string {
   const date = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" });

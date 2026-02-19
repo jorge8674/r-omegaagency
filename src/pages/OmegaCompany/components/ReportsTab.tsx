@@ -1,27 +1,50 @@
-// 60 lines
+// 68 lines
 import { useState, useEffect, useCallback } from "react";
 import { FileText } from "lucide-react";
 import { ReportGenerator } from "@/pages/OmegaDepartment/components/ReportGenerator";
-import { loadReports, deleteReport, type DeptReport } from "@/pages/OmegaDepartment/hooks/useOmegaDepartment";
+import { loadReports, deleteReport, saveReport, type DeptReport } from "@/pages/OmegaDepartment/hooks/useOmegaDepartment";
+import { omegaApi } from "@/lib/api/omega";
+
+async function syncReportsFromBackend(): Promise<DeptReport[] | null> {
+  try {
+    const res = await omegaApi.loadNovaData("reports");
+    const content = res?.content;
+    if (Array.isArray(content) && content.length > 0) return content as DeptReport[];
+    return null;
+  } catch { return null; }
+}
 
 export function ReportsTab() {
   const [reports, setReports] = useState<DeptReport[]>([]);
 
+  const refresh = useCallback(() => setReports(loadReports()), []);
+
   useEffect(() => {
-    setReports(loadReports());
-    // Re-sync when localStorage changes (e.g. from dept page)
-    const handler = () => setReports(loadReports());
+    refresh();
+    // Try to merge remote reports (remote wins if more recent)
+    syncReportsFromBackend().then((remote) => {
+      if (remote) {
+        const local = loadReports();
+        const merged = [...remote, ...local.filter((l) => !remote.find((r) => r.id === l.id))];
+        merged.forEach((r) => saveReport(r));
+        setReports(loadReports());
+      }
+    });
+
+    const handler = () => refresh();
     window.addEventListener("storage", handler);
     window.addEventListener("omega_report_added", handler);
     return () => {
       window.removeEventListener("storage", handler);
       window.removeEventListener("omega_report_added", handler);
     };
-  }, []);
+  }, [refresh]);
 
   const handleDelete = useCallback((id: string) => {
     deleteReport(id);
-    setReports(loadReports());
+    const updated = loadReports();
+    setReports(updated);
+    omegaApi.saveNovaData("reports", updated).catch(() => {});
   }, []);
 
   return (

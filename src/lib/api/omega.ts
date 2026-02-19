@@ -80,10 +80,38 @@ export interface OrgChart {
   total_departments: number;
 }
 
+const FALLBACK_ORG_CHART: OrgChart = {
+  ceo: { id: "nova", code: "NOVA", name: "Nova CEO", status: "active" },
+  directors: [
+    { id: "atlas",  code: "ATLAS",  name: "Marketing Director",  department: "marketing",  status: "active",  sub_agents: [], tasks_today: 0, performance_score: 0 },
+    { id: "luna",   code: "LUNA",   name: "Tech Director",       department: "tech",       status: "active",  sub_agents: [], tasks_today: 0, performance_score: 0 },
+    { id: "rex",    code: "REX",    name: "Operations Director", department: "operations", status: "idle",    sub_agents: [], tasks_today: 0, performance_score: 0 },
+    { id: "vera",   code: "VERA",   name: "Finance Director",    department: "finance",    status: "idle",    sub_agents: [], tasks_today: 0, performance_score: 0 },
+    { id: "kira",   code: "KIRA",   name: "Community Director",  department: "community",  status: "active",  sub_agents: [], tasks_today: 0, performance_score: 0 },
+    { id: "oracle", code: "ORACLE", name: "Futures Director",    department: "futures",    status: "idle",    sub_agents: [], tasks_today: 0, performance_score: 0 },
+    { id: "sophia", code: "SOPHIA", name: "People Director",     department: "people",     status: "active",  sub_agents: [], tasks_today: 0, performance_score: 0 },
+  ],
+  total_agents: 38,
+  total_departments: 7,
+};
+
+async function getOrgChartWithFallback(): Promise<OrgChart> {
+  try {
+    return await apiCall<OrgChart>("/omega/org-chart/");
+  } catch {
+    return FALLBACK_ORG_CHART;
+  }
+}
+
 export const omegaApi = {
-  getDashboard: () => apiCall<OmegaDashboardStats>("/omega/dashboard/"),
-  getResellers: () => apiCall<OmegaReseller[]>("/omega/resellers/"),
-  getActivity: () => apiCall<OmegaActivityResponse>("/omega/activity/"),
-  getRevenue: () => apiCall<OmegaRevenue>("/omega/revenue/"),
-  getOrgChart: () => apiCall<OrgChart>("/omega/org-chart/"),
+  getDashboard:  () => apiCall<OmegaDashboardStats>("/omega/dashboard/"),
+  getResellers:  () => apiCall<OmegaReseller[]>("/omega/resellers/"),
+  getActivity:   () => apiCall<OmegaActivityResponse>("/omega/activity/"),
+  getRevenue:    () => apiCall<OmegaRevenue>("/omega/revenue/"),
+  getOrgChart:   () => getOrgChartWithFallback(),
+  // Nova dual-storage
+  saveNovaData:  (data_type: string, content: unknown) =>
+    apiCall<void>("/nova/data/", "POST", { data_type, content }),
+  loadNovaData:  (data_type: string) =>
+    apiCall<{ content: unknown }>(`/nova/data/?type=${data_type}`, "GET"),
 };

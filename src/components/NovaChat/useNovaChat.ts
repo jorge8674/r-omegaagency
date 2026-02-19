@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { loadContextDocs } from "./NovaChatContext";
+import { omegaApi } from "@/lib/api/omega";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -16,8 +17,23 @@ function loadHistory(): ChatMessage[] {
   } catch { return []; }
 }
 
-function saveHistory(msgs: ChatMessage[]): void {
+function saveLocalHistory(msgs: ChatMessage[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-MAX_MESSAGES)));
+}
+
+async function persistHistory(msgs: ChatMessage[]): Promise<void> {
+  try {
+    await omegaApi.saveNovaData("chat_history", msgs.slice(-MAX_MESSAGES));
+  } catch { /* silent — localStorage is the fallback */ }
+}
+
+async function loadRemoteHistory(): Promise<ChatMessage[] | null> {
+  try {
+    const res = await omegaApi.loadNovaData("chat_history");
+    const content = res?.content;
+    if (Array.isArray(content) && content.length > 0) return content as ChatMessage[];
+    return null;
+  } catch { return null; }
 }
 
 export function useNovaChat() {
@@ -26,8 +42,15 @@ export function useNovaChat() {
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  // On mount: try remote, fallback to local
   useEffect(() => {
-    saveHistory(messages);
+    loadRemoteHistory().then((remote) => {
+      if (remote) setMessages(remote);
+    });
+  }, []);
+
+  useEffect(() => {
+    saveLocalHistory(messages);
   }, [messages]);
 
   const send = useCallback(async (text: string) => {
@@ -76,7 +99,7 @@ export function useNovaChat() {
 
         let idx: number;
         while ((idx = buf.indexOf("\n")) !== -1) {
-          let line = buf.slice(0, idx).replace(/\r$/, "");
+          const line = buf.slice(0, idx).replace(/\r$/, "");
           buf = buf.slice(idx + 1);
           if (!line.startsWith("data: ")) continue;
           const json = line.slice(6).trim();
@@ -97,6 +120,11 @@ export function useNovaChat() {
           } catch { /* partial */ }
         }
       }
+
+      // Persist final state remotely
+      const finalMsgs = [...nextMessages, { role: "assistant" as const, content: assistantContent }];
+      await persistHistory(finalMsgs);
+
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
         setError((e as Error).message);
@@ -109,6 +137,7 @@ export function useNovaChat() {
   const clearHistory = useCallback(() => {
     setMessages([]);
     localStorage.removeItem(STORAGE_KEY);
+    persistHistory([]).catch(() => {});
   }, []);
 
   return { messages, isLoading, error, send, clearHistory };

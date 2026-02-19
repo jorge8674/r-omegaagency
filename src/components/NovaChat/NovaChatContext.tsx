@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { FileText, Trash2, Upload, FileCheck, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { omegaApi } from "@/lib/api/omega";
 
 export interface ContextDoc {
   id: string;
@@ -23,6 +24,7 @@ export function loadContextDocs(): ContextDoc[] {
 
 export function saveContextDocs(docs: ContextDoc[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
+  omegaApi.saveNovaData("context_docs", docs).catch(() => {});
 }
 
 function formatSize(bytes: number): string {

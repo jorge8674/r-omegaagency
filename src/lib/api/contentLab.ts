@@ -48,14 +48,15 @@ interface ListResponse {
 export async function generateContent(
   accountId: string,
   contentType: ContentType,
-  prompt: string,
-  extraInstructions?: string
+  brief: string,
+  language?: string
 ): Promise<GenerateResponse> {
   const params = new URLSearchParams({
     account_id: accountId,
     content_type: contentType,
-    brief: extraInstructions ? `${prompt}\n\n${extraInstructions}` : prompt,
+    brief,
   });
+  if (language) params.append("language", language);
   return apiCall<GenerateResponse>(
     `/content-lab/generate/?${params.toString()}`,
     "POST"

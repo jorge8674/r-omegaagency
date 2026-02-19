@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api";
-import { listScheduledPosts } from "@/lib/api/calendar";
+import { apiCall } from "@/lib/api/core";
+import type { ScheduledPost } from "@/lib/api/calendar";
 import { useToast } from "@/hooks/use-toast";
 import type { Post } from "@/types/post";
 import type { QueueItem, ScheduleFormValues, OptimalTimesResult } from "../types";
@@ -35,12 +36,16 @@ export function useCalendar() {
   });
 
   /* ─── Scheduled posts (Railway API) ────────────── */
-  const clientId = localStorage.getItem("omega_context_client_id") || localStorage.getItem("omega_client_id");
+  const userId = localStorage.getItem("omega_client_id") || "";
 
   const { data: apiPosts = [] } = useQuery<Post[]>({
-    queryKey: ["calendar-api-posts", clientId],
+    queryKey: ["calendar-api-posts", userId],
     queryFn: async () => {
-      const res = await listScheduledPosts(undefined, clientId || undefined);
+      const params = new URLSearchParams();
+      if (userId) params.set("user_id", userId);
+      const res = await apiCall<{ data?: ScheduledPost[]; items?: ScheduledPost[] }>(
+        `/calendar/?${params.toString()}`,
+      );
       const posts = res.data ?? res.items ?? [];
       return posts.map((sp) => ({
         id: sp.id,
@@ -55,7 +60,7 @@ export function useCalendar() {
         updated_at: sp.updated_at,
       }));
     },
-    enabled: !!clientId,
+    enabled: !!userId,
     retry: 1,
   });
 

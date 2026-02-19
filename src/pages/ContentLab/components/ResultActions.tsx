@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Copy, Bookmark, RotateCcw, Trash2, CheckCircle,
@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { GeneratedContent } from "@/lib/api/contentLab";
 import type { AnalysisType } from "../hooks/useResultAnalysis";
+import { ScheduleModal } from "@/pages/Calendar/components/ScheduleModal";
 
 interface ResultActionsProps {
   result: GeneratedContent;
@@ -30,80 +31,79 @@ export function ResultActions({
   result, copied, isGenerating, analysisLoading,
   onCopy, onSave, onDelete, onRegenerate, onAnalysis,
 }: ResultActionsProps) {
-  const navigate = useNavigate();
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const isImage = result.content_type === "image";
 
-  const handleSchedule = (): void => {
-    const params = new URLSearchParams({
-      tab: "schedule",
-      text: result.generated_text.slice(0, 500),
-      content_type: isImage ? "post" : result.content_type,
-    });
-    if (result.account_id) params.set("account_id", result.account_id);
-    navigate(`/calendar?${params.toString()}`);
-  };
-
   return (
-    <div className="flex flex-wrap gap-2">
-      {/* Copy */}
-      <Button variant="outline" size="sm" onClick={onCopy}>
-        {copied
-          ? <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-          : <Copy className="mr-1 h-4 w-4" />}
-        {copied ? "Copiado" : isImage ? "Copiar URL" : "Copiar"}
-      </Button>
+    <>
+      <div className="flex flex-wrap gap-2">
+        {/* Copy */}
+        <Button variant="outline" size="sm" onClick={onCopy}>
+          {copied
+            ? <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+            : <Copy className="mr-1 h-4 w-4" />}
+          {copied ? "Copiado" : isImage ? "Copiar URL" : "Copiar"}
+        </Button>
 
-      {/* Download (image only) */}
-      {isImage && (
-        <a href={result.generated_text} target="_blank" rel="noopener noreferrer">
-          <Button variant="outline" size="sm">
-            <Download className="mr-1 h-4 w-4" /> Descargar
+        {/* Download (image only) */}
+        {isImage && (
+          <a href={result.generated_text} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" size="sm">
+              <Download className="mr-1 h-4 w-4" /> Descargar
+            </Button>
+          </a>
+        )}
+
+        {/* Analysis buttons */}
+        {ANALYSIS_BUTTONS.map(({ type, label, icon: Icon }) => (
+          <Button
+            key={type}
+            variant="outline"
+            size="sm"
+            onClick={() => onAnalysis(type)}
+            disabled={analysisLoading !== null}
+          >
+            {analysisLoading === type
+              ? <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              : <Icon className="mr-1 h-4 w-4" />}
+            {label}
           </Button>
-        </a>
-      )}
+        ))}
 
-      {/* Analysis buttons */}
-      {ANALYSIS_BUTTONS.map(({ type, label, icon: Icon }) => (
+        {/* Schedule */}
+        <Button variant="outline" size="sm" onClick={() => setScheduleOpen(true)}>
+          <CalendarIcon className="mr-1 h-4 w-4" /> Agendar
+        </Button>
+
+        {/* Save */}
+        <Button variant="outline" size="sm" onClick={() => onSave(result.id)}>
+          <Bookmark className={`mr-1 h-4 w-4 ${result.is_saved ? "fill-current" : ""}`} />
+          {result.is_saved ? "Guardado" : "Guardar"}
+        </Button>
+
+        {/* Regenerate (text only) */}
+        {!isImage && (
+          <Button variant="outline" size="sm" onClick={onRegenerate} disabled={isGenerating}>
+            <RotateCcw className="mr-1 h-4 w-4" /> Regenerar
+          </Button>
+        )}
+
+        {/* Delete */}
         <Button
-          key={type}
-          variant="outline"
-          size="sm"
-          onClick={() => onAnalysis(type)}
-          disabled={analysisLoading !== null}
+          variant="ghost" size="sm"
+          className="text-destructive hover:text-destructive ml-auto"
+          onClick={() => onDelete(result.id)}
         >
-          {analysisLoading === type
-            ? <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-            : <Icon className="mr-1 h-4 w-4" />}
-          {label}
+          <Trash2 className="h-4 w-4" />
         </Button>
-      ))}
+      </div>
 
-      {/* Schedule */}
-      <Button variant="outline" size="sm" onClick={handleSchedule}>
-        <CalendarIcon className="mr-1 h-4 w-4" /> Agendar
-      </Button>
-
-      {/* Save */}
-      <Button variant="outline" size="sm" onClick={() => onSave(result.id)}>
-        <Bookmark className={`mr-1 h-4 w-4 ${result.is_saved ? "fill-current" : ""}`} />
-        {result.is_saved ? "Guardado" : "Guardar"}
-      </Button>
-
-      {/* Regenerate (text only) */}
-      {!isImage && (
-        <Button variant="outline" size="sm" onClick={onRegenerate} disabled={isGenerating}>
-          <RotateCcw className="mr-1 h-4 w-4" /> Regenerar
-        </Button>
-      )}
-
-      {/* Delete */}
-      <Button
-        variant="ghost" size="sm"
-        className="text-destructive hover:text-destructive ml-auto"
-        onClick={() => onDelete(result.id)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-    </div>
+      <ScheduleModal
+        open={scheduleOpen}
+        result={{ generated_text: result.generated_text, content_type: result.content_type }}
+        accountId={result.account_id || ""}
+        onClose={() => setScheduleOpen(false)}
+      />
+    </>
   );
 }

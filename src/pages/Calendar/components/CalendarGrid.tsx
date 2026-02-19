@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { es } from "date-fns/locale";
 import type { CalendarDayData } from "../types";
 import { STATUS_COLORS, STATUS_LABELS, WEEKDAYS } from "../types";
+import { DayDetailPanel } from "./DayDetailPanel";
 
 interface CalendarGridProps {
   currentMonth: Date;
@@ -14,12 +16,20 @@ interface CalendarGridProps {
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onToday: () => void;
+  onRefresh?: () => void;
 }
 
 export function CalendarGrid({
   currentMonth, days, isLoading,
-  onPrevMonth, onNextMonth, onToday,
+  onPrevMonth, onNextMonth, onToday, onRefresh,
 }: CalendarGridProps) {
+  const [selectedDay, setSelectedDay] = useState<CalendarDayData | null>(null);
+
+  const handleDayClick = (day: CalendarDayData): void => {
+    if (!day.inMonth) return;
+    setSelectedDay(day);
+  };
+
   return (
     <>
       <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
@@ -52,7 +62,8 @@ export function CalendarGrid({
               {days.map((day, i) => (
                 <div
                   key={i}
-                  className={`min-h-[80px] bg-card p-1.5 ${!day.inMonth ? "opacity-30" : ""} ${day.today ? "ring-1 ring-primary ring-inset" : ""}`}
+                  onClick={() => handleDayClick(day)}
+                  className={`min-h-[80px] bg-card p-1.5 cursor-pointer hover:bg-accent/30 transition-colors ${!day.inMonth ? "opacity-30" : ""} ${day.today ? "ring-1 ring-primary ring-inset" : ""}`}
                 >
                   <span className={`text-xs font-medium ${day.today ? "flex h-5 w-5 items-center justify-center rounded-full gradient-primary text-primary-foreground" : "text-muted-foreground"}`}>
                     {format(day.date, "d")}
@@ -83,6 +94,15 @@ export function CalendarGrid({
           </span>
         ))}
       </div>
+
+      {selectedDay && (
+        <DayDetailPanel
+          open={!!selectedDay}
+          date={selectedDay.date}
+          onClose={() => setSelectedDay(null)}
+          onRefresh={() => onRefresh?.()}
+        />
+      )}
     </>
   );
 }

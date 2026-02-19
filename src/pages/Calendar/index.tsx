@@ -4,6 +4,7 @@ import { CalendarGrid } from "./components/CalendarGrid";
 import { ScheduleForm } from "./components/ScheduleForm";
 import { PostQueue } from "./components/PostQueue";
 import { OptimalTimes } from "./components/OptimalTimes";
+import { BlockAssignment } from "./components/BlockAssignment";
 
 export default function CalendarPage() {
   const cal = useCalendar();
@@ -20,6 +21,7 @@ export default function CalendarPage() {
         <TabsList>
           <TabsTrigger value="calendar">Calendario</TabsTrigger>
           <TabsTrigger value="schedule">Agendar Post</TabsTrigger>
+          <TabsTrigger value="assign">Asignar Bloque</TabsTrigger>
           <TabsTrigger value="queue">Cola de Posts</TabsTrigger>
         </TabsList>
 
@@ -48,6 +50,10 @@ export default function CalendarPage() {
               onFetch={cal.fetchOptimalTimes}
             />
           </div>
+        </TabsContent>
+
+        <TabsContent value="assign" className="mt-4">
+          <BlockAssignment />
         </TabsContent>
 
         <TabsContent value="queue" className="mt-4">

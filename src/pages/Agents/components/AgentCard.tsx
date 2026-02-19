@@ -1,4 +1,4 @@
-import { Bot, Play, Eye } from "lucide-react";
+import { Bot, Eye, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ export function AgentCard({ agent, onViewDetails }: AgentCardProps) {
             </div>
             <div>
               <h3 className="text-sm font-semibold leading-tight">{agent.name}</h3>
-              <p className="text-[11px] text-muted-foreground">{agent.position}</p>
+              <p className="text-[11px] text-muted-foreground">{agent.category}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -34,10 +34,13 @@ export function AgentCard({ agent, onViewDetails }: AgentCardProps) {
           </div>
         </div>
 
-        {/* Department badge */}
-        <Badge variant="secondary" className="text-[10px]">
-          {DEPARTMENT_LABELS[agent.department] || agent.department}
-        </Badge>
+        {/* Badges */}
+        <div className="flex gap-1.5">
+          <Badge variant="secondary" className="text-[10px]">
+            {DEPARTMENT_LABELS[agent.department] || agent.department}
+          </Badge>
+          <Badge variant="outline" className="text-[10px]">v{agent.version}</Badge>
+        </div>
 
         {/* Description */}
         <p className="text-xs text-muted-foreground line-clamp-2">{agent.description}</p>
@@ -45,12 +48,12 @@ export function AgentCard({ agent, onViewDetails }: AgentCardProps) {
         {/* Metrics */}
         <div className="flex gap-4 text-xs">
           <div>
-            <span className="text-muted-foreground">Tareas: </span>
-            <span className="font-medium">{agent.total_tasks ?? 0}</span>
+            <span className="text-muted-foreground">Ejecuciones: </span>
+            <span className="font-medium">{agent.total_executions}</span>
           </div>
           <div>
             <span className="text-muted-foreground">Éxito: </span>
-            <span className="font-medium">{agent.success_rate ?? 0}%</span>
+            <span className="font-medium">{agent.success_rate}%</span>
           </div>
         </div>
 
@@ -68,7 +71,7 @@ export function AgentCard({ agent, onViewDetails }: AgentCardProps) {
             className="flex-1 h-7 text-xs"
             onClick={(e) => { e.stopPropagation(); onViewDetails(agent); }}
           >
-            <Play className="h-3 w-3 mr-1" /> Ejecutar
+            <Zap className="h-3 w-3 mr-1" /> Ejecutar
           </Button>
         </div>
       </CardContent>

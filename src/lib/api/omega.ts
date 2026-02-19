@@ -28,12 +28,17 @@ export interface OmegaReseller {
   white_label_active: boolean | null;
 }
 
+// API returns { activities: [...], total: N }
 export interface OmegaActivity {
-  id: string;
-  timestamp: string;
   type: string;
   description: string;
-  entity: string | null;
+  timestamp: string;
+  client_id?: string | null;
+}
+
+export interface OmegaActivityResponse {
+  activities: OmegaActivity[];
+  total: number;
 }
 
 export interface OmegaRevenue {
@@ -42,18 +47,9 @@ export interface OmegaRevenue {
   breakdown: { plan: string; count: number; revenue: number }[];
 }
 
-export interface OmegaUpcomingPost {
-  id: string;
-  scheduled_at: string;
-  platform: string;
-  client_name: string;
-  title: string;
-  status: string;
-}
-
 export const omegaApi = {
   getDashboard: () => apiCall<OmegaDashboardStats>("/omega/dashboard/"),
   getResellers: () => apiCall<OmegaReseller[]>("/omega/resellers/"),
-  getActivity: () => apiCall<OmegaActivity[]>("/omega/activity/"),
+  getActivity: () => apiCall<OmegaActivityResponse>("/omega/activity/"),
   getRevenue: () => apiCall<OmegaRevenue>("/omega/revenue/"),
 };

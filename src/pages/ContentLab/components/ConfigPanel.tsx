@@ -7,7 +7,7 @@ import {
 import { Sparkles, Loader2, Video } from "lucide-react";
 import { PlatformIcon } from "@/components/icons/PlatformIcon";
 import { ContentTypeIcon } from "@/components/icons/ContentTypeIcon";
-import { CONTENT_TYPE_LABELS, type ContentType, type ImageStyle, type VideoStyle, type VideoDuration } from "@/lib/api/contentLab";
+import { CONTENT_TYPE_LABELS, type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type VideoProvider } from "@/lib/api/contentLab";
 import { VideoOptions } from "./VideoOptions";
 import { Progress } from "@/components/ui/progress";
 
@@ -25,6 +25,7 @@ interface ConfigPanelProps {
   imageStyle: ImageStyle;
   videoStyle: VideoStyle;
   videoDuration: VideoDuration;
+  videoProvider: VideoProvider;
   isGenerating: boolean;
   isGeneratingImage: boolean;
   isGeneratingVideo: boolean;
@@ -37,6 +38,7 @@ interface ConfigPanelProps {
   onImageStyleChange: (style: ImageStyle) => void;
   onVideoStyleChange: (style: VideoStyle) => void;
   onVideoDurationChange: (d: VideoDuration) => void;
+  onVideoProviderChange: (p: VideoProvider) => void;
   onGenerate: () => void;
 }
 
@@ -48,11 +50,11 @@ const IMAGE_STYLES = [
 
 export function ConfigPanel({
   clients, accounts, selectedClientId, selectedAccountId,
-  contentType, language, prompt, imageStyle, videoStyle, videoDuration,
+  contentType, language, prompt, imageStyle, videoStyle, videoDuration, videoProvider,
   isGenerating, isGeneratingImage, isGeneratingVideo, hasContext,
   onSelectClient, onSelectAccount, onContentTypeChange,
   onLanguageChange, onPromptChange, onImageStyleChange,
-  onVideoStyleChange, onVideoDurationChange, onGenerate,
+  onVideoStyleChange, onVideoDurationChange, onVideoProviderChange, onGenerate,
 }: ConfigPanelProps) {
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
   const busy = contentType === "video" ? isGeneratingVideo : contentType === "image" ? isGeneratingImage : isGenerating;
@@ -131,7 +133,7 @@ export function ConfigPanel({
           </div>
         )}
         {contentType === "video" && (
-          <VideoOptions duration={videoDuration} style={videoStyle} onDurationChange={onVideoDurationChange} onStyleChange={onVideoStyleChange} />
+          <VideoOptions duration={videoDuration} style={videoStyle} provider={videoProvider} onDurationChange={onVideoDurationChange} onStyleChange={onVideoStyleChange} onProviderChange={onVideoProviderChange} />
         )}
       </div>
 
@@ -156,7 +158,7 @@ export function ConfigPanel({
         <div className="space-y-2 p-3 rounded-lg bg-muted/30 border border-border/50">
           <div className="flex items-center gap-2 text-sm">
             <Video className="h-4 w-4 text-primary animate-pulse" />
-            <span>Generando video con Runway AI...</span>
+            <span>Generando video con {videoProvider === "runway" ? "Runway AI" : videoProvider.charAt(0).toUpperCase() + videoProvider.slice(1)}...</span>
           </div>
           <p className="text-xs text-muted-foreground">Esto puede tardar hasta 60 segundos</p>
           <Progress value={undefined} className="h-2 animate-pulse" />

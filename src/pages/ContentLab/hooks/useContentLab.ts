@@ -3,8 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
   generateText, toggleSaveContent, deleteContent,
-  generateImage, generateVideo,
-  type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type GeneratedContent,
+  generateImage, generateVideo, generateVideoFal,
+  type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type VideoProvider, type GeneratedContent,
 } from "@/lib/api/contentLab";
 
 export function useContentLab() {
@@ -23,6 +23,7 @@ export function useContentLab() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [videoStyle, setVideoStyle] = useState<VideoStyle>("realistic");
   const [videoDuration, setVideoDuration] = useState<VideoDuration>(5);
+  const [videoProvider, setVideoProvider] = useState<VideoProvider>("runway");
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
 
   const invalidateHistory = () =>
@@ -88,7 +89,9 @@ export function useContentLab() {
     }
     setIsGeneratingVideo(true);
     try {
-      const result = await generateVideo(selectedAccountId, prompt, videoDuration, videoStyle);
+      const result = videoProvider === "runway"
+        ? await generateVideo(selectedAccountId, prompt, videoDuration, videoStyle)
+        : await generateVideoFal(selectedAccountId, prompt, videoDuration, videoProvider);
       const content = (result.data ?? result) as GeneratedContent;
       if (content?.generated_text) {
         setResults(prev => [content, ...prev]);
@@ -130,9 +133,9 @@ export function useContentLab() {
   return {
     selectedClientId, selectedAccountId, contentType, language,
     prompt, results, copiedId, isGenerating, imageStyle, isGeneratingImage,
-    videoStyle, videoDuration, isGeneratingVideo,
+    videoStyle, videoDuration, videoProvider, isGeneratingVideo,
     setContentType, setLanguage, setPrompt, setImageStyle, setResults,
-    setVideoStyle, setVideoDuration,
+    setVideoStyle, setVideoDuration, setVideoProvider,
     selectClient, selectAccount,
     handleGenerate, handleGenerateImage, handleGenerateVideo,
     handleCopy, handleSave, handleDelete,

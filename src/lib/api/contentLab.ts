@@ -50,34 +50,18 @@ export async function generateText(
   contentType: string,
   brief: string,
   language?: string
-): Promise<GeneratedContent> {
+) {
   const params = new URLSearchParams({
     account_id: accountId,
     content_type: contentType,
     brief: brief,
+    language: language || "es",
   });
-  if (language) params.append("language", language);
 
-  const token = localStorage.getItem("omega_token");
-  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
-  const API_BASE =
-    import.meta.env.VITE_API_URL ||
-    "https://omegaraisen-production-2031.up.railway.app/api/v1";
-
-  const response = await fetch(
-    `${API_BASE}/content-lab/generate/?${params.toString()}`,
-    {
-      method: "POST",
-      headers: { ...authHeader },
-    }
+  return apiCall(
+    `/content-lab/generate/?${params.toString()}`,
+    "POST"
   );
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    throw new Error(`API Error ${response.status}: ${errorText || response.statusText}`);
-  }
-
-  return response.json();
 }
 
 export async function listGeneratedContent(

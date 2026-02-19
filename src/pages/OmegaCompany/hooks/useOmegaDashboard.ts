@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { omegaApi, type OmegaDashboardStats } from "@/lib/api/omega";
+import { omegaApi, type OmegaDashboardStats, type OmegaActivity } from "@/lib/api/omega";
 
 const REFETCH = 60000;
 
@@ -69,14 +69,21 @@ export function useOmegaDashboard() {
     revenue.refetch();
   };
 
+  // Extract array from paginated activity response {activities: [...], total: N}
+  const activityList: OmegaActivity[] = Array.isArray(activity.data)
+    ? activity.data
+    : (activity.data as { activities?: OmegaActivity[] } | undefined)?.activities ?? [];
+
+  // Guard resellers: 500 error returns non-array — normalize to []
+  const resellersList = Array.isArray(resellers.data) ? resellers.data : [];
+
   return {
     stats,
-    // loading only while revenue is pending (dashboard may always fail)
     statsLoading: revenue.isLoading && dashboard.isLoading,
     statsError: dashboard.isError,
-    resellers: resellers.data ?? [],
+    resellers: resellersList,
     resellersLoading: resellers.isLoading,
-    activity: activity.data ?? [],
+    activity: activityList,
     activityLoading: activity.isLoading,
     revenue: revenue.data,
     revenueLoading: revenue.isLoading,
@@ -84,4 +91,5 @@ export function useOmegaDashboard() {
     lastUpdated: new Date(),
   };
 }
+
 

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, checkBackendHealth } from "@/lib/api";
+import { getSystemStats } from "@/lib/api/system";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,12 @@ export default function Dashboard() {
   const { data: health, isLoading: healthLoading, refetch: refetchHealth } = useQuery({
     queryKey: ["backend-health"],
     queryFn: () => checkBackendHealth(),
+    refetchInterval: 30000,
+  });
+
+  const { data: systemStats, refetch: refetchStats } = useQuery({
+    queryKey: ["system-stats"],
+    queryFn: getSystemStats,
     refetchInterval: 30000,
   });
 
@@ -82,7 +90,7 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const refreshAll = async () => {
     setRefreshing(true);
-    await Promise.all([refetchHealth(), refetchState(), refetchAgents(), refetchAlerts()]);
+    await Promise.all([refetchHealth(), refetchState(), refetchAgents(), refetchAlerts(), refetchStats()]);
     setRefreshing(false);
     toast({ title: "✅ Actualizado", description: "Datos del sistema refrescados" });
   };
@@ -126,7 +134,9 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Agentes Online</p>
-              <p className="text-2xl font-display font-bold">{agentsOnline}/{totalAgents}</p>
+              <p className="text-2xl font-display font-bold">
+                {systemStats ? `${systemStats.active_agents}/${systemStats.total_agents}` : <Skeleton className="h-8 w-16" />}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -137,7 +147,9 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Endpoints</p>
-              <p className="text-2xl font-display font-bold">92</p>
+              <p className="text-2xl font-display font-bold">
+                {systemStats?.total_endpoints ?? <Skeleton className="h-8 w-16" />}
+              </p>
             </div>
           </CardContent>
         </Card>

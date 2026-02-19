@@ -43,8 +43,7 @@ export function useContentLab() {
     }
     setIsGenerating(true);
     try {
-      const extra = language === "en" ? "Write entirely in English" : undefined;
-      const result = await generateContent(selectedAccountId, contentType, prompt, extra);
+      const result = await generateContent(selectedAccountId, contentType, prompt, language);
       const content = (result.data ?? result) as GeneratedContent;
       if (content?.generated_text) {
         setCurrentResult(content);

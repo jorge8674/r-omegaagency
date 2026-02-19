@@ -44,7 +44,7 @@ export function useContentLab() {
     setIsGenerating(true);
     try {
       const result = await generateText(selectedAccountId, contentType, prompt, language);
-      if (result?.generated_text) {
+      if (result) {
         setCurrentResult(result as GeneratedContent);
         invalidateHistory();
         toast({ title: "Contenido generado exitosamente" });

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { Bot, Zap, CheckCircle, AlertCircle } from "lucide-react";
+import { Bot, Zap, CheckCircle, Brain, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +14,11 @@ import type { Agent } from "../types";
 import { STATUS_DOT, DEPARTMENT_LABELS } from "../types";
 import { AgentPerformanceTab } from "./AgentPerformanceTab";
 import { AgentLogsTab } from "./AgentLogsTab";
+import { ClientContextResult } from "./ClientContextResult";
 
-interface Props {
-  agent: Agent | null;
-  open: boolean;
-  onClose: () => void;
-}
+interface Props { agent: Agent | null; open: boolean; onClose: () => void }
+
+const CONTEXT_AGENTS = ["client_context", "orchestrator"];
 
 export function AgentDetailModal({ agent, open, onClose }: Props) {
   const { toast } = useToast();
@@ -27,7 +26,7 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
   const [clientId, setClientId] = useState("");
   const [brief, setBrief] = useState("");
   const [platform, setPlatform] = useState("instagram");
-  const [execResult, setExecResult] = useState<unknown>(null);
+  const [execResult, setExecResult] = useState<Record<string, unknown> | null>(null);
 
   const { data: clientsRaw } = useQuery({
     queryKey: ["clients-for-agent"],
@@ -35,13 +34,24 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
     enabled: open,
     staleTime: 60_000,
   });
-  const clients = (clientsRaw?.data ?? []);
+  const clients = clientsRaw?.data ?? [];
+
+  const isContextAgent = !!agent && CONTEXT_AGENTS.includes(agent.agent_id);
 
   const exec = useMutation({
-    mutationFn: () => executeAgent(agent!.id, clientId, brief, platform),
+    mutationFn: () => {
+      if (!agent) throw new Error("No agent");
+      if (isContextAgent) {
+        return executeAgent(agent.agent_id, clientId, "", undefined);
+      }
+      return executeAgent(agent.id, clientId, brief, platform);
+    },
     onSuccess: (res) => {
-      setExecResult(res.data);
-      toast({ title: "Agente ejecutado" });
+      setExecResult(res.data as Record<string, unknown>);
+      const msg = isContextAgent
+        ? "✅ Contexto guardado — el contenido generado para este cliente ahora usa este perfil"
+        : "Agente ejecutado";
+      toast({ title: msg });
       qc.invalidateQueries({ queryKey: ["agent-executions", agent!.id] });
     },
     onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
@@ -54,8 +64,7 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary" />
-            {agent.name}
+            <Bot className="h-5 w-5 text-primary" /> {agent.name}
             <div className={`h-2 w-2 rounded-full ${STATUS_DOT[agent.status]}`} />
           </DialogTitle>
         </DialogHeader>
@@ -98,15 +107,14 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
           <TabsContent value="performance" className="mt-4">
             <AgentPerformanceTab agent={agent} />
           </TabsContent>
-
           <TabsContent value="logs" className="mt-4">
             <AgentLogsTab agentId={agent.id} />
           </TabsContent>
 
           <TabsContent value="actions" className="mt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Cliente</label>
+            {isContextAgent ? (
+              <>
+                <p className="text-sm font-medium">¿Para qué cliente analizar el contexto?</p>
                 <Select value={clientId} onValueChange={setClientId}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger>
                   <SelectContent>
@@ -115,45 +123,64 @@ export function AgentDetailModal({ agent, open, onClose }: Props) {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Plataforma</label>
-                <Select value={platform} onValueChange={setPlatform}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {["instagram", "facebook", "tiktok", "linkedin", "twitter"].map((p) => (
-                      <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Brief / Instrucción</label>
-              <Textarea
-                placeholder="Describe la tarea para el agente..."
-                value={brief} onChange={(e) => setBrief(e.target.value)}
-                rows={3}
-              />
-            </div>
-            <Button
-              onClick={() => exec.mutate()}
-              disabled={!clientId || !brief || exec.isPending}
-              className="w-full"
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              {exec.isPending ? "Ejecutando..." : "Ejecutar Agente"}
-            </Button>
-
-            {execResult && (
-              <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
-                <div className="flex items-center gap-1.5 text-sm font-medium text-success">
-                  <CheckCircle className="h-4 w-4" /> Resultado
+                <Button
+                  onClick={() => exec.mutate()} disabled={!clientId || exec.isPending}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  {exec.isPending
+                    ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analizando perfil del cliente…</>
+                    : <><Brain className="h-4 w-4 mr-2" /> Analizar Cliente</>}
+                </Button>
+                {exec.isPending && <ClientContextResult data={{}} isLoading />}
+                {execResult && !exec.isPending && <ClientContextResult data={execResult} />}
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Cliente</label>
+                    <Select value={clientId} onValueChange={setClientId}>
+                      <SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger>
+                      <SelectContent>
+                        {clients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Plataforma</label>
+                    <Select value={platform} onValueChange={setPlatform}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["instagram", "facebook", "tiktok", "linkedin", "twitter"].map((p) => (
+                          <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <pre className="text-xs text-muted-foreground whitespace-pre-wrap max-h-40 overflow-y-auto">
-                  {typeof execResult === "string" ? execResult : JSON.stringify(execResult, null, 2)}
-                </pre>
-              </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Brief / Instrucción</label>
+                  <Textarea placeholder="Describe la tarea para el agente..."
+                    value={brief} onChange={(e) => setBrief(e.target.value)} rows={3} />
+                </div>
+                <Button onClick={() => exec.mutate()}
+                  disabled={!clientId || !brief || exec.isPending} className="w-full">
+                  <Zap className="h-4 w-4 mr-2" />
+                  {exec.isPending ? "Ejecutando..." : "Ejecutar Agente"}
+                </Button>
+                {execResult && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-500">
+                      <CheckCircle className="h-4 w-4" /> Resultado
+                    </div>
+                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap max-h-40 overflow-y-auto">
+                      {JSON.stringify(execResult, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
         </Tabs>

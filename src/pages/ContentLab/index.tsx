@@ -12,8 +12,8 @@ import { HistoryPanel } from "./components/HistoryPanel";
 export default function ContentLab() {
   const {
     selectedClientId, selectedAccountId, contentType, language,
-    prompt, currentResult, copied, isGenerating, imageStyle, isGeneratingImage,
-    setContentType, setLanguage, setPrompt, setImageStyle, setCurrentResult,
+    prompt, results, copiedId, isGenerating, imageStyle, isGeneratingImage,
+    setContentType, setLanguage, setPrompt, setImageStyle, setResults,
     selectClient, selectAccount,
     handleGenerate, handleGenerateImage, handleCopy, handleSave, handleDelete,
   } = useContentLab();
@@ -77,16 +77,34 @@ export default function ContentLab() {
         </div>
 
         <div className="lg:col-span-3 space-y-4">
-          <ResultPanel
-            result={currentResult}
-            copied={copied}
-            isGenerating={isGenerating}
-            onCopy={handleCopy}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            onRegenerate={() => handleGenerate(hasContext)}
+          {results.length === 0 ? (
+            <ResultPanel
+              result={null}
+              copied={false}
+              isGenerating={isGenerating}
+              onCopy={() => {}}
+              onSave={() => {}}
+              onDelete={() => {}}
+              onRegenerate={() => handleGenerate(hasContext)}
+            />
+          ) : (
+            results.map((result, index) => (
+              <ResultPanel
+                key={result.id ?? index}
+                result={result}
+                copied={copiedId === (result.id ?? `idx-${index}`)}
+                isGenerating={isGenerating}
+                onCopy={() => handleCopy(index)}
+                onSave={(id) => handleSave(id)}
+                onDelete={(id) => handleDelete(id, index)}
+                onRegenerate={() => handleGenerate(hasContext)}
+              />
+            ))
+          )}
+          <HistoryPanel
+            history={history}
+            onSelect={(item) => setResults(prev => [item, ...prev])}
           />
-          <HistoryPanel history={history} onSelect={setCurrentResult} />
         </div>
       </div>
     </div>

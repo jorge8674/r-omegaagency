@@ -39,7 +39,8 @@ export function useCalendar() {
     queryKey: ["calendar-api-posts"],
     queryFn: async () => {
       const res = await listScheduledPosts();
-      return (res.data ?? []).map((sp) => ({
+      const posts = res.data ?? res.items ?? [];
+      return posts.map((sp) => ({
         id: sp.id,
         organization_id: "",
         title: sp.text_content.slice(0, 40) || sp.content_type,

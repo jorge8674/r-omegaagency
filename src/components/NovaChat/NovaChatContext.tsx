@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { FileText, Trash2, Upload, FileCheck } from "lucide-react";
+import { FileText, Trash2, Upload, FileCheck, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface ContextDoc {
@@ -8,10 +8,12 @@ export interface ContextDoc {
   content: string;
   addedAt: string;
   size: number;
+  isImage?: boolean;
+  imageDataUrl?: string;
 }
 
 const STORAGE_KEY = "nova_context_docs";
-const ACCEPTED = ".pdf,.md,.txt,.docx";
+const ACCEPTED = ".pdf,.md,.txt,.docx,.png,.jpg,.jpeg,.webp";
 
 export function loadContextDocs(): ContextDoc[] {
   try {
@@ -33,18 +35,33 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-async function extractText(file: File): Promise<string> {
+async function extractText(file: File): Promise<{ content: string; isImage: boolean; imageDataUrl?: string }> {
+  const isImage = file.type.startsWith("image/");
   const isText = file.type === "text/plain" || file.name.endsWith(".md") || file.name.endsWith(".txt");
+
+  if (isImage) {
+    const imageDataUrl = await new Promise<string>((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result as string);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+    return {
+      content: `[Imagen adjunta: ${file.name} — ${formatSize(file.size)}]`,
+      isImage: true,
+      imageDataUrl,
+    };
+  }
   if (isText) {
-    return new Promise((res, rej) => {
+    const text = await new Promise<string>((res, rej) => {
       const reader = new FileReader();
       reader.onload = () => res(reader.result as string);
       reader.onerror = rej;
       reader.readAsText(file);
     });
+    return { content: text, isImage: false };
   }
-  // PDF / DOCX — reference by name only (no heavy parser needed)
-  return `[Documento referenciado: ${file.name} — contenido binario, ${formatSize(file.size)}]`;
+  return { content: `[Documento referenciado: ${file.name} — ${formatSize(file.size)}]`, isImage: false };
 }
 
 interface Props {
@@ -59,11 +76,13 @@ export function NovaChatContext({ docs, onDocsChange }: Props) {
     if (!files?.length) return;
     const newDocs: ContextDoc[] = [...docs];
     for (const file of Array.from(files)) {
-      const content = await extractText(file);
+      const extracted = await extractText(file);
       newDocs.push({
         id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         name: file.name,
-        content,
+        content: extracted.content,
+        isImage: extracted.isImage,
+        imageDataUrl: extracted.imageDataUrl,
         addedAt: new Date().toISOString(),
         size: file.size,
       });
@@ -114,8 +133,9 @@ export function NovaChatContext({ docs, onDocsChange }: Props) {
           className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-yellow-500/20 rounded-xl text-muted-foreground hover:border-yellow-500/40 transition-colors cursor-pointer"
         >
           <FileText className="h-8 w-8 mb-2 text-yellow-400/30" />
-          <p className="text-xs">Sube PDF, MD, TXT o DOCX</p>
-          <p className="text-[10px] mt-1 opacity-60">NOVA usará estos docs como contexto</p>
+          <p className="text-xs">Sube PDF, MD, TXT, DOCX</p>
+          <p className="text-xs">o imágenes PNG, JPG</p>
+          <p className="text-[10px] mt-1 opacity-60">NOVA usará estos archivos como contexto</p>
         </button>
       )}
 
@@ -127,7 +147,17 @@ export function NovaChatContext({ docs, onDocsChange }: Props) {
               key={doc.id}
               className="flex items-start gap-2 rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-3 py-2"
             >
-              <FileText className="h-3.5 w-3.5 text-yellow-400 mt-0.5 shrink-0" />
+              {doc.isImage && doc.imageDataUrl ? (
+                <img
+                  src={doc.imageDataUrl}
+                  alt={doc.name}
+                  className="h-8 w-8 rounded object-cover shrink-0 border border-yellow-500/20"
+                />
+              ) : doc.isImage ? (
+                <Image className="h-3.5 w-3.5 text-yellow-400 mt-0.5 shrink-0" />
+              ) : (
+                <FileText className="h-3.5 w-3.5 text-yellow-400 mt-0.5 shrink-0" />
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate text-foreground">{doc.name}</p>
                 <p className="text-[9px] text-muted-foreground">

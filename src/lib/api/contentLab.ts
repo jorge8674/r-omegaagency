@@ -51,12 +51,15 @@ export async function generateContent(
   prompt: string,
   extraInstructions?: string
 ): Promise<GenerateResponse> {
-  return apiCall<GenerateResponse>("/content-lab/generate/", "POST", {
+  const params = new URLSearchParams({
     account_id: accountId,
     content_type: contentType,
-    prompt,
-    extra_instructions: extraInstructions || undefined,
+    brief: extraInstructions ? `${prompt}\n\n${extraInstructions}` : prompt,
   });
+  return apiCall<GenerateResponse>(
+    `/content-lab/generate/?${params.toString()}`,
+    "POST"
+  );
 }
 
 export async function listGeneratedContent(

@@ -24,6 +24,7 @@ import Competitive from "./pages/Competitive";
 import Growth from "./pages/Growth";
 import SettingsPage from "./pages/SettingsPage";
 import AdminResellers from "./pages/AdminResellers";
+import OmegaCompany from "./pages/OmegaCompany/index";
 import ResellerDashboard from "./pages/ResellerDashboard";
 import ResellerBranding from "./pages/ResellerBranding";
 import NotFound from "./pages/NotFound";
@@ -54,6 +55,11 @@ const App = () => (
               <Route path="/admin/resellers" element={
                 <OmegaProtectedRoute allowedRoles={["owner"]}>
                   <AppLayout><AdminResellers /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+              <Route path="/omega" element={
+                <OmegaProtectedRoute allowedRoles={["owner"]}>
+                  <AppLayout><OmegaCompany /></AppLayout>
                 </OmegaProtectedRoute>
               } />
 

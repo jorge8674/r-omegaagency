@@ -47,6 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      const normalizeRole = (u: AuthUser): AuthUser => {
+        if ((u.role as string) === "super_admin") u.role = "owner";
+        return u;
+      };
+
       try {
         const response = await fetch(`${API_BASE}/auth/me`, {
           headers: { Authorization: `Bearer ${savedToken}` },
@@ -54,17 +59,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (response.ok) {
           const data = await response.json();
-          setUser(data.data);
+          const authUser = normalizeRole(data.data as AuthUser);
+          setUser(authUser);
           setToken(savedToken);
-          localStorage.setItem("omega_client_id", data.data.id ?? "");
+          localStorage.setItem("omega_client_id", authUser.id ?? "");
         } else {
           localStorage.removeItem("omega_token");
           localStorage.removeItem("omega_user");
         }
       } catch {
-        // Offline fallback — use cached user
-        const user = JSON.parse(savedUser);
-        setUser(user);
+        // Offline fallback — use cached user, normalize role
+        const parsed = JSON.parse(savedUser) as AuthUser;
+        setUser(normalizeRole(parsed));
         setToken(savedToken);
       } finally {
         setIsLoading(false);
@@ -104,6 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const authUser: AuthUser = data.data;
+    // Normalize: backend may return 'super_admin' → map to 'owner'
+    if ((authUser.role as string) === "super_admin") authUser.role = "owner";
     const authToken: string = data.token;
 
     setToken(authToken);

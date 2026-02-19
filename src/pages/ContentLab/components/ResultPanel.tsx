@@ -1,12 +1,10 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import {
-  Copy, Bookmark, RotateCcw, Trash2, CheckCircle,
-  Download, Sparkles, Calendar as CalendarIcon,
-} from "lucide-react";
+import { useState } from "react";
+import { Sparkles } from "lucide-react";
 import { PlatformIcon } from "@/components/icons/PlatformIcon";
 import { ContentTypeIcon } from "@/components/icons/ContentTypeIcon";
 import { CONTENT_TYPE_LABELS, type ContentType, type GeneratedContent } from "@/lib/api/contentLab";
+import { ResultActions } from "./ResultActions";
+import { useResultAnalysis, type AnalysisType } from "../hooks/useResultAnalysis";
 
 interface ResultPanelProps {
   result: GeneratedContent | null;
@@ -22,7 +20,8 @@ export function ResultPanel({
   result, copied, isGenerating,
   onCopy, onSave, onDelete, onRegenerate,
 }: ResultPanelProps) {
-  const navigate = useNavigate();
+  const { analysisLoading, analysisResults, runAnalysis } = useResultAnalysis();
+  const [expandedAnalysis, setExpandedAnalysis] = useState<AnalysisType | null>(null);
 
   if (!result) {
     return (
@@ -38,24 +37,18 @@ export function ResultPanel({
   const isImage = result.content_type === "image";
   const typeLabel = CONTENT_TYPE_LABELS[result.content_type as ContentType]?.label;
 
-  const handleSchedule = (): void => {
-    const params = new URLSearchParams({
-      content_id: result.id,
-      account_id: result.account_id || "",
-      content_type: isImage ? "post" : result.content_type,
-      text: result.generated_text.slice(0, 500),
-    });
-    navigate(`/calendar?tab=schedule&${params.toString()}`);
+  const handleAnalysis = (type: AnalysisType): void => {
+    if (analysisResults[type]) {
+      setExpandedAnalysis(prev => (prev === type ? null : type));
+      return;
+    }
+    runAnalysis(type, result.generated_text, result.platform || "instagram");
+    setExpandedAnalysis(type);
   };
-
-  const scheduleButton = (
-    <Button variant="outline" size="sm" onClick={handleSchedule} disabled={!result.account_id}>
-      <CalendarIcon className="mr-1 h-4 w-4" /> Agendar
-    </Button>
-  );
 
   return (
     <div className="rounded-lg border border-border/50 bg-card p-4 space-y-3">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ContentTypeIcon type={result.content_type as ContentType} size={16} className="text-primary" />
@@ -67,50 +60,34 @@ export function ResultPanel({
         <span className="text-xs text-muted-foreground">{result.tokens_used} tokens</span>
       </div>
 
+      {/* Content */}
       {isImage ? (
-        <div className="space-y-3">
-          <img src={result.generated_text} alt="AI Generated" className="w-full rounded-lg border border-border/50" loading="lazy" />
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={onCopy}>
-              {copied ? <CheckCircle className="mr-1 h-4 w-4 text-green-500" /> : <Copy className="mr-1 h-4 w-4" />}
-              {copied ? "Copiado" : "Copiar URL"}
-            </Button>
-            <a href={result.generated_text} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" size="sm"><Download className="mr-1 h-4 w-4" /> Descargar</Button>
-            </a>
-            {scheduleButton}
-            <Button variant="outline" size="sm" onClick={() => onSave(result.id)}>
-              <Bookmark className={`mr-1 h-4 w-4 ${result.is_saved ? "fill-current" : ""}`} />
-              {result.is_saved ? "Guardado" : "Guardar"}
-            </Button>
-            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive ml-auto" onClick={() => onDelete(result.id)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <img src={result.generated_text} alt="AI Generated" className="w-full rounded-lg border border-border/50" loading="lazy" />
       ) : (
-        <>
-          <div className="bg-muted/30 rounded-lg p-4 min-h-[200px] whitespace-pre-wrap text-sm leading-relaxed">
-            {result.generated_text}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={onCopy}>
-              {copied ? <CheckCircle className="mr-1 h-4 w-4 text-green-500" /> : <Copy className="mr-1 h-4 w-4" />}
-              {copied ? "Copiado" : "Copiar"}
-            </Button>
-            {scheduleButton}
-            <Button variant="outline" size="sm" onClick={() => onSave(result.id)}>
-              <Bookmark className={`mr-1 h-4 w-4 ${result.is_saved ? "fill-current" : ""}`} />
-              {result.is_saved ? "Guardado" : "Guardar"}
-            </Button>
-            <Button variant="outline" size="sm" onClick={onRegenerate} disabled={isGenerating}>
-              <RotateCcw className="mr-1 h-4 w-4" /> Regenerar
-            </Button>
-            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive ml-auto" onClick={() => onDelete(result.id)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </>
+        <div className="bg-muted/30 rounded-lg p-4 min-h-[200px] whitespace-pre-wrap text-sm leading-relaxed">
+          {result.generated_text}
+        </div>
+      )}
+
+      {/* Actions */}
+      <ResultActions
+        result={result}
+        copied={copied}
+        isGenerating={isGenerating}
+        analysisLoading={analysisLoading}
+        onCopy={onCopy}
+        onSave={onSave}
+        onDelete={onDelete}
+        onRegenerate={onRegenerate}
+        onAnalysis={handleAnalysis}
+      />
+
+      {/* Analysis result */}
+      {expandedAnalysis && analysisResults[expandedAnalysis] && (
+        <div className="bg-muted/20 rounded-lg p-3 text-xs whitespace-pre-wrap border border-border/30 max-h-60 overflow-y-auto">
+          <span className="font-semibold text-primary capitalize">{expandedAnalysis}:</span>
+          <pre className="mt-1 text-muted-foreground">{analysisResults[expandedAnalysis]}</pre>
+        </div>
       )}
     </div>
   );

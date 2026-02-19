@@ -1,6 +1,6 @@
 import {
   FileText, MessageCircle, Circle, Megaphone,
-  Film, User, Hash, Mail, Image,
+  Film, User, Hash, Mail, Image, Video,
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import type { ContentType } from "@/lib/api/contentLab";
@@ -15,6 +15,7 @@ const CONTENT_TYPE_ICONS: Record<ContentType, React.FC<LucideProps>> = {
   hashtags: Hash,
   email: Mail,
   image: Image,
+  video: Video,
 };
 
 interface ContentTypeIconProps {

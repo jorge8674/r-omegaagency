@@ -2,7 +2,7 @@ import { apiCall } from "./core";
 
 export type ContentType =
   | "post" | "caption" | "story" | "ad"
-  | "reel_script" | "bio" | "hashtags" | "email" | "image";
+  | "reel_script" | "bio" | "hashtags" | "email" | "image" | "video";
 
 export const CONTENT_TYPE_LABELS: Record<ContentType, { label: string; emoji: string; desc: string }> = {
   post:        { label: "Post",         emoji: "📝", desc: "Post completo para feed" },
@@ -14,6 +14,7 @@ export const CONTENT_TYPE_LABELS: Record<ContentType, { label: string; emoji: st
   hashtags:    { label: "Hashtags",     emoji: "#️⃣", desc: "Set de 20-30 hashtags" },
   email:       { label: "Email",        emoji: "📧", desc: "Email de marketing" },
   image:       { label: "Imagen",      emoji: "",   desc: "Imagen con DALL-E 3" },
+  video:       { label: "Video/Reel",  emoji: "",   desc: "Video corto con Runway AI" },
 };
 
 export interface GeneratedContent {
@@ -32,6 +33,8 @@ export interface GeneratedContent {
 }
 
 export type ImageStyle = "realistic" | "cartoon" | "minimal";
+export type VideoStyle = "realistic" | "cinematic" | "animated";
+export type VideoDuration = 5 | 10;
 
 interface GenerateResponse {
   success: boolean;
@@ -96,6 +99,24 @@ export async function generateImage(
   });
   return apiCall<GenerateResponse>(
     `/content-lab/generate-image/?${params.toString()}`,
+    "POST"
+  );
+}
+
+export async function generateVideo(
+  accountId: string,
+  prompt: string,
+  duration: VideoDuration,
+  style: VideoStyle
+): Promise<GenerateResponse> {
+  const params = new URLSearchParams({
+    account_id: accountId,
+    prompt,
+    duration: String(duration),
+    style,
+  });
+  return apiCall<GenerateResponse>(
+    `/content-lab/generate-video-runway/?${params.toString()}`,
     "POST"
   );
 }

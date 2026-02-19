@@ -4,23 +4,15 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Video } from "lucide-react";
 import { PlatformIcon } from "@/components/icons/PlatformIcon";
 import { ContentTypeIcon } from "@/components/icons/ContentTypeIcon";
-import { CONTENT_TYPE_LABELS, type ContentType, type ImageStyle } from "@/lib/api/contentLab";
+import { CONTENT_TYPE_LABELS, type ContentType, type ImageStyle, type VideoStyle, type VideoDuration } from "@/lib/api/contentLab";
+import { VideoOptions } from "./VideoOptions";
+import { Progress } from "@/components/ui/progress";
 
-interface SocialAccount {
-  id: string;
-  platform: string;
-  username: string;
-  context_id?: string | null;
-}
-
-interface Client {
-  id: string;
-  name: string;
-  plan: string | null;
-}
+interface SocialAccount { id: string; platform: string; username: string; context_id?: string | null; }
+interface Client { id: string; name: string; plan: string | null; }
 
 interface ConfigPanelProps {
   clients: Client[];
@@ -31,8 +23,11 @@ interface ConfigPanelProps {
   language: string;
   prompt: string;
   imageStyle: ImageStyle;
+  videoStyle: VideoStyle;
+  videoDuration: VideoDuration;
   isGenerating: boolean;
   isGeneratingImage: boolean;
+  isGeneratingVideo: boolean;
   hasContext: boolean;
   onSelectClient: (id: string) => void;
   onSelectAccount: (id: string) => void;
@@ -40,6 +35,8 @@ interface ConfigPanelProps {
   onLanguageChange: (lang: string) => void;
   onPromptChange: (text: string) => void;
   onImageStyleChange: (style: ImageStyle) => void;
+  onVideoStyleChange: (style: VideoStyle) => void;
+  onVideoDurationChange: (d: VideoDuration) => void;
   onGenerate: () => void;
 }
 
@@ -51,13 +48,22 @@ const IMAGE_STYLES = [
 
 export function ConfigPanel({
   clients, accounts, selectedClientId, selectedAccountId,
-  contentType, language, prompt, imageStyle,
-  isGenerating, isGeneratingImage, hasContext,
+  contentType, language, prompt, imageStyle, videoStyle, videoDuration,
+  isGenerating, isGeneratingImage, isGeneratingVideo, hasContext,
   onSelectClient, onSelectAccount, onContentTypeChange,
-  onLanguageChange, onPromptChange, onImageStyleChange, onGenerate,
+  onLanguageChange, onPromptChange, onImageStyleChange,
+  onVideoStyleChange, onVideoDurationChange, onGenerate,
 }: ConfigPanelProps) {
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
-  const busy = contentType === "image" ? isGeneratingImage : isGenerating;
+  const busy = contentType === "video" ? isGeneratingVideo : contentType === "image" ? isGeneratingImage : isGenerating;
+
+  const promptPlaceholder = contentType === "video"
+    ? "Una oficina moderna con personas colaborando..."
+    : "Ej: Promo de verano con 20% descuento...";
+  const promptLabel = contentType === "video" ? "Describe la escena del video" : "Tema o instrucción";
+
+  const buttonLabel = contentType === "video" ? "Generar Video" : contentType === "image" ? "Generar Imagen" : "Generar Contenido";
+  const busyLabel = contentType === "video" ? "Generando video..." : contentType === "image" ? "Creando imagen..." : "Generando...";
 
   return (
     <div className="rounded-lg border border-border/50 bg-card p-4 space-y-4">
@@ -68,9 +74,7 @@ export function ConfigPanel({
         <Select value={selectedClientId} onValueChange={onSelectClient}>
           <SelectTrigger><SelectValue placeholder="Seleccionar cliente..." /></SelectTrigger>
           <SelectContent>
-            {clients.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.name} — {c.plan}</SelectItem>
-            ))}
+            {clients.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name} — {c.plan}</SelectItem>))}
           </SelectContent>
         </Select>
       </div>
@@ -126,6 +130,9 @@ export function ConfigPanel({
             </div>
           </div>
         )}
+        {contentType === "video" && (
+          <VideoOptions duration={videoDuration} style={videoStyle} onDurationChange={onVideoDurationChange} onStyleChange={onVideoStyleChange} />
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -140,16 +147,27 @@ export function ConfigPanel({
       </div>
 
       <div className="space-y-1.5">
-        <Label>Tema o instrucción</Label>
-        <Textarea value={prompt} onChange={(e) => onPromptChange(e.target.value)} placeholder="Ej: Promo de verano con 20% descuento..." rows={4} className="resize-none" />
+        <Label>{promptLabel}</Label>
+        <Textarea value={prompt} onChange={(e) => onPromptChange(e.target.value)} placeholder={promptPlaceholder} rows={4} className="resize-none" />
         <p className="text-xs text-muted-foreground text-right">{prompt.length}/1000</p>
       </div>
 
+      {isGeneratingVideo && (
+        <div className="space-y-2 p-3 rounded-lg bg-muted/30 border border-border/50">
+          <div className="flex items-center gap-2 text-sm">
+            <Video className="h-4 w-4 text-primary animate-pulse" />
+            <span>Generando video con Runway AI...</span>
+          </div>
+          <p className="text-xs text-muted-foreground">Esto puede tardar hasta 60 segundos</p>
+          <Progress value={undefined} className="h-2 animate-pulse" />
+        </div>
+      )}
+
       <Button className="w-full" onClick={onGenerate} disabled={busy || !selectedAccountId || !prompt.trim()}>
         {busy ? (
-          <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{contentType === "image" ? "Creando imagen..." : "Generando..."}</>
+          <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{busyLabel}</>
         ) : (
-          <><Sparkles className="mr-2 h-4 w-4" />{contentType === "image" ? "Generar Imagen" : "Generar Contenido"}</>
+          <><Sparkles className="mr-2 h-4 w-4" />{buttonLabel}</>
         )}
       </Button>
     </div>

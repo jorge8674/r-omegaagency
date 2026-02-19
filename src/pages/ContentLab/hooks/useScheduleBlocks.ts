@@ -11,6 +11,9 @@ export interface ScheduleBlock {
   id: string;
   items: ScheduleContentItem[];
   confirmed: boolean;
+  sent: boolean;
+  date?: string;
+  time: string;
 }
 
 interface PlanLimits {
@@ -27,81 +30,99 @@ const PLAN_LIMITS: Record<string, PlanLimits> = {
   enterprise: { maxBlocks: 999, maxItems: 999 },
 };
 
+const PLAN_LABELS: Record<string, string> = {
+  basico_97: "Plan Básico · 2 bloques · 3 contenidos c/u",
+  basic: "Plan Básico · 2 bloques · 3 contenidos c/u",
+  pro_197: "Plan Pro · 5 bloques · 3 contenidos c/u",
+  pro: "Plan Pro · 5 bloques · 3 contenidos c/u",
+  enterprise_497: "Plan Enterprise · Bloques ilimitados",
+  enterprise: "Plan Enterprise · Bloques ilimitados",
+};
+
 const DEFAULT_LIMITS: PlanLimits = { maxBlocks: 2, maxItems: 3 };
 
 /* ─── Hook ───────────────────────────────────── */
 
 export function useScheduleBlocks(plan?: string | null) {
   const limits = PLAN_LIMITS[plan || ""] || DEFAULT_LIMITS;
+  const planLabel = PLAN_LABELS[plan || ""] || "Plan Básico · 2 bloques · 3 contenidos c/u";
+
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
+
+  const makeBlock = (): ScheduleBlock => ({
+    id: crypto.randomUUID(), items: [], confirmed: false, sent: false, time: "09:00",
+  });
 
   const addContent = useCallback((item: ScheduleContentItem) => {
     setBlocks(prev => {
       const updated = prev.map(b => ({ ...b, items: [...b.items] }));
-
       if (updated.length === 0) {
-        return [{ id: crypto.randomUUID(), items: [item], confirmed: false }];
+        const nb = { ...makeBlock(), items: [item] };
+        setActiveBlockId(nb.id);
+        return [nb];
       }
-
-      const targetIdx = updated.findIndex(
-        b => !b.confirmed && b.items.length < limits.maxItems,
-      );
-
-      if (targetIdx >= 0) {
-        updated[targetIdx].items.push(item);
-        setActiveIndex(targetIdx);
+      const target = updated.find(b => b.id === (activeBlockId ?? ""));
+      if (target && !target.confirmed && target.items.length < limits.maxItems) {
+        target.items.push(item);
       } else if (updated.length < limits.maxBlocks) {
-        updated.push({ id: crypto.randomUUID(), items: [item], confirmed: false });
-        setActiveIndex(updated.length - 1);
+        const nb = { ...makeBlock(), items: [item] };
+        updated.push(nb);
+        setActiveBlockId(nb.id);
       }
-
       return updated;
     });
     setOpen(true);
     setMinimized(false);
-  }, [limits]);
+  }, [activeBlockId, limits]);
 
   const createBlock = useCallback(() => {
     setBlocks(prev => {
       if (prev.length >= limits.maxBlocks) return prev;
-      const next = [...prev, { id: crypto.randomUUID(), items: [], confirmed: false }];
-      setActiveIndex(next.length - 1);
-      return next;
+      const nb = makeBlock();
+      setActiveBlockId(nb.id);
+      return [...prev, nb];
     });
   }, [limits.maxBlocks]);
 
-  const deleteBlock = useCallback((index: number) => {
-    setBlocks(prev => prev.filter((_, i) => i !== index));
-    setActiveIndex(i => Math.max(0, i >= index ? i - 1 : i));
+  const deleteBlock = useCallback((id: string) => {
+    setBlocks(prev => {
+      const next = prev.filter(b => b.id !== id);
+      if (activeBlockId === id) setActiveBlockId(next[0]?.id ?? null);
+      return next;
+    });
+  }, [activeBlockId]);
+
+  const removeContent = useCallback((blockId: string, itemIdx: number) => {
+    setBlocks(prev => prev.map(b =>
+      b.id === blockId ? { ...b, items: b.items.filter((_, j) => j !== itemIdx) } : b,
+    ));
   }, []);
 
-  const confirmBlock = useCallback((index: number) => {
-    setBlocks(prev =>
-      prev.map((b, i) => (i === index ? { ...b, confirmed: true } : b)),
-    );
+  const setBlockDateTime = useCallback((id: string, date?: string, time?: string) => {
+    setBlocks(prev => prev.map(b =>
+      b.id === id ? { ...b, ...(date !== undefined && { date }), ...(time !== undefined && { time }) } : b,
+    ));
   }, []);
 
-  const removeContent = useCallback((blockIdx: number, itemIdx: number) => {
-    setBlocks(prev =>
-      prev.map((b, i) =>
-        i === blockIdx ? { ...b, items: b.items.filter((_, j) => j !== itemIdx) } : b,
-      ),
-    );
+  const confirmAll = useCallback(() => {
+    setBlocks(prev => prev.map(b => b.items.length > 0 ? { ...b, confirmed: true } : b));
+  }, []);
+
+  const markSent = useCallback((id: string) => {
+    setBlocks(prev => prev.map(b => b.id === id ? { ...b, sent: true } : b));
   }, []);
 
   const reset = useCallback(() => {
-    setBlocks([]);
-    setActiveIndex(0);
-    setOpen(false);
-    setMinimized(false);
+    setBlocks([]); setActiveBlockId(null); setOpen(false); setMinimized(false);
   }, []);
 
   return {
-    blocks, activeIndex, open, minimized, limits,
-    setActiveIndex, setOpen, setMinimized,
-    addContent, createBlock, deleteBlock, confirmBlock, removeContent, reset,
+    blocks, activeBlockId, open, minimized, limits, planLabel,
+    setActiveBlockId, setOpen, setMinimized,
+    addContent, createBlock, deleteBlock, removeContent,
+    setBlockDateTime, confirmAll, markSent, reset,
   };
 }

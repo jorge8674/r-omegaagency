@@ -48,10 +48,7 @@ export default function ContentLab() {
   const hasContext = !!selectedAccount?.context_id;
 
   const handleScheduleResult = (result: { generated_text: string; content_type: string }) => {
-    schedule.addContent({
-      generated_text: result.generated_text,
-      content_type: result.content_type,
-    });
+    schedule.addContent({ generated_text: result.generated_text, content_type: result.content_type });
   };
 
   return (
@@ -68,83 +65,59 @@ export default function ContentLab() {
       <div className="grid lg:grid-cols-5 gap-6">
         <div className="lg:col-span-2">
           <ConfigPanel
-            clients={clients}
-            accounts={accounts}
-            selectedClientId={selectedClientId}
-            selectedAccountId={selectedAccountId}
-            contentType={contentType}
-            language={language}
-            prompt={prompt}
-            imageStyle={imageStyle}
-            isGenerating={isGenerating}
-            isGeneratingImage={isGeneratingImage}
-            hasContext={hasContext}
-            onSelectClient={selectClient}
-            onSelectAccount={selectAccount}
-            onContentTypeChange={setContentType}
-            onLanguageChange={setLanguage}
-            onPromptChange={setPrompt}
-            onImageStyleChange={setImageStyle}
-            onGenerate={contentType === "image"
-              ? () => handleGenerateImage(hasContext)
-              : () => handleGenerate(hasContext)}
+            clients={clients} accounts={accounts}
+            selectedClientId={selectedClientId} selectedAccountId={selectedAccountId}
+            contentType={contentType} language={language} prompt={prompt}
+            imageStyle={imageStyle} isGenerating={isGenerating}
+            isGeneratingImage={isGeneratingImage} hasContext={hasContext}
+            onSelectClient={selectClient} onSelectAccount={selectAccount}
+            onContentTypeChange={setContentType} onLanguageChange={setLanguage}
+            onPromptChange={setPrompt} onImageStyleChange={setImageStyle}
+            onGenerate={contentType === "image" ? () => handleGenerateImage(hasContext) : () => handleGenerate(hasContext)}
           />
         </div>
 
         <div className="lg:col-span-3 space-y-4">
           {results.length === 0 ? (
-            <ResultPanel
-              result={null} copied={false} isGenerating={isGenerating}
+            <ResultPanel result={null} copied={false} isGenerating={isGenerating}
               onCopy={() => {}} onSave={() => {}} onDelete={() => {}}
-              onRegenerate={() => handleGenerate(hasContext)}
-            />
+              onRegenerate={() => handleGenerate(hasContext)} />
           ) : (
             results.map((result, index) => (
-              <ResultPanel
-                key={result.id ?? index}
-                result={result}
+              <ResultPanel key={result.id ?? index} result={result}
                 copied={copiedId === (result.id ?? `idx-${index}`)}
                 isGenerating={isGenerating}
-                onCopy={() => handleCopy(index)}
-                onSave={(id) => handleSave(id)}
+                onCopy={() => handleCopy(index)} onSave={(id) => handleSave(id)}
                 onDelete={(id) => handleDelete(id, index)}
                 onRegenerate={() => handleGenerate(hasContext)}
-                onSchedule={() => handleScheduleResult(result)}
-              />
+                onSchedule={() => handleScheduleResult(result)} />
             ))
           )}
-          <HistoryPanel
-            history={history}
-            onSelect={(item) => setResults(prev => [item, ...prev])}
-          />
+          <HistoryPanel history={history} onSelect={(item) => setResults(prev => [item, ...prev])} />
         </div>
       </div>
 
-      {/* Schedule modal (expanded) */}
       {schedule.open && !schedule.minimized && (
         <ScheduleModal
-          open
-          blocks={schedule.blocks}
-          activeIndex={schedule.activeIndex}
-          limits={schedule.limits}
+          open blocks={schedule.blocks}
+          activeBlockId={schedule.activeBlockId}
+          limits={schedule.limits} planLabel={schedule.planLabel}
           accountId={selectedAccountId}
-          onSetActive={schedule.setActiveIndex}
-          onConfirmBlock={schedule.confirmBlock}
+          onSetActive={schedule.setActiveBlockId}
           onDeleteBlock={schedule.deleteBlock}
           onRemoveItem={schedule.removeContent}
           onCreateBlock={schedule.createBlock}
+          onSetDateTime={schedule.setBlockDateTime}
+          onConfirmAll={schedule.confirmAll}
+          onMarkSent={schedule.markSent}
           onMinimize={() => schedule.setMinimized(true)}
           onClose={schedule.reset}
-          onSuccess={schedule.reset}
         />
       )}
 
-      {/* Minimized bar */}
       {schedule.minimized && schedule.blocks.length > 0 && (
-        <ScheduleMinBar
-          blockCount={schedule.blocks.length}
-          onExpand={() => { schedule.setMinimized(false); schedule.setOpen(true); }}
-        />
+        <ScheduleMinBar blockCount={schedule.blocks.length}
+          onExpand={() => { schedule.setMinimized(false); schedule.setOpen(true); }} />
       )}
     </div>
   );

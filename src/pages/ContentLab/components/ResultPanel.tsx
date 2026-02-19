@@ -42,7 +42,7 @@ export function ResultPanel({
       setExpandedAnalysis(prev => (prev === type ? null : type));
       return;
     }
-    runAnalysis(type, result.generated_text, result.platform || "instagram");
+    runAnalysis(type, result.generated_text, result.platform || "instagram", result.content_type);
     setExpandedAnalysis(type);
   };
 

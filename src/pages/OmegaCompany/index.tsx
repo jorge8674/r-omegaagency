@@ -1,6 +1,6 @@
 // 143 lines
 import { useState } from "react";
-import { RefreshCw, BarChart2, Network, Activity, FileText, Cpu, Brain, Shield } from "lucide-react";
+import { RefreshCw, BarChart2, Network, Activity, FileText, Cpu, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -18,7 +18,7 @@ import { SentinelDashboard } from "./components/SentinelDashboard";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-type Section = "resumen" | "organizacion" | "actividad" | "reportes" | "memoria" | "seguridad";
+type Section = "resumen" | "organizacion" | "actividad" | "reportes" | "memoria";
 
 const SECTIONS: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "resumen",      label: "Resumen",      icon: BarChart2 },
@@ -26,7 +26,6 @@ const SECTIONS: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "actividad",    label: "Actividad",    icon: Activity  },
   { id: "reportes",     label: "Reportes",     icon: FileText  },
   { id: "memoria",      label: "Memorias IA",  icon: Brain     },
-  { id: "seguridad",    label: "Seguridad",    icon: Shield    },
 ];
 
 export default function OmegaCompany() {
@@ -134,8 +133,6 @@ export default function OmegaCompany() {
       {active === "reportes" && <ReportsTab />}
 
       {active === "memoria" && <AgentMemoryViewer />}
-
-      {active === "seguridad" && <SentinelDashboard />}
     </div>
   );
 }

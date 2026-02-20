@@ -37,34 +37,48 @@ export function deleteReport(id: string): void {
 
 
 export function generateMarkdown(director: OrgDirector, dept: string): string {
-  const date = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" });
-  const agentsTable = director.sub_agents
-    .map((a: OrgSubAgent) => `| ${a.name} | ${a.code} | ${a.status} | — | — |`)
-    .join("\n");
+  const now = new Date();
+  const date = now.toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" });
+  const time = now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+  const activeCount = director.sub_agents.filter((a: OrgSubAgent) =>
+    ["active", "online", "in_task"].includes(a.status)
+  ).length;
+  const healthPct = Math.round(
+    (director.sub_agents.filter((a: OrgSubAgent) => ["active", "online"].includes(a.status)).length /
+      Math.max(director.sub_agents.length, 1)) * 100
+  );
+  const agentsTable = director.sub_agents.length > 0
+    ? director.sub_agents
+        .map((a: OrgSubAgent) => `| ${a.code} | ${a.name} | ${a.status} | ${director.performance_score} |`)
+        .join("\n")
+    : "| — | Sin sub-agentes registrados | — | — |";
 
-  return `# Reporte — ${director.name} — ${date}
+  return `# Reporte — ${director.code} (${dept.charAt(0).toUpperCase() + dept.slice(1)})
 
-## Resumen del Departamento
+**Generado:** ${date} a las ${time}
+**Solicitado por:** Ibrain
 
-- **Departamento:** ${dept.charAt(0).toUpperCase() + dept.slice(1)}
+## Resumen
+
 - **Director:** ${director.code} · ${director.name}
-- **Tasks hoy:** ${director.tasks_today}
-- **Performance:** ${director.performance_score}/100
+- **Departamento:** ${dept.charAt(0).toUpperCase() + dept.slice(1)}
+- **Sub-agentes:** ${activeCount} activos / ${director.sub_agents.length} total
+- **Performance promedio:** ${director.performance_score}/100
 
 ## Estado de Agentes
 
-| Agente | Código | Status | Tasks | Score |
-|--------|--------|--------|-------|-------|
+| Código | Nombre | Status | Score |
+|--------|--------|--------|-------|
 ${agentsTable}
-
-## Actividad Reciente
-
-_Consultar feed de actividad en el panel OMEGA._
 
 ## Métricas Clave
 
-- Agentes activos: ${director.sub_agents.filter((a) => ["active","online","in_task"].includes(a.status)).length}/${director.sub_agents.length}
-- Tasa de salud: ${Math.round((director.sub_agents.filter((a) => ["active","online"].includes(a.status)).length / Math.max(director.sub_agents.length, 1)) * 100)}%
+- Tasa de salud: ${healthPct}%
+- Tasks hoy: ${director.tasks_today}
+
+## Notas
+
+_Consultar feed de actividad en el panel OMEGA → Actividad._
 `;
 }
 

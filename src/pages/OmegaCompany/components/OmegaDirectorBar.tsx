@@ -57,7 +57,12 @@ export function OmegaDirectorBar() {
   }
 
   const ceo = data?.ceo;
-  const directors = data?.directors ?? [];
+
+  const ORDER = ['marketing','tech','operations','finance','community','futures','people','security'];
+  const rawDirectors = (data?.directors ?? []).filter(d => d.code !== 'NOVA');
+  const directors = ORDER
+    .map(dept => rawDirectors.find(d => d.department.toLowerCase() === dept))
+    .filter((d): d is NonNullable<typeof d> => d !== undefined);
 
   return (
     <div className="flex items-start gap-3 overflow-x-auto pb-2 scrollbar-thin">

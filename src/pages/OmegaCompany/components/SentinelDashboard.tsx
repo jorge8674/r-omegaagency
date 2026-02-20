@@ -134,14 +134,14 @@ export function SentinelDashboard() {
       {/* ── Issues ── */}
       <div className="space-y-2">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Issues Activos</h2>
-        {status.issues.length === 0 ? (
+        {(status.issues ?? []).length === 0 ? (
           <div className="flex items-center gap-2 text-green-500 text-sm p-3 rounded-lg bg-green-500/10 border border-green-500/20">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
             Sistema seguro. 0 issues activos.
           </div>
         ) : (
           <div className="space-y-2">
-            {status.issues.map((issue, i) => (
+            {(status.issues ?? []).map((issue, i) => (
               <div key={i} className="flex items-start gap-3 p-3 rounded-lg border border-border/40 bg-card/50">
                 <Badge variant={issueBadgeVariant(issue.severity)} className="text-[10px] shrink-0">
                   {issue.severity}

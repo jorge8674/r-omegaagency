@@ -152,16 +152,30 @@ function normalizeOrgChart(raw: BackendOrgChart): OrgChart {
 }
 
 const STATIC_FALLBACK: OrgChart = normalizeOrgChart({
-  departments: ["marketing", "tech", "operations", "finance", "community", "futures", "people"],
-  total_agents: 45,
+  departments: ["marketing", "tech", "operations", "finance", "community", "futures", "people", "security"],
+  total_agents: 58,
   org_chart: {
-    marketing:  { director: { agent_code: "ATLAS",  name: "ATLAS — Marketing Director",    status: "active", performance_score: 95, tasks_completed_total: 2847 }, sub_agents: [] },
-    tech:       { director: { agent_code: "LUNA",   name: "LUNA — Product & Tech Director", status: "active", performance_score: 98, tasks_completed_total: 3201 }, sub_agents: [] },
-    operations: { director: { agent_code: "REX",    name: "REX — Operations Director",      status: "active", performance_score: 92, tasks_completed_total: 2654 }, sub_agents: [] },
-    finance:    { director: { agent_code: "VERA",   name: "VERA — Finance Director",        status: "active", performance_score: 96, tasks_completed_total: 1876 }, sub_agents: [] },
-    community:  { director: { agent_code: "KIRA",   name: "KIRA — Community Director",      status: "active", performance_score: 94, tasks_completed_total: 2123 }, sub_agents: [] },
-    futures:    { director: { agent_code: "ORACLE", name: "ORACLE — Futures Director",      status: "idle",   performance_score: 91, tasks_completed_total: 1534 }, sub_agents: [] },
-    people:     { director: { agent_code: "SOPHIA", name: "SOPHIA — People & HR Director",  status: "active", performance_score: 97, tasks_completed_total: 1987 }, sub_agents: [] },
+    marketing:  { director: { agent_code: "ATLAS",    name: "ATLAS — Marketing Director",        status: "active", performance_score: 95, tasks_completed_total: 2847 }, sub_agents: [] },
+    tech:       { director: { agent_code: "LUNA",     name: "LUNA — Product & Tech Director",    status: "active", performance_score: 98, tasks_completed_total: 3201 }, sub_agents: [] },
+    operations: { director: { agent_code: "REX",      name: "REX — Operations Director",         status: "active", performance_score: 92, tasks_completed_total: 2654 }, sub_agents: [] },
+    finance:    { director: { agent_code: "VERA",     name: "VERA — Finance Director",           status: "active", performance_score: 96, tasks_completed_total: 1876 }, sub_agents: [] },
+    community:  { director: { agent_code: "KIRA",     name: "KIRA — Community Director",         status: "active", performance_score: 94, tasks_completed_total: 2123 }, sub_agents: [] },
+    futures:    { director: { agent_code: "ORACLE",   name: "ORACLE — Futures Director",         status: "idle",   performance_score: 91, tasks_completed_total: 1534 }, sub_agents: [] },
+    people:     { director: { agent_code: "SOPHIA",   name: "SOPHIA — People & HR Director",     status: "active", performance_score: 97, tasks_completed_total: 1987 }, sub_agents: [] },
+    security:   { director: { agent_code: "SENTINEL", name: "SENTINEL — Security Director",  status: "active", performance_score: 99, tasks_completed_total: 3850 }, sub_agents: [
+      { agent_code: "VAULT",         name: "VAULT — Secrets & Keys Manager",        status: "active",   description: "Gestión segura de claves API y secretos del sistema.",        performance_score: 97, tasks_completed_total: 412 },
+      { agent_code: "FORTRESS",      name: "FORTRESS — Perimeter Defense",          status: "active",   description: "Monitoreo y defensa del perímetro de red.",                  performance_score: 95, tasks_completed_total: 388 },
+      { agent_code: "PULSE_MONITOR", name: "PULSE — System Health Monitor",         status: "active",   description: "Monitoreo continuo de salud del sistema 24/7.",              performance_score: 99, tasks_completed_total: 520 },
+      { agent_code: "CIPHER",        name: "CIPHER — Encryption Specialist",        status: "active",   description: "Cifrado end-to-end de datos sensibles.",                     performance_score: 98, tasks_completed_total: 301 },
+      { agent_code: "PHANTOM",       name: "PHANTOM — Threat Intelligence",         status: "in_task",  description: "Análisis proactivo de amenazas externas.",                   performance_score: 93, tasks_completed_total: 275 },
+      { agent_code: "IRONWALL",      name: "IRONWALL — Access Control",             status: "active",   description: "Control granular de accesos y permisos.",                    performance_score: 96, tasks_completed_total: 348 },
+      { agent_code: "TRACE",         name: "TRACE — Audit & Compliance",            status: "active",   description: "Trazabilidad y cumplimiento normativo.",                     performance_score: 94, tasks_completed_total: 290 },
+      { agent_code: "SHIELD",        name: "SHIELD — Incident Response",            status: "idle",     description: "Respuesta rápida ante incidentes de seguridad.",             performance_score: 91, tasks_completed_total: 187 },
+      { agent_code: "WATCHDOG",      name: "WATCHDOG — Anomaly Detection",          status: "active",   description: "Detección de anomalías y comportamientos inusuales.",        performance_score: 97, tasks_completed_total: 445 },
+      { agent_code: "LOCKBOX",       name: "LOCKBOX — Data Classification",         status: "in_task",  description: "Clasificación automática de datos por nivel de sensibilidad.", performance_score: 92, tasks_completed_total: 213 },
+      { agent_code: "SENTRY",        name: "SENTRY — API Gateway Guardian",         status: "active",   description: "Protección y validación de todas las llamadas API.",         performance_score: 96, tasks_completed_total: 367 },
+      { agent_code: "AEGIS",         name: "AEGIS — Zero Trust Enforcer",           status: "active",   description: "Implementación de arquitectura zero-trust.",                 performance_score: 98, tasks_completed_total: 304 },
+    ]},
   },
 });
 

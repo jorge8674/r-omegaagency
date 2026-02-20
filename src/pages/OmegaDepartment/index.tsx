@@ -20,6 +20,7 @@ const DEPT_TITLE: Record<string, string> = {
   community:  "text-purple-400",
   futures:    "text-indigo-400",
   people:     "text-pink-400",
+  security:   "text-rose-400",
 };
 
 export default function OmegaDepartment() {

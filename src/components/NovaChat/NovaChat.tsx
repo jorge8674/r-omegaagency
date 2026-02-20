@@ -13,10 +13,10 @@ interface Props {
 }
 
 export function NovaChat({ onClose, onMinimize }: Props) {
-  const { messages, isLoading, error, send, clearHistory } = useNovaChat();
+  const [docs, setDocs] = useState<ContextDoc[]>(() => loadContextDocs());
+  const { messages, isLoading, error, send, clearHistory } = useNovaChat(docs);
   const [input, setInput] = useState("");
   const [tab, setTab] = useState<Tab>("chat");
-  const [docs, setDocs] = useState<ContextDoc[]>(() => loadContextDocs());
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 

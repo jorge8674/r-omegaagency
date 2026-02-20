@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { loadContextDocs } from "./NovaChatContext";
+import type { ContextDoc } from "./NovaChatContext";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -48,7 +48,7 @@ async function loadRemoteHistory(): Promise<ChatMessage[]> {
   } catch { return []; }
 }
 
-export function useNovaChat() {
+export function useNovaChat(contextDocs: ContextDoc[] = []) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +56,10 @@ export function useNovaChat() {
   // Ref para evitar stale closure en send
   const messagesRef = useRef<ChatMessage[]>([]);
   messagesRef.current = messages;
+
+  // Ref to always have latest contextDocs without re-creating send callback
+  const contextDocsRef = useRef<ContextDoc[]>(contextDocs);
+  contextDocsRef.current = contextDocs;
 
   useEffect(() => {
     loadRemoteHistory().then(setMessages);
@@ -80,9 +84,9 @@ export function useNovaChat() {
     setIsLoading(true);
 
     try {
-      const contextDocs = loadContextDocs().map((d) => ({
+      const mappedDocs = contextDocsRef.current.map((d) => ({
         name: d.name,
-        content: d.content,
+        content: d.content.substring(0, 2000), // limitar por doc
       }));
 
       const response = await fetch(`${API_BASE}/nova/chat/`, {
@@ -93,7 +97,7 @@ export function useNovaChat() {
             role: m.role,
             content: m.content,
           })),
-          context_docs: contextDocs,
+          context_docs: mappedDocs,
         }),
       });
 

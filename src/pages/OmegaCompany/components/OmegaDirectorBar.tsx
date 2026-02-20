@@ -59,7 +59,7 @@ export function OmegaDirectorBar() {
   const ceo = data?.ceo;
 
   const ORDER = ['marketing','tech','operations','finance','community','futures','people','security'];
-  const rawDirectors = (data?.directors ?? []).filter(d => d.code !== 'NOVA');
+  const rawDirectors = (data?.directors ?? []).filter(d => d.code !== 'NOVA' && d.department !== 'ceo');
   const directors = ORDER
     .map(dept => rawDirectors.find(d => d.department.toLowerCase() === dept))
     .filter((d): d is NonNullable<typeof d> => d !== undefined);

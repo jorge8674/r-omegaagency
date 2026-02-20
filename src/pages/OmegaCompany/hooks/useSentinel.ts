@@ -54,7 +54,13 @@ export function useSentinel() {
     queryFn: async () => {
       try {
         const res = await apiCall<SentinelStatus>("/sentinel/status/");
-        return res ?? FALLBACK;
+        if (!res) return FALLBACK;
+        return {
+          ...FALLBACK,
+          ...res,
+          agents: Array.isArray(res.agents) ? res.agents : FALLBACK.agents,
+          issues: Array.isArray(res.issues) ? res.issues : FALLBACK.issues,
+        };
       } catch {
         return FALLBACK;
       }

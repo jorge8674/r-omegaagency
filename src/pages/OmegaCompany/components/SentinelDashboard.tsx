@@ -127,7 +127,7 @@ export function SentinelDashboard() {
       <div className="space-y-2">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agentes de Seguridad</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {status.agents.map((agent) => <AgentCard key={agent.name} agent={agent} />)}
+          {(Array.isArray(status.agents) ? status.agents : []).map((agent) => <AgentCard key={agent.name} agent={agent} />)}
         </div>
       </div>
 

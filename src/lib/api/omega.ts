@@ -121,7 +121,7 @@ function normalizeOrgChart(raw: BackendOrgChart): OrgChart {
   const deptMap = raw.org_chart ?? {};
   const departments = raw.departments ?? Object.keys(deptMap);
 
-  const directors: OrgDirector[] = departments.map((dept) => {
+  const directors: OrgDirector[] = departments.filter(d => d !== 'ceo').map((dept) => {
     const entry = deptMap[dept];
     const d = entry?.director;
     const subs = (entry?.sub_agents ?? []).map((s, i) => ({

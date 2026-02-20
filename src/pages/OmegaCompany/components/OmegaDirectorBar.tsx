@@ -1,7 +1,7 @@
 // 98 lines
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Crown, Users, Shield } from "lucide-react";
+import { Crown, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { omegaApi, type OrgAgentStatus } from "@/lib/api/omega";
 
@@ -107,22 +107,6 @@ export function OmegaDirectorBar() {
         );
       })}
 
-      {/* SENTINEL — Security director (static) */}
-      <button
-        onClick={() => navigate("/omega/department/security")}
-        className="shrink-0 flex flex-col items-center gap-1.5 rounded-xl border border-rose-500/50 bg-rose-500/5 hover:bg-rose-500/10 shadow-sm shadow-rose-500/10 px-4 py-2.5 min-w-[100px] transition-all duration-150 hover:scale-[1.03] cursor-pointer"
-      >
-        <div className="flex items-center gap-1.5">
-          <div className="h-2 w-2 rounded-full shrink-0 bg-emerald-500 animate-pulse" />
-          <span className="font-mono text-xs font-bold text-rose-400">SENTINEL</span>
-        </div>
-        <Shield className="h-3 w-3 text-rose-400/70" />
-        <span className="text-[10px] text-muted-foreground">Security</span>
-        <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-          <Users className="h-2.5 w-2.5" />
-          <span>1 ag.</span>
-        </div>
-      </button>
     </div>
   );
 }

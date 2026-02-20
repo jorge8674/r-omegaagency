@@ -21,6 +21,7 @@ const DEPT_STYLE: Record<string, { border: string; text: string; bg: string }> =
   community:  { border: "border-purple-500/50",  text: "text-purple-400",  bg: "bg-purple-500/5" },
   futures:    { border: "border-indigo-500/50",  text: "text-indigo-400",  bg: "bg-indigo-500/5" },
   people:     { border: "border-pink-500/50",    text: "text-pink-400",    bg: "bg-pink-500/5" },
+  security:   { border: "border-rose-500/50",    text: "text-rose-400",    bg: "bg-rose-500/10" },
 };
 
 interface Props {

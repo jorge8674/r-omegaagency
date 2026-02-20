@@ -46,7 +46,10 @@ async function extractText(
   const isImage = file.type.startsWith("image/");
   const isText =
     file.type === "text/plain" ||
+    file.type === "text/markdown" ||
+    file.type === "text/x-markdown" ||
     file.name.endsWith(".md") ||
+    file.name.endsWith(".markdown") ||
     file.name.endsWith(".txt");
   const isDocx =
     file.type ===

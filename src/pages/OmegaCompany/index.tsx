@@ -1,4 +1,4 @@
-// 143 lines
+// 148 lines
 import { useState } from "react";
 import { RefreshCw, BarChart2, Network, Activity, FileText, Cpu, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { useOmegaDashboard } from "./hooks/useOmegaDashboard";
 import { RevenueCards } from "./components/RevenueCards";
 import { ResellersTable } from "./components/ResellersTable";
+import { ClientsList } from "./components/ClientsList";
 import { ContentAgentsStats } from "./components/ContentAgentsStats";
 import { OmegaActivityFeed } from "./components/OmegaActivityFeed";
 import { OmegaOrgChart } from "./components/OmegaOrgChart";
@@ -14,7 +15,6 @@ import { OmegaDirectorBar } from "./components/OmegaDirectorBar";
 import { ReportsTab } from "./components/ReportsTab";
 import { AgentMemoryViewer } from "./components/AgentMemoryViewer";
 import { UpcomingPosts } from "./components/UpcomingPosts";
-import { SentinelDashboard } from "./components/SentinelDashboard";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -103,6 +103,13 @@ export default function OmegaCompany() {
               Resellers
             </h2>
             <ResellersTable resellers={resellers} loading={resellersLoading} />
+          </div>
+          <Separator className="opacity-40" />
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Clientes
+            </h2>
+            <ClientsList />
           </div>
           <Separator className="opacity-40" />
           <div className="space-y-3">

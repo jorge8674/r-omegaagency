@@ -1,7 +1,7 @@
 // 98 lines
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Crown, Users } from "lucide-react";
+import { Crown, Users, Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { omegaApi, type OrgAgentStatus } from "@/lib/api/omega";
 
@@ -23,6 +23,7 @@ const DEPT_STYLE: Record<string, { border: string; text: string; glow: string }>
   community:  { border: "border-purple-500/50",  text: "text-purple-400",  glow: "shadow-purple-500/10" },
   futures:    { border: "border-indigo-500/50",  text: "text-indigo-400",  glow: "shadow-indigo-500/10" },
   people:     { border: "border-pink-500/50",    text: "text-pink-400",    glow: "shadow-pink-500/10" },
+  security:   { border: "border-rose-500/50",    text: "text-rose-400",    glow: "shadow-rose-500/10" },
 };
 
 const DEPT_BG: Record<string, string> = {
@@ -33,6 +34,7 @@ const DEPT_BG: Record<string, string> = {
   community:  "bg-purple-500/5 hover:bg-purple-500/10",
   futures:    "bg-indigo-500/5 hover:bg-indigo-500/10",
   people:     "bg-pink-500/5 hover:bg-pink-500/10",
+  security:   "bg-rose-500/5 hover:bg-rose-500/10",
 };
 
 export function OmegaDirectorBar() {
@@ -104,6 +106,23 @@ export function OmegaDirectorBar() {
           </button>
         );
       })}
+
+      {/* SENTINEL — Security director (static) */}
+      <button
+        onClick={() => navigate("/omega/department/security")}
+        className="shrink-0 flex flex-col items-center gap-1.5 rounded-xl border border-rose-500/50 bg-rose-500/5 hover:bg-rose-500/10 shadow-sm shadow-rose-500/10 px-4 py-2.5 min-w-[100px] transition-all duration-150 hover:scale-[1.03] cursor-pointer"
+      >
+        <div className="flex items-center gap-1.5">
+          <div className="h-2 w-2 rounded-full shrink-0 bg-emerald-500 animate-pulse" />
+          <span className="font-mono text-xs font-bold text-rose-400">SENTINEL</span>
+        </div>
+        <Shield className="h-3 w-3 text-rose-400/70" />
+        <span className="text-[10px] text-muted-foreground">Security</span>
+        <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+          <Users className="h-2.5 w-2.5" />
+          <span>1 ag.</span>
+        </div>
+      </button>
     </div>
   );
 }

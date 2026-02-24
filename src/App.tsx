@@ -29,6 +29,7 @@ import AdminResellers from "./pages/AdminResellers";
 import OmegaCompany from "./pages/OmegaCompany/index";
 import ResellerDashboard from "./pages/ResellerDashboard";
 import ResellerBranding from "./pages/ResellerBranding";
+import ResellerDetail from "./pages/ResellerDetail/index";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
 import Pricing from "./pages/Pricing";
@@ -58,6 +59,11 @@ const App = () => (
               <Route path="/admin/resellers" element={
                 <OmegaProtectedRoute allowedRoles={["owner"]}>
                   <AppLayout><AdminResellers /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+              <Route path="/resellers/:id" element={
+                <OmegaProtectedRoute allowedRoles={["owner"]}>
+                  <AppLayout><ResellerDetail /></AppLayout>
                 </OmegaProtectedRoute>
               } />
               <Route path="/omega" element={

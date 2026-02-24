@@ -64,7 +64,7 @@ function ResellerCard({ r, onNavigate }: { r: OmegaReseller; onNavigate: (path: 
         className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
-        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Ver detalle" onClick={() => onNavigate(`/admin/resellers`)}>
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Ver detalle" onClick={() => onNavigate(`/resellers/${r.id}`)}>
           <Eye className="h-3.5 w-3.5" />
         </Button>
         <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Ver clientes" onClick={() => onNavigate(`/clients?reseller=${r.id}`)}>

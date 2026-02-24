@@ -49,7 +49,14 @@ export interface ClientActivityItem {
 export function useClientDetail(clientId: string | undefined) {
   const client = useQuery<ClientDetailData>({
     queryKey: ["client-detail", clientId],
-    queryFn: () => apiCall<ClientDetailData>(`/clients/${clientId}/`),
+    queryFn: async () => {
+      const raw = await apiCall<Record<string, unknown>>(`/clients/${clientId}/`);
+      return {
+        ...raw,
+        company: (raw.business_name as string | null) ?? (raw.company as string | null) ?? null,
+        active: raw.active === true || raw.status === "active",
+      } as ClientDetailData;
+    },
     enabled: !!clientId,
     retry: 0,
   });

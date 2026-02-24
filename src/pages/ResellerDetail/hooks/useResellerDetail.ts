@@ -58,15 +58,25 @@ export function useResellerDetail(resellerId: string | undefined) {
   const reseller = useQuery<ResellerDetailData>({
     queryKey: ["reseller-detail", resellerId],
     queryFn: async () => {
-      const raw = await apiCall<Record<string, unknown>>(`/resellers/${resellerId}`, "GET", undefined, h);
+      const raw = await apiCall<Record<string, unknown>>(
+        `/resellers/${resellerId}/`, "GET", undefined, h,
+      );
+      // API returns: contact_name, email, commission_rate, mrr_generated
+      // We normalize to: owner_name, owner_email, omega_commission_rate, monthly_revenue_reported
       return {
         ...raw,
+        owner_name: (raw.contact_name as string | null) ?? (raw.owner_name as string | null) ?? null,
+        owner_email: (raw.email as string | null) ?? (raw.owner_email as string | null) ?? null,
+        omega_commission_rate: (raw.commission_rate as number) ?? (raw.omega_commission_rate as number) ?? 0,
+        monthly_revenue_reported: (raw.mrr_generated as number) ?? (raw.monthly_revenue_reported as number) ?? 0,
         plan: (raw.plan as string | null) ?? "starter",
         clients_count: (raw.clients_count as number) ?? 0,
         setup_fee_paid: (raw.setup_fee_paid as boolean) ?? false,
         monthly_license: (raw.monthly_license as number) ?? 0,
         phone: (raw.phone as string | null) ?? null,
         notes: (raw.notes as string | null) ?? null,
+        slug: (raw.slug as string | null) ?? "",
+        white_label_active: (raw.white_label_active as boolean) ?? false,
       } as ResellerDetailData;
     },
     enabled: !!resellerId,
@@ -76,10 +86,11 @@ export function useResellerDetail(resellerId: string | undefined) {
   const clients = useQuery<ResellerClient[]>({
     queryKey: ["reseller-clients", resellerId],
     queryFn: async () => {
-      const res = await apiCall<{ data?: ResellerClient[]; clients?: ResellerClient[] }>(
-        `/resellers/${resellerId}/clients`, "GET", undefined, h,
+      const res = await apiCall<{ data?: { clients?: ResellerClient[] }; clients?: ResellerClient[] }>(
+        `/resellers/${resellerId}/clients/`, "GET", undefined, h,
       );
-      return res?.data ?? res?.clients ?? [];
+      const inner = res?.data as Record<string, unknown> | undefined;
+      return (inner?.clients as ResellerClient[]) ?? res?.clients ?? [];
     },
     enabled: !!resellerId,
     retry: 0,
@@ -87,7 +98,7 @@ export function useResellerDetail(resellerId: string | undefined) {
 
   const stats = useQuery<ResellerStatsData>({
     queryKey: ["reseller-stats", resellerId],
-    queryFn: () => apiCall<ResellerStatsData>(`/resellers/${resellerId}/stats`, "GET", undefined, h),
+    queryFn: () => apiCall<ResellerStatsData>(`/resellers/${resellerId}/stats/`, "GET", undefined, h),
     enabled: !!resellerId,
     retry: 0,
   });
@@ -96,7 +107,7 @@ export function useResellerDetail(resellerId: string | undefined) {
     queryKey: ["reseller-activity", resellerId],
     queryFn: async () => {
       const res = await apiCall<{ data?: ResellerActivityItem[] }>(
-        `/resellers/${resellerId}/activity`, "GET", undefined, h,
+        `/resellers/${resellerId}/activity/`, "GET", undefined, h,
       );
       return Array.isArray(res?.data) ? res.data : [];
     },

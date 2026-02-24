@@ -17,13 +17,14 @@ export function ResellerMetricCards({ reseller }: Props) {
   const plan = (reseller.plan ?? "starter").toLowerCase();
   const mrr = reseller.monthly_revenue_reported ?? 0;
   const rate = reseller.omega_commission_rate ?? 0;
-  const commission = mrr * (rate / 100);
+  const pct = rate < 1 ? rate * 100 : rate;
+  const commission = mrr * (rate < 1 ? rate : rate / 100);
 
   const cards = [
     { icon: Crown, label: "Plan", value: plan, sub: PLAN_PRICE[plan] ?? "—" },
     { icon: Users, label: "Clientes", value: `${reseller.clients_count} activos`, sub: "" },
     { icon: DollarSign, label: "MRR Generado", value: fmt(mrr), sub: "/mes" },
-    { icon: Percent, label: "Comisión", value: fmt(commission), sub: `(${rate}%)` },
+    { icon: Percent, label: "Comisión", value: fmt(commission), sub: `(${pct}%)` },
   ];
 
   return (

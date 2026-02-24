@@ -15,7 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import OmegaDepartment from "./pages/OmegaDepartment/index";
 import Clients from "./pages/Clients/index";
 import AgentsPage from "./pages/Agents/index";
-import ClientDetail from "./pages/ClientDetail";
+import ClientDetail from "./pages/ClientDetail/index";
 
 import ContentLab from "./pages/ContentLab/index";
 import CalendarPage from "./pages/Calendar/index";

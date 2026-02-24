@@ -135,7 +135,7 @@ export default function ClientDetail() {
         </TabsContent>
 
         <TabsContent value="agents">
-          <ClientAgentsTab agents={agentsList} loading={agents.isLoading} />
+          <ClientAgentsTab agents={agentsList} loading={agents.isLoading} clientId={id ?? ""} clientName={c.name} onRefetch={() => agents.refetch()} />
         </TabsContent>
         <TabsContent value="content">
           <ClientContentTab content={contentList} loading={content.isLoading} />

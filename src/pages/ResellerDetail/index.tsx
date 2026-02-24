@@ -50,8 +50,9 @@ export default function ResellerDetail() {
   const plan = (r.plan ?? "starter").toLowerCase();
   const pb = PLAN_BADGE[plan] ?? PLAN_BADGE.starter;
   const rate = r.omega_commission_rate ?? 0;
+  const pct = rate < 1 ? rate * 100 : rate;
   const mrr = r.monthly_revenue_reported ?? 0;
-  const commission = mrr * (rate / 100);
+  const commission = mrr * (rate < 1 ? rate : rate / 100);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
@@ -138,7 +139,7 @@ export default function ResellerDetail() {
                   {[
                     { label: "Plan", value: <Badge variant="outline" className={pb.cls}>{pb.label}</Badge> },
                     { label: "Licencia mensual", value: fmt(r.monthly_license ?? 0) },
-                    { label: "Commission rate", value: `${rate}%` },
+                    { label: "Commission rate", value: `${pct}%` },
                     { label: "Comisión estimada", value: <span className="text-amber-400 font-semibold">{fmt(commission)}/mes</span> },
                   ].map((row) => (
                     <div key={row.label} className="flex justify-between items-center py-1.5 border-b border-border/10 last:border-0">

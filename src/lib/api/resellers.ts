@@ -20,7 +20,7 @@ export const resellersApi = {
     apiCall<ResellerListResponse>("/resellers/all", "GET", undefined, authHeaders()),
 
   getById: (id: string) =>
-    apiCall<ResellerBase>(`/resellers/${id}`, "GET", undefined, authHeaders()),
+    apiCall<ResellerBase>(`/resellers/${id}/`, "GET", undefined, authHeaders()),
 
   create: (data: ResellerCreateRequest) =>
     apiCall<ResellerBase>("/resellers/create", "POST", data as unknown as Record<string, unknown>, authHeaders()),

@@ -11,8 +11,9 @@ const fmt = (n: number) =>
 
 export function ResellerBillingTab({ reseller }: Props) {
   const rate = reseller.omega_commission_rate ?? 0;
+  const pct = rate < 1 ? rate * 100 : rate;
   const mrr = reseller.monthly_revenue_reported ?? 0;
-  const commission = mrr * (rate / 100);
+  const commission = mrr * (rate < 1 ? rate : rate / 100);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -44,7 +45,7 @@ export function ResellerBillingTab({ reseller }: Props) {
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-muted-foreground">Comisión ({rate}%)</span>
+            <span className="text-xs text-muted-foreground">Comisión ({pct}%)</span>
             <span className="text-sm font-semibold text-amber-400">{fmt(commission)}/mes</span>
           </div>
         </CardContent>

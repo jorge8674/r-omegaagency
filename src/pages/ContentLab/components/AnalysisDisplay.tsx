@@ -1,4 +1,5 @@
 import { BarChart3, Flame, Lightbulb, Heart, MessageCircle, Share2, Eye, TrendingUp } from "lucide-react";
+// Badge used by ForecastDisplay and ViralityDisplay
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 
@@ -98,48 +99,42 @@ export function ViralityDisplay({ data }: { data: ViralityData }) {
 
 /* ---------- Insight ---------- */
 interface InsightData {
-  ai_insight?: string;
-  key_themes?: string[];
-  sentiment?: string;
-  target_audience?: string;
-  improvement_suggestions?: string[];
+  insights?: string;
+  ai_analysis?: string;
+  content_metrics?: { length?: number; estimated_read_time_seconds?: number };
   [key: string]: unknown;
 }
 
 export function InsightDisplay({ data }: { data: InsightData }) {
+  const metrics = data.content_metrics;
+
   return (
     <div className="rounded-lg border border-border/40 bg-card p-4 space-y-3 text-sm">
       <span className="font-semibold flex items-center gap-1.5">
         <Lightbulb className="h-4 w-4 text-yellow-500" /> Insight
       </span>
 
-      {data.sentiment && (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Sentimiento:</span>
-          <Badge variant="outline" className="text-xs capitalize">{data.sentiment}</Badge>
+      {metrics && (
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>{metrics.length?.toLocaleString()} caracteres</span>
+          {metrics.estimated_read_time_seconds != null && (
+            <span>~{Math.ceil(metrics.estimated_read_time_seconds / 60)} min lectura</span>
+          )}
         </div>
       )}
 
-      {data.target_audience && (
-        <p className="text-xs text-muted-foreground"><span className="font-medium">Audiencia:</span> {data.target_audience}</p>
-      )}
-
-      {data.key_themes && data.key_themes.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {data.key_themes.map((t, i) => <Badge key={i} variant="secondary" className="text-xs">{t}</Badge>)}
+      {data.insights && (
+        <div className="bg-muted/30 rounded-lg p-3 text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap border-t border-border/30">
+          {data.insights}
         </div>
       )}
 
-      {data.ai_insight && (
-        <p className="text-xs text-muted-foreground leading-relaxed border-t border-border/30 pt-2">{data.ai_insight}</p>
-      )}
-
-      {data.improvement_suggestions && data.improvement_suggestions.length > 0 && (
+      {data.ai_analysis && (
         <div className="border-t border-border/30 pt-2 space-y-1">
-          <span className="text-xs font-medium text-muted-foreground">Sugerencias</span>
-          <ul className="text-xs text-muted-foreground space-y-0.5 list-disc list-inside">
-            {data.improvement_suggestions.map((s, i) => <li key={i}>{s}</li>)}
-          </ul>
+          <span className="text-xs font-medium text-muted-foreground">Análisis IA</span>
+          <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            {data.ai_analysis}
+          </p>
         </div>
       )}
     </div>

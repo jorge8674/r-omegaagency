@@ -6,6 +6,7 @@ import { CONTENT_TYPE_LABELS, type ContentType, type GeneratedContent } from "@/
 import { ResultActions } from "./ResultActions";
 import { VideoResult } from "./VideoResult";
 import { useResultAnalysis, type AnalysisType } from "../hooks/useResultAnalysis";
+import { ForecastDisplay, ViralityDisplay, InsightDisplay } from "./AnalysisDisplay";
 
 interface ResultPanelProps {
   result: GeneratedContent | null;
@@ -82,9 +83,10 @@ export function ResultPanel({
       />
 
       {expandedAnalysis && analysisResults[expandedAnalysis] && (
-        <div className="bg-muted/20 rounded-lg p-3 text-xs whitespace-pre-wrap border border-border/30 max-h-60 overflow-y-auto">
-          <span className="font-semibold text-primary capitalize">{expandedAnalysis}:</span>
-          <pre className="mt-1 text-muted-foreground">{analysisResults[expandedAnalysis]}</pre>
+        <div className="mt-1">
+          {expandedAnalysis === "forecast" && <ForecastDisplay data={analysisResults[expandedAnalysis] as Record<string, unknown>} />}
+          {expandedAnalysis === "virality" && <ViralityDisplay data={analysisResults[expandedAnalysis] as Record<string, unknown>} />}
+          {expandedAnalysis === "insight" && <InsightDisplay data={analysisResults[expandedAnalysis] as Record<string, unknown>} />}
         </div>
       )}
     </div>

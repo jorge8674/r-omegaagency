@@ -5,7 +5,7 @@ export type AnalysisType = "insight" | "forecast" | "virality";
 
 interface AnalysisState {
   loading: AnalysisType | null;
-  results: Partial<Record<AnalysisType, string>>;
+  results: Partial<Record<AnalysisType, Record<string, unknown>>>;
 }
 
 const ENDPOINTS: Record<AnalysisType, string> = {
@@ -48,13 +48,11 @@ export function useResultAnalysis() {
         throw new Error(errBody || `HTTP ${res.status}`);
       }
 
-      const data: unknown = await res.json();
-      const output =
-        typeof data === "string" ? data : JSON.stringify(data, null, 2);
+      const data: Record<string, unknown> = await res.json();
 
       setState((prev) => ({
         loading: null,
-        results: { ...prev.results, [type]: output },
+        results: { ...prev.results, [type]: data },
       }));
 
       toast({ title: `Análisis completado: ${type}` });

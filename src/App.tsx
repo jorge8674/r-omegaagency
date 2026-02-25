@@ -18,6 +18,7 @@ import AgentsPage from "./pages/Agents/index";
 import ClientDetail from "./pages/ClientDetail/index";
 
 import ContentLab from "./pages/ContentLab/index";
+import ContextLibrary from "./pages/ContextLibrary/index";
 import CalendarPage from "./pages/Calendar/index";
 import Media from "./pages/Media";
 import Analytics from "./pages/Analytics";
@@ -103,6 +104,7 @@ const App = () => (
                 { path: "/agents", el: <AgentsPage /> },
                 
                 { path: "/content-lab", el: <ContentLab /> },
+                { path: "/context", el: <ContextLibrary /> },
                 { path: "/calendar", el: <CalendarPage /> },
                 { path: "/media", el: <Media /> },
                 { path: "/analytics", el: <Analytics /> },

@@ -26,7 +26,7 @@ export default function ContextLibrary() {
   const ctx = useContextLibrary();
   const { clients, loadClients } = useClients();
   const [modalOpen, setModalOpen] = useState(false);
-  const [viewDoc, setViewDoc] = useState<ContextDocument | null>(null);
+  const [_viewDoc, setViewDoc] = useState<ContextDocument | null>(null);
 
   useEffect(() => { loadClients(); }, [loadClients]);
 
@@ -103,14 +103,6 @@ export default function ContextLibrary() {
         clients={clients}
       />
 
-      {viewDoc && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setViewDoc(null)}>
-          <div className="bg-card rounded-lg border border-border/50 max-w-2xl w-full max-h-[80vh] overflow-auto p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-bold text-lg mb-2">{viewDoc.name}</h3>
-            <pre className="whitespace-pre-wrap text-sm text-muted-foreground">{viewDoc.content}</pre>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

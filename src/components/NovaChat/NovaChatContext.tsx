@@ -17,10 +17,26 @@ export interface ContextDoc {
 const STORAGE_KEY = "nova_context_docs";
 const ACCEPTED = ".pdf,.md,.txt,.docx,.png,.jpg,.jpeg,.webp";
 
-export function loadContextDocs(): ContextDoc[] {
+export function loadContextDocsLocal(): ContextDoc[] {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]") as ContextDoc[];
   } catch { return []; }
+}
+
+export async function loadContextDocsAsync(): Promise<ContextDoc[]> {
+  try {
+    const remote = await omegaApi.loadNovaData("context_docs");
+    if (Array.isArray(remote?.content) && remote.content.length > 0) {
+      console.log("✅ Context docs cargados desde backend:", remote.content.length);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(remote.content));
+      return remote.content as ContextDoc[];
+    }
+  } catch {
+    console.warn("⚠️ Backend load context_docs failed, usando localStorage");
+  }
+  const local = loadContextDocsLocal();
+  console.log("✅ Context docs cargados desde localStorage:", local.length);
+  return local;
 }
 
 export function saveContextDocs(docs: ContextDoc[]): void {

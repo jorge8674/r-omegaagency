@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { Crown, Minus, Send, Trash2, X, GripHorizontal, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNovaChat } from "./useNovaChat";
-import { NovaChatContext, loadContextDocs, saveContextDocs } from "./NovaChatContext";
+import { NovaChatContext, loadContextDocsLocal, loadContextDocsAsync, saveContextDocs } from "./NovaChatContext";
 import type { ContextDoc } from "./NovaChatContext";
 
 type Tab = "chat" | "context";
@@ -13,7 +13,13 @@ interface Props {
 }
 
 export function NovaChat({ onClose, onMinimize }: Props) {
-  const [docs, setDocs] = useState<ContextDoc[]>(() => loadContextDocs());
+  const [docs, setDocs] = useState<ContextDoc[]>(() => loadContextDocsLocal());
+
+  useEffect(() => {
+    loadContextDocsAsync().then((remote) => {
+      if (remote.length > 0) setDocs(remote);
+    });
+  }, []);
   const { messages, isLoading, error, send, clearHistory } = useNovaChat(docs);
   const [input, setInput] = useState("");
   const [tab, setTab] = useState<Tab>("chat");

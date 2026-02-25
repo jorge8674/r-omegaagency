@@ -45,7 +45,6 @@ const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   
   { title: "Content Lab", url: "/content-lab", icon: FlaskConical },
-  { title: "Contexto", url: "/context", icon: BookOpen },
   { title: "Calendario", url: "/calendar", icon: CalendarDays },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Competitive", url: "/competitive", icon: Search },
@@ -62,6 +61,7 @@ const configItems = [
 const adminItems = [
   { title: "Resellers", url: "/admin/resellers", icon: Building2 },
   { title: "OMEGA Company", url: "/omega", icon: LayoutGrid },
+  { title: "Contexto", url: "/context", icon: BookOpen },
 ];
 
 const agencyItems = [

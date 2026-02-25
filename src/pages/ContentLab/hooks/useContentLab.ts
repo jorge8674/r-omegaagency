@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
-  generateText, toggleSaveContent, deleteContent,
+  generateText, deleteContent,
   generateImage, generateVideo, generateVideoFal,
   type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type VideoProvider, type GeneratedContent,
 } from "@/lib/api/contentLab";
@@ -126,21 +126,6 @@ export function useContentLab() {
     toast({ title: "Copiado al portapapeles" });
   };
 
-  const handleSave = async (contentId: string): Promise<void> => {
-    if (!contentId) {
-      toast({ title: "No se puede guardar", description: "El contenido no tiene ID del servidor", variant: "destructive" });
-      return;
-    }
-    try {
-      await toggleSaveContent(contentId);
-      invalidateHistory();
-      setResults(prev => prev.map(r => r.id === contentId ? { ...r, is_saved: !r.is_saved } : r));
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Error al guardar";
-      toast({ title: "Error al guardar", description: msg, variant: "destructive" });
-    }
-  };
-
   const handleDelete = async (contentId: string, index: number): Promise<void> => {
     if (contentId) { await deleteContent(contentId); invalidateHistory(); }
     setResults(prev => prev.filter((_, i) => i !== index));
@@ -158,6 +143,6 @@ export function useContentLab() {
     setVideoStyle, setVideoDuration, setVideoProvider,
     selectClient, selectAccount,
     handleGenerate, handleGenerateImage, handleGenerateVideo,
-    handleCopy, handleSave, handleDelete,
+    handleCopy, handleDelete,
   };
 }

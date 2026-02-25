@@ -105,35 +105,61 @@ interface InsightData {
   [key: string]: unknown;
 }
 
+/** Parse a section line into title or bullet */
+function InsightSection({ text }: { text: string }) {
+  const lines = text.split("\n").filter(Boolean);
+  const title = lines[0] ?? "";
+  const bullets = lines.slice(1);
+
+  const isNumbered = /^\d+\.\s/.test(title);
+
+  return (
+    <div className="space-y-1">
+      {isNumbered ? (
+        <h4 className="font-semibold text-sm">{title}</h4>
+      ) : (
+        <p className="text-xs text-muted-foreground leading-relaxed">{title}</p>
+      )}
+      {bullets.length > 0 && (
+        <ul className="text-xs text-muted-foreground space-y-0.5 list-disc list-inside pl-1">
+          {bullets.map((b, i) => (
+            <li key={i}>{b.replace(/^-\s*/, "")}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function InsightDisplay({ data }: { data: InsightData }) {
   const metrics = data.content_metrics;
+  const sections = (data.insights ?? "").split("\n\n").filter(Boolean);
 
   return (
     <div className="rounded-lg border border-border/40 bg-card p-4 space-y-3 text-sm">
       <span className="font-semibold flex items-center gap-1.5">
-        <Lightbulb className="h-4 w-4 text-yellow-500" /> Insight
+        <Lightbulb className="h-4 w-4 text-yellow-500" /> Análisis de Contenido
       </span>
 
       {metrics && (
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>{metrics.length?.toLocaleString()} caracteres</span>
+          <span>📖 {metrics.length?.toLocaleString()} chars</span>
           {metrics.estimated_read_time_seconds != null && (
-            <span>~{Math.ceil(metrics.estimated_read_time_seconds / 60)} min lectura</span>
+            <span>~{Math.ceil(metrics.estimated_read_time_seconds)}s lectura</span>
           )}
         </div>
       )}
 
-      {data.insights && (
-        <div className="bg-muted/30 rounded-lg p-3 text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap border-t border-border/30">
-          {data.insights}
+      {sections.length > 0 && (
+        <div className="border-t border-border/30 pt-2 space-y-3">
+          {sections.map((s, i) => <InsightSection key={i} text={s} />)}
         </div>
       )}
 
       {data.ai_analysis && (
-        <div className="border-t border-border/30 pt-2 space-y-1">
-          <span className="text-xs font-medium text-muted-foreground">Análisis IA</span>
-          <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
-            {data.ai_analysis}
+        <div className="border-t border-border/30 pt-2">
+          <p className="text-xs text-muted-foreground leading-relaxed italic whitespace-pre-wrap">
+            "{data.ai_analysis}"
           </p>
         </div>
       )}

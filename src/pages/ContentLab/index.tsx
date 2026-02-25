@@ -24,7 +24,7 @@ export default function ContentLab() {
     setVideoStyle, setVideoDuration, setVideoProvider,
     selectClient, selectAccount,
     handleGenerate, handleGenerateImage, handleGenerateVideo,
-    handleCopy, handleSave, handleDelete,
+    handleCopy, handleDelete,
   } = useContentLab();
 
   const { clients, loadClients } = useClients();
@@ -115,14 +115,14 @@ export default function ContentLab() {
         <div className="lg:col-span-3 space-y-4">
           {results.length === 0 ? (
             <ResultPanel result={null} copied={false} isGenerating={isGenerating}
-              onCopy={() => {}} onSave={() => {}} onDelete={() => {}}
+              onCopy={() => {}} onDelete={() => {}}
               onRegenerate={() => handleGenerate(hasContext)} />
           ) : (
             results.map((result, index) => (
               <ResultPanel key={result.id ?? index} result={result}
                 copied={copiedId === (result.id ?? `idx-${index}`)}
                 isGenerating={isGenerating}
-                onCopy={() => handleCopy(index)} onSave={(id) => handleSave(id)}
+                onCopy={() => handleCopy(index)}
                 onDelete={(id) => handleDelete(id, index)}
                 onRegenerate={() => handleGenerate(hasContext)}
                 onSchedule={() => handleScheduleResult(result)} />

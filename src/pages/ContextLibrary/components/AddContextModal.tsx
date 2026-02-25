@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { ChipsInput } from "@/components/ui/ChipsInput";
 import { Upload, Loader2, PenLine, FileUp, Link2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiCall } from "@/lib/api/core";
-import type { ContextScope, CreateContextDocPayload } from "@/lib/api/contextLibrary";
+import type { ContextScope, CreateContextDocPayload, ContextDocument } from "@/lib/api/contextLibrary";
 import type { ClientProfile } from "@/lib/api/clients";
 
 const OMEGA_DEPARTMENTS = [
@@ -29,11 +29,14 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onCreate: (p: CreateContextDocPayload) => Promise<unknown>;
+  onUpdate?: (args: { id: string; payload: Partial<CreateContextDocPayload> }) => Promise<unknown>;
   isCreating: boolean;
+  isUpdating?: boolean;
   clients: ClientProfile[];
+  editDoc?: ContextDocument | null;
 }
 
-export function AddContextModal({ open, onClose, onCreate, isCreating, clients }: Props) {
+export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating, isUpdating, clients, editDoc }: Props) {
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [scope, setScope] = useState<ContextScope>("global");
@@ -45,6 +48,23 @@ export function AddContextModal({ open, onClose, onCreate, isCreating, clients }
   const [urlInput, setUrlInput] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractedChars, setExtractedChars] = useState(0);
+
+  const isEdit = !!editDoc;
+
+  // Pre-fill when editing
+  useEffect(() => {
+    if (editDoc && open) {
+      setName(editDoc.name);
+      setScope(editDoc.scope);
+      setClientId(editDoc.client_id ?? "");
+      setDepartment(editDoc.department ?? "");
+      setTags(editDoc.tags ?? []);
+      setContent(editDoc.content);
+      setSourceTab("write");
+      setUrlInput("");
+      setExtractedChars(0);
+    }
+  }, [editDoc, open]);
 
   const reset = useCallback(() => {
     setName(""); setScope("global"); setClientId("");
@@ -69,7 +89,8 @@ export function AddContextModal({ open, onClose, onCreate, isCreating, clients }
         { url: urlInput.trim() } as unknown as Record<string, unknown>
       );
       if (res.content) {
-        setContent(res.content);
+        const separator = `\n\n---\nFuente: ${urlInput.trim()}\n\n`;
+        setContent(prev => prev ? prev + separator + res.content : res.content!);
         setExtractedChars(res.content.length);
         if (res.title && !name) setName(res.title);
         toast({ title: "Contenido extraído ✅" });
@@ -90,9 +111,16 @@ export function AddContextModal({ open, onClose, onCreate, isCreating, clients }
       ...(scope === "client" && clientId ? { client_id: clientId } : {}),
       ...(scope === "department" && department ? { department } : {}),
     };
-    await onCreate(payload);
+    if (isEdit && onUpdate) {
+      await onUpdate({ id: editDoc!.id, payload });
+    } else {
+      await onCreate(payload);
+    }
     reset(); onClose();
   };
+
+  const handleClose = () => { if (!isEdit) reset(); onClose(); };
+  const busy = isCreating || (isUpdating ?? false);
 
   const SRC_TABS: { key: SourceTab; label: string; icon: React.ReactNode }[] = [
     { key: "write", label: "Escribir", icon: <PenLine className="h-3.5 w-3.5" /> },
@@ -101,9 +129,9 @@ export function AddContextModal({ open, onClose, onCreate, isCreating, clients }
   ];
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>Agregar Documento</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{isEdit ? "Editar Documento" : "Agregar Documento"}</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>Nombre del documento</Label>
@@ -144,7 +172,6 @@ export function AddContextModal({ open, onClose, onCreate, isCreating, clients }
           )}
           <ChipsInput label="Tags" value={tags} onChange={setTags} placeholder="Escribe y presiona Enter" maxChips={10} />
 
-          {/* Source tabs */}
           <div className="space-y-2">
             <Label>Contenido</Label>
             <div className="flex gap-1 rounded-md bg-muted p-1">
@@ -178,7 +205,7 @@ export function AddContextModal({ open, onClose, onCreate, isCreating, clients }
                 {extractedChars > 0 && (
                   <div className="flex items-center gap-2 rounded-md bg-primary/10 border border-primary/20 p-3 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>{extractedChars.toLocaleString()} caracteres extraídos</span>
+                    <span>{extractedChars.toLocaleString()} caracteres extraídos{isEdit ? " (agregados al contenido)" : ""}</span>
                   </div>
                 )}
               </div>
@@ -186,10 +213,10 @@ export function AddContextModal({ open, onClose, onCreate, isCreating, clients }
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={isCreating || !name.trim() || !content.trim()}>
-            {isCreating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-            Guardar Documento
+          <Button variant="outline" onClick={handleClose}>Cancelar</Button>
+          <Button onClick={handleSubmit} disabled={busy || !name.trim() || !content.trim()}>
+            {busy ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+            {isEdit ? "Guardar Cambios" : "Guardar Documento"}
           </Button>
         </DialogFooter>
       </DialogContent>

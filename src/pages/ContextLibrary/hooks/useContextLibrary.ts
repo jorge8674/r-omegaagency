@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   listContextDocs,
   createContextDoc,
+  updateContextDoc,
   deleteContextDoc,
   type ContextScope,
   type CreateContextDocPayload,
@@ -50,6 +51,17 @@ export function useContextLibrary() {
       toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
+  const updateMut = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<CreateContextDocPayload> }) =>
+      updateContextDoc(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["context-library"] });
+      toast({ title: "Documento actualizado" });
+    },
+    onError: (e: Error) =>
+      toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteContextDoc(id),
     onSuccess: () => {
@@ -66,7 +78,9 @@ export function useContextLibrary() {
     filterDept, setFilterDept,
     docs, isLoading, isError,
     createDoc: createMut.mutateAsync,
+    updateDoc: updateMut.mutateAsync,
     deleteDoc: deleteMut.mutateAsync,
     isCreating: createMut.isPending,
+    isUpdating: updateMut.isPending,
   };
 }

@@ -61,6 +61,17 @@ export async function createContextDoc(
   );
 }
 
+export async function updateContextDoc(
+  docId: string,
+  payload: Partial<CreateContextDocPayload>
+): Promise<SingleResponse> {
+  return apiCall<SingleResponse>(
+    `/context/${docId}/`,
+    "PATCH",
+    payload as unknown as Record<string, unknown>
+  );
+}
+
 export async function deleteContextDoc(
   docId: string
 ): Promise<{ success: boolean }> {

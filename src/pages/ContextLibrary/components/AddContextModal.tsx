@@ -58,7 +58,8 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
       setScope(editDoc.scope);
       setClientId(editDoc.scope === "client" ? (editDoc.scope_id ?? editDoc.client_id ?? "") : "");
       setDepartment(editDoc.scope === "department" ? (editDoc.scope_id ?? editDoc.department ?? "") : "");
-      setTags(editDoc.tags ?? []);
+      const raw: unknown = editDoc.tags;
+      setTags(Array.isArray(raw) ? raw as string[] : typeof raw === "string" ? raw.split(/[,\n]/).map(t => t.trim().toLowerCase()).filter(Boolean) : []);
       setContent(editDoc.content);
       setSourceTab("write");
       setUrlInput("");
@@ -215,8 +216,7 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>Cancelar</Button>
           <Button onClick={handleSubmit} disabled={busy || !name.trim() || !content.trim()}>
-            {busy ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-            {isEdit ? "Guardar Cambios" : "Guardar Documento"}
+            {busy ? <><Loader2 className="mr-1 h-4 w-4 animate-spin" />Guardando...</> : isEdit ? "Guardar Cambios" : "Guardar Documento"}
           </Button>
         </DialogFooter>
       </DialogContent>

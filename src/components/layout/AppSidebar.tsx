@@ -16,6 +16,7 @@ import {
   User,
   Bot,
   LayoutGrid,
+  BookOpen,
 } from "lucide-react";
 import { RaisenLogo } from "@/components/brand/RaisenLogo";
 import { RaisenCircleLogo } from "@/components/brand/RaisenCircleLogo";
@@ -44,6 +45,7 @@ const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   
   { title: "Content Lab", url: "/content-lab", icon: FlaskConical },
+  { title: "Contexto", url: "/context", icon: BookOpen },
   { title: "Calendario", url: "/calendar", icon: CalendarDays },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Competitive", url: "/competitive", icon: Search },

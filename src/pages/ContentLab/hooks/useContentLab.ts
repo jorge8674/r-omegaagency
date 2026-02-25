@@ -44,9 +44,20 @@ export function useContentLab() {
     }
     setIsGenerating(true);
     try {
-      const result = await generateText(selectedAccountId, contentType, prompt, language);
-      if (result) {
-        setResults(prev => [result as GeneratedContent, ...prev]);
+      const raw = await generateText(selectedAccountId, contentType, prompt, language);
+      if (raw) {
+        const content: GeneratedContent = {
+          ...(raw as GeneratedContent),
+          id: (raw as GeneratedContent).id || crypto.randomUUID(),
+          client_id: selectedClientId,
+          account_id: selectedAccountId,
+          context_id: null,
+          platform: (raw as GeneratedContent).platform || "instagram",
+          prompt,
+          is_saved: false,
+          created_at: new Date().toISOString(),
+        };
+        setResults(prev => [content, ...prev]);
         invalidateHistory();
         toast({ title: "Contenido generado exitosamente" });
       }
@@ -116,9 +127,18 @@ export function useContentLab() {
   };
 
   const handleSave = async (contentId: string): Promise<void> => {
-    await toggleSaveContent(contentId);
-    invalidateHistory();
-    setResults(prev => prev.map(r => r.id === contentId ? { ...r, is_saved: !r.is_saved } : r));
+    if (!contentId) {
+      toast({ title: "No se puede guardar", description: "El contenido no tiene ID del servidor", variant: "destructive" });
+      return;
+    }
+    try {
+      await toggleSaveContent(contentId);
+      invalidateHistory();
+      setResults(prev => prev.map(r => r.id === contentId ? { ...r, is_saved: !r.is_saved } : r));
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Error al guardar";
+      toast({ title: "Error al guardar", description: msg, variant: "destructive" });
+    }
   };
 
   const handleDelete = async (contentId: string, index: number): Promise<void> => {

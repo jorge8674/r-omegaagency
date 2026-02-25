@@ -39,7 +39,7 @@ export default function ContextLibrary() {
             <Select value={ctx.filterClientId} onValueChange={ctx.setFilterClientId}>
               <SelectTrigger><SelectValue placeholder="Filtrar por cliente" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -51,7 +51,7 @@ export default function ContextLibrary() {
             <Select value={ctx.filterDept} onValueChange={ctx.setFilterDept}>
               <SelectTrigger><SelectValue placeholder="Filtrar por departamento" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</SelectItem>)}
               </SelectContent>
             </Select>

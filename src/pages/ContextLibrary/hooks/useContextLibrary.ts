@@ -22,15 +22,18 @@ export function useContextLibrary() {
   const scope: ContextScope | undefined =
     tab === "global" ? "global" : tab === "client" ? "client" : "department";
 
+  const clientFilter = filterClientId === "all" ? undefined : filterClientId || undefined;
+  const deptFilter = filterDept === "all" ? undefined : filterDept || undefined;
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["context-library", scope, filterClientId, filterDept],
+    queryKey: ["context-library", scope, clientFilter, deptFilter],
     queryFn: () =>
       listContextDocs(
         scope,
-        tab === "client" ? filterClientId || undefined : undefined,
-        tab === "department" ? filterDept || undefined : undefined
+        tab === "client" ? clientFilter : undefined,
+        tab === "department" ? deptFilter : undefined
       ),
-    retry: 1,
+    retry: 0,
   });
 
   const docs = (data?.data ?? []).filter((d) =>

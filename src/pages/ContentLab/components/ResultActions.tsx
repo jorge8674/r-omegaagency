@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import {
-  Copy, Bookmark, RotateCcw, Trash2, CheckCircle,
+  Copy, RotateCcw, Trash2, CheckCircle,
   Download, Calendar as CalendarIcon,
   Lightbulb, TrendingUp, Flame, Loader2,
 } from "lucide-react";
@@ -13,7 +13,6 @@ interface ResultActionsProps {
   isGenerating: boolean;
   analysisLoading: AnalysisType | null;
   onCopy: () => void;
-  onSave: (id: string) => void;
   onDelete: (id: string) => void;
   onRegenerate: () => void;
   onAnalysis: (type: AnalysisType) => void;
@@ -28,7 +27,7 @@ const ANALYSIS_BUTTONS: { type: AnalysisType; label: string; icon: typeof Lightb
 
 export function ResultActions({
   result, copied, isGenerating, analysisLoading,
-  onCopy, onSave, onDelete, onRegenerate, onAnalysis, onSchedule,
+  onCopy, onDelete, onRegenerate, onAnalysis, onSchedule,
 }: ResultActionsProps) {
   const isImage = result.content_type === "image";
 
@@ -68,12 +67,6 @@ export function ResultActions({
       {/* Schedule — calls parent handler */}
       <Button variant="outline" size="sm" onClick={onSchedule}>
         <CalendarIcon className="mr-1 h-4 w-4" /> Agendar
-      </Button>
-
-      {/* Save */}
-      <Button variant="outline" size="sm" onClick={() => onSave(result.id)}>
-        <Bookmark className={`mr-1 h-4 w-4 ${result.is_saved ? "fill-current" : ""}`} />
-        {result.is_saved ? "Guardado" : "Guardar"}
       </Button>
 
       {/* Regenerate (text only) */}

@@ -14,10 +14,16 @@ export async function apiCall<T = any>(
   headers?: Record<string, string>
 ): Promise<T> {
   const token = localStorage.getItem("omega_token");
-  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+  const baseHeaders: Record<string, string> = {};
+  if (body !== undefined && body !== null) {
+    baseHeaders["Content-Type"] = "application/json";
+  }
+  if (token) {
+    baseHeaders["Authorization"] = `Bearer ${token}`;
+  }
   const response = await fetch(`${API_BASE}${endpoint}`, {
     method,
-    headers: { "Content-Type": "application/json", ...authHeader, ...headers },
+    headers: { ...baseHeaders, ...headers },
     body: body ? JSON.stringify(body) : undefined,
   });
 

@@ -10,7 +10,16 @@ import { Upload, Loader2 } from "lucide-react";
 import type { ContextScope, CreateContextDocPayload } from "@/lib/api/contextLibrary";
 import type { ClientProfile } from "@/lib/api/clients";
 
-const DEPARTMENTS = ["marketing", "tech", "ops", "ventas", "diseño", "estrategia"];
+const OMEGA_DEPARTMENTS = [
+  { value: "marketing", label: "Marketing", director: "ATLAS" },
+  { value: "tech", label: "Tech", director: "LUNA" },
+  { value: "operations", label: "Operations", director: "REX" },
+  { value: "finance", label: "Finance", director: "VERA" },
+  { value: "community", label: "Community", director: "KIRA" },
+  { value: "futures", label: "Futures", director: "ORACLE" },
+  { value: "people", label: "People", director: "SOPHIA" },
+  { value: "security", label: "Security", director: "SENTINEL" },
+];
 
 interface Props {
   open: boolean;
@@ -101,8 +110,8 @@ export function AddContextModal({ open, onClose, onCreate, isCreating, clients }
               <Select value={department} onValueChange={setDepartment}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar departamento" /></SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.map((d) => (
-                    <SelectItem key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</SelectItem>
+                  {OMEGA_DEPARTMENTS.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>{d.label} — {d.director}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

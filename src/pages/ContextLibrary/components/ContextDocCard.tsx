@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, Eye, Download, Trash2 } from "lucide-react";
+import { FileText, Eye, Pencil, Download, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +28,7 @@ const DEPT_STYLE: Record<string, string> = {
 interface Props {
   doc: ContextDocument;
   onView: (doc: ContextDocument) => void;
+  onEdit: (doc: ContextDocument) => void;
   onDelete: (id: string) => void;
 }
 
@@ -39,7 +40,7 @@ function downloadDoc(doc: ContextDocument) {
   URL.revokeObjectURL(url);
 }
 
-export function ContextDocCard({ doc, onView, onDelete }: Props) {
+export function ContextDocCard({ doc, onView, onEdit, onDelete }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const scopeLabel = doc.scope === "global" ? "Global"
@@ -71,6 +72,9 @@ export function ContextDocCard({ doc, onView, onDelete }: Props) {
               <Tooltip><TooltipTrigger asChild>
                 <Button variant="ghost" size="sm" onClick={() => setSheetOpen(true)}><Eye className="h-3.5 w-3.5" /></Button>
               </TooltipTrigger><TooltipContent>Ver</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={() => onEdit(doc)}><Pencil className="h-3.5 w-3.5" /></Button>
+              </TooltipTrigger><TooltipContent>Editar</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild>
                 <Button variant="ghost" size="sm" onClick={() => downloadDoc(doc)}><Download className="h-3.5 w-3.5" /></Button>
               </TooltipTrigger><TooltipContent>Descargar</TooltipContent></Tooltip>

@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,15 +25,19 @@ export default function ContextLibrary() {
   const ctx = useContextLibrary();
   const { clients, loadClients } = useClients();
   const [modalOpen, setModalOpen] = useState(false);
-  const [_viewDoc, setViewDoc] = useState<ContextDocument | null>(null);
+  const [editDoc, setEditDoc] = useState<ContextDocument | null>(null);
 
   useEffect(() => { loadClients(); }, [loadClients]);
+
+  const openCreate = () => { setEditDoc(null); setModalOpen(true); };
+  const openEdit = (doc: ContextDocument) => { setEditDoc(doc); setModalOpen(true); };
+  const closeModal = () => { setEditDoc(null); setModalOpen(false); };
 
   const empty = ctx.docs.length === 0 && !ctx.isLoading;
 
   return (
     <div className="space-y-6 p-6">
-      <ContextHeader search={ctx.search} onSearchChange={ctx.setSearch} onAdd={() => setModalOpen(true)} />
+      <ContextHeader search={ctx.search} onSearchChange={ctx.setSearch} onAdd={openCreate} />
 
       <Tabs value={ctx.tab} onValueChange={(v) => ctx.setTab(v as TabScope)}>
         <TabsList>
@@ -90,7 +93,7 @@ export default function ContextLibrary() {
           {!ctx.isLoading && !ctx.isError && ctx.docs.length > 0 && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {ctx.docs.map((doc) => (
-                <ContextDocCard key={doc.id} doc={doc} onView={setViewDoc} onDelete={(id) => ctx.deleteDoc(id)} />
+                <ContextDocCard key={doc.id} doc={doc} onView={() => {}} onEdit={openEdit} onDelete={(id) => ctx.deleteDoc(id)} />
               ))}
             </div>
           )}
@@ -98,11 +101,11 @@ export default function ContextLibrary() {
       </Tabs>
 
       <AddContextModal
-        open={modalOpen} onClose={() => setModalOpen(false)}
-        onCreate={ctx.createDoc} isCreating={ctx.isCreating}
-        clients={clients}
+        open={modalOpen} onClose={closeModal}
+        onCreate={ctx.createDoc} onUpdate={ctx.updateDoc}
+        isCreating={ctx.isCreating} isUpdating={ctx.isUpdating}
+        clients={clients} editDoc={editDoc}
       />
-
     </div>
   );
 }

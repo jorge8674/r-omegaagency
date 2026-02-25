@@ -36,7 +36,7 @@ export function useContextLibrary() {
     retry: 0,
   });
 
-  const docs = (data?.data ?? []).filter((d) =>
+  const docs = (data?.docs ?? data?.data ?? []).filter((d) =>
     search ? d.name.toLowerCase().includes(search.toLowerCase()) : true
   );
 

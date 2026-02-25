@@ -19,8 +19,8 @@ export interface ContextDocument {
 }
 
 interface ListResponse {
-  success: boolean;
-  data: ContextDocument[];
+  docs: ContextDocument[];
+  data?: ContextDocument[];
   total: number;
 }
 

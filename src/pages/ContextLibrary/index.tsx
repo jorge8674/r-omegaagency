@@ -11,7 +11,16 @@ import { ContextDocCard } from "./components/ContextDocCard";
 import { AddContextModal } from "./components/AddContextModal";
 import type { ContextDocument } from "@/lib/api/contextLibrary";
 
-const DEPARTMENTS = ["marketing", "tech", "ops", "ventas", "diseño", "estrategia"];
+const OMEGA_DEPARTMENTS = [
+  { value: "marketing", label: "Marketing", director: "ATLAS" },
+  { value: "tech", label: "Tech", director: "LUNA" },
+  { value: "operations", label: "Operations", director: "REX" },
+  { value: "finance", label: "Finance", director: "VERA" },
+  { value: "community", label: "Community", director: "KIRA" },
+  { value: "futures", label: "Futures", director: "ORACLE" },
+  { value: "people", label: "People", director: "SOPHIA" },
+  { value: "security", label: "Security", director: "SENTINEL" },
+];
 
 export default function ContextLibrary() {
   const ctx = useContextLibrary();
@@ -52,7 +61,7 @@ export default function ContextLibrary() {
               <SelectTrigger><SelectValue placeholder="Filtrar por departamento" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</SelectItem>)}
+                {OMEGA_DEPARTMENTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label} — {d.director}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

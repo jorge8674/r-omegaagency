@@ -56,8 +56,8 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
     if (editDoc && open) {
       setName(editDoc.name);
       setScope(editDoc.scope);
-      setClientId(editDoc.client_id ?? "");
-      setDepartment(editDoc.department ?? "");
+      setClientId(editDoc.scope === "client" ? (editDoc.scope_id ?? editDoc.client_id ?? "") : "");
+      setDepartment(editDoc.scope === "department" ? (editDoc.scope_id ?? editDoc.department ?? "") : "");
       setTags(editDoc.tags ?? []);
       setContent(editDoc.content);
       setSourceTab("write");
@@ -105,11 +105,11 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
 
   const handleSubmit = async () => {
     if (!name.trim() || !content.trim()) return;
+    const scopeId = scope === "client" ? clientId : scope === "department" ? department : undefined;
     const payload: CreateContextDocPayload = {
       name: name.trim(), scope, content: content.trim(),
       tags: tags.length > 0 ? tags : undefined,
-      ...(scope === "client" && clientId ? { client_id: clientId } : {}),
-      ...(scope === "department" && department ? { department } : {}),
+      ...(scopeId ? { scope_id: scopeId } : {}),
     };
     if (isEdit && onUpdate) {
       await onUpdate({ id: editDoc!.id, payload });

@@ -9,6 +9,7 @@ export interface ContextDocument {
   id: string;
   name: string;
   scope: ContextScope;
+  scope_id: string | null;
   client_id: string | null;
   department: string | null;
   tags: string[];
@@ -32,8 +33,7 @@ interface SingleResponse {
 export interface CreateContextDocPayload {
   name: string;
   scope: ContextScope;
-  client_id?: string;
-  department?: string;
+  scope_id?: string;
   tags?: string[];
   content: string;
 }

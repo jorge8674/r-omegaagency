@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { PlatformIcon } from "@/components/icons/PlatformIcon";
 import { ContentTypeIcon } from "@/components/icons/ContentTypeIcon";
@@ -23,8 +22,6 @@ export function ResultPanel({
   onCopy, onDelete, onRegenerate, onSchedule,
 }: ResultPanelProps) {
   const { analysisLoading, analysisResults, runAnalysis } = useResultAnalysis();
-  const [expandedAnalysis, setExpandedAnalysis] = useState<AnalysisType | null>(null);
-
   if (!result) {
     return (
       <div className="rounded-lg border border-dashed border-border/50 bg-card/50 p-12 text-center">
@@ -42,12 +39,8 @@ export function ResultPanel({
   const typeLabel = meta?.label ?? result.content_type;
 
   const handleAnalysis = (type: AnalysisType): void => {
-    if (analysisResults[type]) {
-      setExpandedAnalysis(prev => (prev === type ? null : type));
-      return;
-    }
+    if (analysisResults[type]) return;
     runAnalysis(type, result.generated_text, result.platform || "instagram", result.content_type);
-    setExpandedAnalysis(type);
   };
 
   return (
@@ -81,13 +74,11 @@ export function ResultPanel({
         onSchedule={onSchedule || (() => {})}
       />
 
-      {expandedAnalysis && analysisResults[expandedAnalysis] && (
-        <div className="mt-1">
-          {expandedAnalysis === "forecast" && <ForecastDisplay data={analysisResults[expandedAnalysis] as Record<string, unknown>} />}
-          {expandedAnalysis === "virality" && <ViralityDisplay data={analysisResults[expandedAnalysis] as Record<string, unknown>} />}
-          {expandedAnalysis === "insight" && <InsightDisplay data={analysisResults[expandedAnalysis] as Record<string, unknown>} />}
-        </div>
-      )}
+      <div className="space-y-2">
+        {analysisResults.insight && <InsightDisplay data={analysisResults.insight as Record<string, unknown>} />}
+        {analysisResults.forecast && <ForecastDisplay data={analysisResults.forecast as Record<string, unknown>} />}
+        {analysisResults.virality && <ViralityDisplay data={analysisResults.virality as Record<string, unknown>} />}
+      </div>
     </div>
   );
 }

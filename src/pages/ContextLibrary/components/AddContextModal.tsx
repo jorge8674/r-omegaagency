@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChipsInput } from "@/components/ui/ChipsInput";
 import { Upload, Loader2, PenLine, FileUp, Link2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiCall } from "@/lib/api/core";
+import { apiCall, API_BASE } from "@/lib/api/core";
 import type { ContextScope, CreateContextDocPayload, ContextDocument } from "@/lib/api/contextLibrary";
 import type { ClientProfile } from "@/lib/api/clients";
 
@@ -76,16 +76,36 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
   const handleFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    if (ext === "pdf") {
-      toast({ title: "PDF detectado", description: "Los PDFs se procesan mejor vía URL. Sube el PDF a Google Drive, obtén el link y úsalo en el tab URL.", variant: "destructive" });
+    setIsExtracting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const token = localStorage.getItem("omega_token");
+      const res = await fetch(`${API_BASE}/context/extract-file/`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error((err as { detail?: string }).detail || "Error extrayendo archivo");
+      }
+      const data = await res.json() as { title?: string; content?: string; char_count?: number };
+      if (data.content) {
+        const sep = content ? `\n\n---\nArchivo: ${file.name}\n\n` : "";
+        setContent(prev => prev + sep + data.content);
+        setExtractedChars(data.char_count ?? data.content.length);
+        if (!name && data.title) setName(data.title);
+        toast({ title: `✅ ${(data.char_count ?? data.content.length).toLocaleString()} caracteres extraídos` });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al procesar archivo";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setIsExtracting(false);
       e.target.value = "";
-      return;
     }
-    const text = await file.text();
-    setContent(prev => prev ? prev + "\n\n" + text : text);
-    if (!name) setName(file.name.replace(/\.[^.]+$/, ""));
-  }, [name, toast]);
+  }, [name, content, toast]);
 
   const handleExtractUrl = async () => {
     if (!urlInput.trim()) return;
@@ -195,10 +215,10 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
             )}
             {sourceTab === "file" && (
               <label className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border/50 p-6 cursor-pointer hover:border-primary/40 transition-colors">
-                <Upload className="h-6 w-6 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Subir archivo (PDF/MD/TXT)</span>
-                {content && <span className="text-xs text-primary">{content.length.toLocaleString()} chars cargados</span>}
-                <input type="file" accept=".pdf,.md,.txt,.docx" className="sr-only" onChange={handleFile} />
+                {isExtracting ? <Loader2 className="h-6 w-6 text-primary animate-spin" /> : <Upload className="h-6 w-6 text-muted-foreground" />}
+                <span className="text-sm text-muted-foreground">{isExtracting ? "Extrayendo texto..." : "Subir archivo (PDF/MD/TXT)"}</span>
+                {extractedChars > 0 && <span className="text-xs text-primary">{extractedChars.toLocaleString()} chars extraídos</span>}
+                <input type="file" accept=".pdf,.md,.txt,.docx" className="sr-only" onChange={handleFile} disabled={isExtracting} />
               </label>
             )}
             {sourceTab === "url" && (

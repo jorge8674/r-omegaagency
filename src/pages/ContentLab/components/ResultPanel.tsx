@@ -55,11 +55,15 @@ export function ResultPanel({
         </div>
         <span className="text-xs text-muted-foreground">
           {(() => {
-            const r = result as GeneratedContent & { agent?: string; model_used?: string };
-            const agent = FALLBACK_AGENTS.find(a => a.id === r.agent);
+            const r = result as GeneratedContent & { agent?: string; model_used?: string; mode?: string };
             const parts: string[] = [];
-            if (agent) parts.push(`${agent.emoji} ${agent.name}`);
-            if (r.model_used) parts.push(r.model_used);
+            if (isImage) {
+              parts.push(r.mode === "edit" ? "✏️ Editado con GPT-Image-1" : "🎨 Generado con DALL-E 3");
+            } else {
+              const agent = FALLBACK_AGENTS.find(a => a.id === r.agent);
+              if (agent) parts.push(`${agent.emoji} ${agent.name}`);
+              if (r.model_used) parts.push(r.model_used);
+            }
             if (r.tokens_used) parts.push(`${r.tokens_used} tokens`);
             return parts.join(" · ") || `${r.tokens_used} tokens`;
           })()}

@@ -6,7 +6,7 @@ import {
   generateText, deleteContent,
   generateImage, generateVideo, generateVideoFal,
   fetchAgentProviders, FALLBACK_AGENTS,
-  type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type VideoProvider, type GeneratedContent, type AgentProvider,
+  type ContentType, type ImageStyle, type ImageAttachment, type VideoStyle, type VideoDuration, type VideoProvider, type GeneratedContent, type AgentProvider,
 } from "@/lib/api/contentLab";
 
 export function useContentLab() {
@@ -85,12 +85,16 @@ export function useContentLab() {
     }
     setIsGeneratingImage(true);
     try {
-      const result = await generateImage(selectedAccountId, prompt, imageStyle);
+      const imageAttachments: ImageAttachment[] = attachments
+        .filter(a => a.type === "image" && a.preview)
+        .map(a => ({ type: "image" as const, base64: a.preview!, name: a.file.name }));
+      const result = await generateImage(selectedAccountId, prompt, imageStyle, imageAttachments.length > 0 ? imageAttachments : undefined);
       const content = (result.data ?? result) as GeneratedContent;
       if (content?.generated_text) {
         setResults(prev => [content, ...prev]);
         invalidateHistory();
-        toast({ title: "Imagen generada exitosamente" });
+        const mode = imageAttachments.length > 0 ? "edit" : "generate";
+        toast({ title: mode === "edit" ? "✏️ Imagen editada" : "🎨 Imagen generada" });
       }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Error desconocido";

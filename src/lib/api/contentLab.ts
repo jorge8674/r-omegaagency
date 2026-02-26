@@ -120,11 +120,25 @@ export async function deleteContent(contentId: string): Promise<GenerateResponse
   return apiCall<GenerateResponse>(`/content-lab/${contentId}/`, "DELETE");
 }
 
+export interface ImageAttachment {
+  type: "image";
+  base64: string;
+  name: string;
+}
+
 export async function generateImage(
   accountId: string,
   prompt: string,
-  style: ImageStyle
+  style: ImageStyle,
+  attachments?: ImageAttachment[]
 ): Promise<GenerateResponse> {
+  if (attachments && attachments.length > 0) {
+    return apiCall<GenerateResponse>(
+      `/content-lab/generate-image/?account_id=${accountId}`,
+      "POST",
+      { brief: prompt, style, attachments }
+    );
+  }
   const params = new URLSearchParams({ account_id: accountId, prompt, style });
   return apiCall<GenerateResponse>(
     `/content-lab/generate-image/?${params.toString()}`,

@@ -132,18 +132,24 @@ export async function generateImage(
   style: ImageStyle,
   attachments?: ImageAttachment[]
 ): Promise<GenerateResponse> {
-  if (attachments && attachments.length > 0) {
-    return apiCall<GenerateResponse>(
-      `/content-lab/generate-image/?account_id=${accountId}`,
-      "POST",
-      { brief: prompt, style, attachments }
-    );
-  }
+  const imageAttachments = attachments?.filter((img) => Boolean(img.base64)) ?? [];
+  console.warn("🔴 ATTACHMENTS:", JSON.stringify({
+    count: imageAttachments.length,
+    firstBase64Length: imageAttachments[0]?.base64?.length,
+    mode: imageAttachments.length > 0 ? "EDIT" : "GENERATE",
+  }));
+
   const params = new URLSearchParams({ account_id: accountId, prompt, style });
-  return apiCall<GenerateResponse>(
-    `/content-lab/generate-image/?${params.toString()}`,
-    "POST"
-  );
+  if (imageAttachments.length > 0) {
+    return apiCall<GenerateResponse>(`/content-lab/generate-image/?${params.toString()}`, "POST", {
+      brief: prompt,
+      prompt,
+      style,
+      attachments: imageAttachments.map((img) => ({ type: "image" as const, base64: img.base64, name: img.name })),
+    });
+  }
+
+  return apiCall<GenerateResponse>(`/content-lab/generate-image/?${params.toString()}`, "POST");
 }
 
 export async function generateVideo(

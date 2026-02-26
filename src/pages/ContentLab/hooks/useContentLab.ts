@@ -88,6 +88,11 @@ export function useContentLab() {
       const imageAttachments: ImageAttachment[] = attachments
         .filter(a => a.type === "image" && a.preview)
         .map(a => ({ type: "image" as const, base64: a.preview!, name: a.file.name }));
+      console.log("[ContentLab] attachments state:", attachments.length, "images filtered:", imageAttachments.length);
+      console.log("[ContentLab] Mode:", imageAttachments.length > 0 ? "EDIT" : "GENERATE");
+      if (imageAttachments.length > 0) {
+        console.log("[ContentLab] First attachment name:", imageAttachments[0].name, "base64 length:", imageAttachments[0].base64.length);
+      }
       const result = await generateImage(selectedAccountId, prompt, imageStyle, imageAttachments.length > 0 ? imageAttachments : undefined);
       const content = (result.data ?? result) as GeneratedContent;
       if (content?.generated_text) {

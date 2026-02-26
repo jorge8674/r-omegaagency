@@ -56,11 +56,39 @@ interface ListResponse {
   total: number;
 }
 
+export interface AgentProvider {
+  id: string;
+  name: string;
+  model: string;
+  description: string;
+  emoji: string;
+}
+
+export const FALLBACK_AGENTS: AgentProvider[] = [
+  { id: "rex",    name: "REX",    model: "GPT-4o-mini",      description: "Rápido y eficiente",  emoji: "⚡" },
+  { id: "nova",   name: "NOVA",   model: "GPT-4o",           description: "Director creativo",   emoji: "👑" },
+  { id: "atlas",  name: "ATLAS",  model: "GPT-4o",           description: "Creativo avanzado",   emoji: "🌟" },
+  { id: "luna",   name: "LUNA",   model: "Deepseek V3",      description: "Técnico y analítico", emoji: "🔬" },
+  { id: "vera",   name: "VERA",   model: "Claude Sonnet",    description: "Precisión premium",   emoji: "💎" },
+  { id: "kira",   name: "KIRA",   model: "Gemini Flash",     description: "Conversacional",      emoji: "💬" },
+  { id: "oracle", name: "ORACLE", model: "Claude Opus",      description: "Estratega profundo",  emoji: "🔮" },
+];
+
+export async function fetchAgentProviders(): Promise<AgentProvider[]> {
+  try {
+    const data = await apiCall<AgentProvider[]>("/content-lab/providers/");
+    return Array.isArray(data) && data.length > 0 ? data : FALLBACK_AGENTS;
+  } catch {
+    return FALLBACK_AGENTS;
+  }
+}
+
 export async function generateText(
   accountId: string,
   contentType: string,
   brief: string,
-  language?: string
+  language?: string,
+  agent?: string
 ) {
   const params = new URLSearchParams({
     account_id: accountId,
@@ -68,6 +96,7 @@ export async function generateText(
     brief: brief,
     language: language || "es",
   });
+  if (agent) params.set("agent", agent);
   return apiCall(`/content-lab/generate/?${params.toString()}`, "POST");
 }
 

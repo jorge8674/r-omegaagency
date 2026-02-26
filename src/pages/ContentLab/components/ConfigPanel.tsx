@@ -1,13 +1,14 @@
+import { useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sparkles, Loader2, Video } from "lucide-react";
 import { PlatformIcon } from "@/components/icons/PlatformIcon";
 import { ContentTypeIcon } from "@/components/icons/ContentTypeIcon";
-import { CONTENT_TYPE_LABELS, type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type VideoProvider } from "@/lib/api/contentLab";
+import { CONTENT_TYPE_LABELS, type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type VideoProvider, type AgentProvider } from "@/lib/api/contentLab";
 import { VideoOptions } from "./VideoOptions";
 import { Progress } from "@/components/ui/progress";
 
@@ -26,6 +27,8 @@ interface ConfigPanelProps {
   videoStyle: VideoStyle;
   videoDuration: VideoDuration;
   videoProvider: VideoProvider;
+  selectedAgent: string;
+  agents: AgentProvider[];
   isGenerating: boolean;
   isGeneratingImage: boolean;
   isGeneratingVideo: boolean;
@@ -39,6 +42,7 @@ interface ConfigPanelProps {
   onVideoStyleChange: (style: VideoStyle) => void;
   onVideoDurationChange: (d: VideoDuration) => void;
   onVideoProviderChange: (p: VideoProvider) => void;
+  onAgentChange: (id: string) => void;
   onGenerate: () => void;
 }
 
@@ -51,13 +55,15 @@ const IMAGE_STYLES = [
 export function ConfigPanel({
   clients, accounts, selectedClientId, selectedAccountId,
   contentType, language, prompt, imageStyle, videoStyle, videoDuration, videoProvider,
+  selectedAgent, agents,
   isGenerating, isGeneratingImage, isGeneratingVideo, hasContext,
   onSelectClient, onSelectAccount, onContentTypeChange,
   onLanguageChange, onPromptChange, onImageStyleChange,
-  onVideoStyleChange, onVideoDurationChange, onVideoProviderChange, onGenerate,
+  onVideoStyleChange, onVideoDurationChange, onVideoProviderChange, onAgentChange, onGenerate,
 }: ConfigPanelProps) {
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
   const busy = contentType === "video" ? isGeneratingVideo : contentType === "image" ? isGeneratingImage : isGenerating;
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const promptPlaceholder = contentType === "video"
     ? "Una oficina moderna con personas colaborando..."
@@ -67,10 +73,18 @@ export function ConfigPanel({
   const buttonLabel = contentType === "video" ? "Generar Video" : contentType === "image" ? "Generar Imagen" : "Generar Contenido";
   const busyLabel = contentType === "video" ? "Generando video..." : contentType === "image" ? "Creando imagen..." : "Generando...";
 
+  const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onPromptChange(e.target.value);
+    const el = e.target;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 400)}px`;
+  }, [onPromptChange]);
+
   return (
     <div className="rounded-lg border border-border/50 bg-card p-4 space-y-4">
       <h2 className="font-semibold text-sm">Configuración</h2>
 
+      {/* Client */}
       <div className="space-y-1.5">
         <Label>Cliente</Label>
         <Select value={selectedClientId} onValueChange={onSelectClient}>
@@ -81,6 +95,7 @@ export function ConfigPanel({
         </Select>
       </div>
 
+      {/* Account */}
       <div className="space-y-1.5">
         <Label>Cuenta Social</Label>
         <Select value={selectedAccountId} onValueChange={onSelectAccount} disabled={!selectedClientId || accounts.length === 0}>
@@ -106,6 +121,7 @@ export function ConfigPanel({
         )}
       </div>
 
+      {/* Content type */}
       <div className="space-y-1.5">
         <Label>Tipo de contenido</Label>
         <div className="grid grid-cols-2 gap-1.5">
@@ -137,6 +153,7 @@ export function ConfigPanel({
         )}
       </div>
 
+      {/* Language */}
       <div className="space-y-1.5">
         <Label>Idioma</Label>
         <Select value={language} onValueChange={onLanguageChange}>
@@ -148,10 +165,46 @@ export function ConfigPanel({
         </Select>
       </div>
 
+      {/* Prompt — 5000 chars, auto-grow */}
       <div className="space-y-1.5">
         <Label>{promptLabel}</Label>
-        <Textarea value={prompt} onChange={(e) => onPromptChange(e.target.value)} placeholder={promptPlaceholder} rows={4} className="resize-none" />
-        <p className="text-xs text-muted-foreground text-right">{prompt.length}/1000</p>
+        <textarea
+          ref={textareaRef}
+          value={prompt}
+          onChange={handlePromptChange}
+          placeholder={promptPlaceholder}
+          maxLength={5000}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+          style={{ minHeight: 120, maxHeight: 400 }}
+        />
+        <p className="text-xs text-muted-foreground text-right">{prompt.length}/5000</p>
+      </div>
+
+      {/* Agent selector — horizontal scroll cards */}
+      <div className="space-y-1.5">
+        <Label>Agente</Label>
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex gap-2 pb-2">
+            {agents.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => onAgentChange(a.id)}
+                className={`flex-shrink-0 w-24 p-2 rounded-lg border text-center text-xs transition-all ${
+                  selectedAgent === a.id
+                    ? "border-yellow-500 bg-yellow-500/10 ring-1 ring-yellow-500/30"
+                    : "border-border/50 hover:border-primary/50"
+                }`}
+              >
+                <div className="text-lg leading-none">{a.emoji}</div>
+                <div className="font-semibold mt-1 truncate">{a.name}</div>
+                <div className="text-[10px] text-muted-foreground truncate">{a.model}</div>
+                <div className="text-[10px] text-muted-foreground truncate">{a.description}</div>
+              </button>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       </div>
 
       {isGeneratingVideo && (

@@ -19,7 +19,7 @@ interface AttachmentInputProps {
   onTextExtracted: (text: string, filename: string) => void;
 }
 
-const MAX_IMAGES = 1;
+const MAX_IMAGES = 3;
 const MAX_DOCS = 3;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const DOC_EXTENSIONS = [".pdf", ".txt", ".md"];

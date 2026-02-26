@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
   generateText, deleteContent,
   generateImage, generateVideo, generateVideoFal,
-  type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type VideoProvider, type GeneratedContent,
+  fetchAgentProviders, FALLBACK_AGENTS,
+  type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type VideoProvider, type GeneratedContent, type AgentProvider,
 } from "@/lib/api/contentLab";
 
 export function useContentLab() {
@@ -25,6 +26,10 @@ export function useContentLab() {
   const [videoDuration, setVideoDuration] = useState<VideoDuration>(5);
   const [videoProvider, setVideoProvider] = useState<VideoProvider>("runway");
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState("rex");
+  const [agents, setAgents] = useState<AgentProvider[]>(FALLBACK_AGENTS);
+
+  useEffect(() => { fetchAgentProviders().then(setAgents); }, []);
 
   const invalidateHistory = () =>
     queryClient.invalidateQueries({ queryKey: ["content-history"] });
@@ -44,7 +49,7 @@ export function useContentLab() {
     }
     setIsGenerating(true);
     try {
-      const raw = await generateText(selectedAccountId, contentType, prompt, language);
+      const raw = await generateText(selectedAccountId, contentType, prompt, language, selectedAgent);
       if (raw) {
         const content: GeneratedContent = {
           ...(raw as GeneratedContent),
@@ -59,7 +64,8 @@ export function useContentLab() {
         };
         setResults(prev => [content, ...prev]);
         invalidateHistory();
-        toast({ title: "Contenido generado exitosamente" });
+        const agentInfo = agents.find(a => a.id === selectedAgent);
+        toast({ title: `Generado por ${agentInfo?.name ?? selectedAgent.toUpperCase()}` });
       }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Error desconocido";
@@ -139,8 +145,9 @@ export function useContentLab() {
     selectedClientId, selectedAccountId, contentType, language,
     prompt, results, copiedId, isGenerating, imageStyle, isGeneratingImage,
     videoStyle, videoDuration, videoProvider, isGeneratingVideo,
+    selectedAgent, agents,
     setContentType, setLanguage, setPrompt, setImageStyle, setResults,
-    setVideoStyle, setVideoDuration, setVideoProvider,
+    setVideoStyle, setVideoDuration, setVideoProvider, setSelectedAgent,
     selectClient, selectAccount,
     handleGenerate, handleGenerateImage, handleGenerateVideo,
     handleCopy, handleDelete,

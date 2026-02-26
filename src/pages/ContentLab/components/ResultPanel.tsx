@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { PlatformIcon } from "@/components/icons/PlatformIcon";
 import { ContentTypeIcon } from "@/components/icons/ContentTypeIcon";
-import { CONTENT_TYPE_LABELS, type ContentType, type GeneratedContent } from "@/lib/api/contentLab";
+import { CONTENT_TYPE_LABELS, FALLBACK_AGENTS, type ContentType, type GeneratedContent } from "@/lib/api/contentLab";
 import { ResultActions } from "./ResultActions";
 import { VideoResult } from "./VideoResult";
 import { useResultAnalysis, type AnalysisType } from "../hooks/useResultAnalysis";
@@ -53,7 +53,17 @@ export function ResultPanel({
             <PlatformIcon platform={result.platform || ""} size={12} /> {result.platform}
           </span>
         </div>
-        <span className="text-xs text-muted-foreground">{result.tokens_used} tokens</span>
+        <span className="text-xs text-muted-foreground">
+          {(() => {
+            const r = result as GeneratedContent & { agent?: string; model_used?: string };
+            const agent = FALLBACK_AGENTS.find(a => a.id === r.agent);
+            const parts: string[] = [];
+            if (agent) parts.push(`${agent.emoji} ${agent.name}`);
+            if (r.model_used) parts.push(r.model_used);
+            if (r.tokens_used) parts.push(`${r.tokens_used} tokens`);
+            return parts.join(" · ") || `${r.tokens_used} tokens`;
+          })()}
+        </span>
       </div>
 
       {isVideo ? (

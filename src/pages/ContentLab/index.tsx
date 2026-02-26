@@ -20,9 +20,10 @@ export default function ContentLab() {
     selectedClientId, selectedAccountId, contentType, language,
     prompt, results, copiedId, isGenerating, imageStyle, isGeneratingImage,
     videoStyle, videoDuration, videoProvider, isGeneratingVideo,
-    selectedAgent, agents,
+    selectedAgent, agents, attachments,
     setContentType, setLanguage, setPrompt, setImageStyle, setResults,
     setVideoStyle, setVideoDuration, setVideoProvider, setSelectedAgent,
+    setAttachments,
     selectClient, selectAccount,
     handleGenerate, handleGenerateImage, handleGenerateVideo,
     handleCopy, handleDelete,
@@ -105,12 +106,14 @@ export default function ContentLab() {
             selectedAgent={selectedAgent} agents={agents}
             isGenerating={isGenerating} isGeneratingImage={isGeneratingImage}
             isGeneratingVideo={isGeneratingVideo} hasContext={hasContext}
+            attachments={attachments}
             onSelectClient={selectClient} onSelectAccount={selectAccount}
             onContentTypeChange={setContentType} onLanguageChange={setLanguage}
             onPromptChange={setPrompt} onImageStyleChange={setImageStyle}
             onVideoStyleChange={setVideoStyle} onVideoDurationChange={setVideoDuration}
             onVideoProviderChange={setVideoProvider}
             onAgentChange={setSelectedAgent}
+            onAttachmentsChange={setAttachments}
             onGenerate={getGenerateHandler()}
           />
         </div>

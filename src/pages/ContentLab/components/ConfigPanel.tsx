@@ -4,13 +4,13 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sparkles, Loader2, Video } from "lucide-react";
 import { PlatformIcon } from "@/components/icons/PlatformIcon";
 import { ContentTypeIcon } from "@/components/icons/ContentTypeIcon";
 import { CONTENT_TYPE_LABELS, type ContentType, type ImageStyle, type VideoStyle, type VideoDuration, type VideoProvider, type AgentProvider } from "@/lib/api/contentLab";
 import { VideoOptions } from "./VideoOptions";
 import { Progress } from "@/components/ui/progress";
+import { AttachmentInput, type Attachment } from "./AttachmentInput";
 
 interface SocialAccount { id: string; platform: string; username: string; context_id?: string | null; }
 interface Client { id: string; name: string; plan: string | null; }
@@ -33,6 +33,7 @@ interface ConfigPanelProps {
   isGeneratingImage: boolean;
   isGeneratingVideo: boolean;
   hasContext: boolean;
+  attachments: Attachment[];
   onSelectClient: (id: string) => void;
   onSelectAccount: (id: string) => void;
   onContentTypeChange: (type: ContentType) => void;
@@ -43,6 +44,7 @@ interface ConfigPanelProps {
   onVideoDurationChange: (d: VideoDuration) => void;
   onVideoProviderChange: (p: VideoProvider) => void;
   onAgentChange: (id: string) => void;
+  onAttachmentsChange: (a: Attachment[]) => void;
   onGenerate: () => void;
 }
 
@@ -57,9 +59,11 @@ export function ConfigPanel({
   contentType, language, prompt, imageStyle, videoStyle, videoDuration, videoProvider,
   selectedAgent, agents,
   isGenerating, isGeneratingImage, isGeneratingVideo, hasContext,
+  attachments,
   onSelectClient, onSelectAccount, onContentTypeChange,
   onLanguageChange, onPromptChange, onImageStyleChange,
-  onVideoStyleChange, onVideoDurationChange, onVideoProviderChange, onAgentChange, onGenerate,
+  onVideoStyleChange, onVideoDurationChange, onVideoProviderChange, onAgentChange,
+  onAttachmentsChange, onGenerate,
 }: ConfigPanelProps) {
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
   const busy = contentType === "video" ? isGeneratingVideo : contentType === "image" ? isGeneratingImage : isGenerating;
@@ -69,7 +73,6 @@ export function ConfigPanel({
     ? "Una oficina moderna con personas colaborando..."
     : "Ej: Promo de verano con 20% descuento...";
   const promptLabel = contentType === "video" ? "Describe la escena del video" : "Tema o instrucción";
-
   const buttonLabel = contentType === "video" ? "Generar Video" : contentType === "image" ? "Generar Imagen" : "Generar Contenido";
   const busyLabel = contentType === "video" ? "Generando video..." : contentType === "image" ? "Creando imagen..." : "Generando...";
 
@@ -79,6 +82,10 @@ export function ConfigPanel({
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 400)}px`;
   }, [onPromptChange]);
+
+  const handleTextExtracted = useCallback((text: string, filename: string) => {
+    onPromptChange(prompt + `\n\n[Documento adjunto: ${filename}]\n` + text);
+  }, [onPromptChange, prompt]);
 
   return (
     <div className="rounded-lg border border-border/50 bg-card p-4 space-y-4">
@@ -165,7 +172,7 @@ export function ConfigPanel({
         </Select>
       </div>
 
-      {/* Prompt — 5000 chars, auto-grow */}
+      {/* Prompt */}
       <div className="space-y-1.5">
         <Label>{promptLabel}</Label>
         <textarea
@@ -177,34 +184,25 @@ export function ConfigPanel({
           className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
           style={{ minHeight: 120, maxHeight: 400 }}
         />
-        <p className="text-xs text-muted-foreground text-right">{prompt.length}/5000</p>
+        <div className="flex items-center justify-between">
+          <AttachmentInput attachments={attachments} onChange={onAttachmentsChange} onTextExtracted={handleTextExtracted} />
+          <p className="text-xs text-muted-foreground">{prompt.length}/5000</p>
+        </div>
       </div>
 
-      {/* Agent selector — horizontal scroll cards */}
+      {/* Agent dropdown */}
       <div className="space-y-1.5">
         <Label>Agente</Label>
-        <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex gap-2 pb-2">
+        <Select value={selectedAgent} onValueChange={onAgentChange}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
             {agents.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => onAgentChange(a.id)}
-                className={`flex-shrink-0 w-24 p-2 rounded-lg border text-center text-xs transition-all ${
-                  selectedAgent === a.id
-                    ? "border-yellow-500 bg-yellow-500/10 ring-1 ring-yellow-500/30"
-                    : "border-border/50 hover:border-primary/50"
-                }`}
-              >
-                <div className="text-lg leading-none">{a.emoji}</div>
-                <div className="font-semibold mt-1 truncate">{a.name}</div>
-                <div className="text-[10px] text-muted-foreground truncate">{a.model}</div>
-                <div className="text-[10px] text-muted-foreground truncate">{a.description}</div>
-              </button>
+              <SelectItem key={a.id} value={a.id}>
+                {a.emoji} {a.name} — {a.model} · {a.description}
+              </SelectItem>
             ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+          </SelectContent>
+        </Select>
       </div>
 
       {isGeneratingVideo && (

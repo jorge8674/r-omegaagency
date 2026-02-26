@@ -65,13 +65,13 @@ export interface AgentProvider {
 }
 
 export const FALLBACK_AGENTS: AgentProvider[] = [
-  { id: "rex",    name: "REX",    model: "GPT-4o-mini",      description: "Rápido y eficiente",  emoji: "⚡" },
-  { id: "nova",   name: "NOVA",   model: "GPT-4o",           description: "Director creativo",   emoji: "👑" },
-  { id: "atlas",  name: "ATLAS",  model: "GPT-4o",           description: "Creativo avanzado",   emoji: "🌟" },
-  { id: "luna",   name: "LUNA",   model: "Deepseek V3",      description: "Técnico y analítico", emoji: "🔬" },
-  { id: "vera",   name: "VERA",   model: "Claude Sonnet",    description: "Precisión premium",   emoji: "💎" },
-  { id: "kira",   name: "KIRA",   model: "Gemini Flash",     description: "Conversacional",      emoji: "💬" },
-  { id: "oracle", name: "ORACLE", model: "Claude Opus",      description: "Estratega profundo",  emoji: "🔮" },
+  { id: "rex",    name: "REX",    model: "GPT-4o-mini",       description: "Rápido y eficiente",      emoji: "⚡" },
+  { id: "nova",   name: "NOVA",   model: "Claude Sonnet 4.5", description: "Estratégico y preciso",   emoji: "👑" },
+  { id: "atlas",  name: "ATLAS",  model: "GPT-4o",            description: "Creativo para marketing", emoji: "🌟" },
+  { id: "luna",   name: "LUNA",   model: "Deepseek V3",       description: "Análisis técnico",        emoji: "🔬" },
+  { id: "vera",   name: "VERA",   model: "Gemini 2.0 Flash",  description: "Datos y métricas",        emoji: "💎" },
+  { id: "kira",   name: "KIRA",   model: "Llama 3.3 (Groq)",  description: "Conversacional, gratis",  emoji: "💬" },
+  { id: "oracle", name: "ORACLE", model: "Deepseek R1",       description: "Razonamiento profundo",   emoji: "🔮" },
 ];
 
 export async function fetchAgentProviders(): Promise<AgentProvider[]> {

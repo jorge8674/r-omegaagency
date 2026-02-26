@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import type { Attachment } from "../components/AttachmentInput";
 import { useToast } from "@/hooks/use-toast";
 import {
   generateText, deleteContent,
@@ -28,6 +29,7 @@ export function useContentLab() {
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState("rex");
   const [agents, setAgents] = useState<AgentProvider[]>(FALLBACK_AGENTS);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   useEffect(() => { fetchAgentProviders().then(setAgents); }, []);
 
@@ -138,16 +140,17 @@ export function useContentLab() {
     toast({ title: "Eliminado" });
   };
 
-  const selectClient = (clientId: string) => { setSelectedClientId(clientId); setSelectedAccountId(""); setResults([]); };
-  const selectAccount = (accountId: string) => { setSelectedAccountId(accountId); setResults([]); };
+  const selectClient = (clientId: string) => { setSelectedClientId(clientId); setSelectedAccountId(""); setResults([]); setAttachments([]); };
+  const selectAccount = (accountId: string) => { setSelectedAccountId(accountId); setResults([]); setAttachments([]); };
 
   return {
     selectedClientId, selectedAccountId, contentType, language,
     prompt, results, copiedId, isGenerating, imageStyle, isGeneratingImage,
     videoStyle, videoDuration, videoProvider, isGeneratingVideo,
-    selectedAgent, agents,
+    selectedAgent, agents, attachments,
     setContentType, setLanguage, setPrompt, setImageStyle, setResults,
     setVideoStyle, setVideoDuration, setVideoProvider, setSelectedAgent,
+    setAttachments,
     selectClient, selectAccount,
     handleGenerate, handleGenerateImage, handleGenerateVideo,
     handleCopy, handleDelete,

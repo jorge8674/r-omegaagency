@@ -76,10 +76,16 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
   const handleFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext === "pdf") {
+      toast({ title: "PDF detectado", description: "Los PDFs se procesan mejor vía URL. Sube el PDF a Google Drive, obtén el link y úsalo en el tab URL.", variant: "destructive" });
+      e.target.value = "";
+      return;
+    }
     const text = await file.text();
-    setContent(text);
+    setContent(prev => prev ? prev + "\n\n" + text : text);
     if (!name) setName(file.name.replace(/\.[^.]+$/, ""));
-  }, [name]);
+  }, [name, toast]);
 
   const handleExtractUrl = async () => {
     if (!urlInput.trim()) return;

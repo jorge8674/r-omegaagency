@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { InfoTab } from "./InfoTab";
 import { ContextTab } from "./ContextTab";
 import { AccountsTab } from "./AccountsTab";
+import { BrandVoiceForm } from "@/components/onboarding/BrandVoiceForm";
 import type { ClientProfile, ClientCreate, ClientUpdate } from "@/lib/api/clients";
 
 interface ClientModalProps {
@@ -76,9 +77,10 @@ export function ClientModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="info">Info</TabsTrigger>
             <TabsTrigger value="context" disabled={!isEditMode}>Contexto</TabsTrigger>
+            <TabsTrigger value="voice" disabled={!isEditMode}>Voz</TabsTrigger>
             <TabsTrigger value="accounts" disabled={!isEditMode}>Cuentas</TabsTrigger>
           </TabsList>
 
@@ -96,8 +98,18 @@ export function ClientModal({
           <TabsContent value="context">
             <ContextTab
               client={effectiveClient ? { id: effectiveClient.id, plan: effectiveClient.plan } : null}
-              onAccountsCreated={() => setActiveTab("accounts")}
+              onAccountsCreated={() => setActiveTab("voice")}
             />
+          </TabsContent>
+
+          <TabsContent value="voice">
+            {effectiveClient && (
+              <BrandVoiceForm
+                clientId={effectiveClient.id}
+                onNext={() => setActiveTab("accounts")}
+                onSkip={() => setActiveTab("accounts")}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="accounts">

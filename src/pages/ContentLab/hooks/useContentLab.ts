@@ -51,18 +51,20 @@ export function useContentLab() {
     }
     setIsGenerating(true);
     try {
-      const raw = await generateText(selectedAccountId, contentType, prompt, language, selectedAgent);
+      const raw = await generateText(selectedAccountId, contentType, prompt, language, selectedAgent, selectedClientId);
       if (raw) {
+        const r = raw as GeneratedContent;
         const content: GeneratedContent = {
-          ...(raw as GeneratedContent),
-          id: (raw as GeneratedContent).id || crypto.randomUUID(),
+          ...r,
+          id: r.id || crypto.randomUUID(),
           client_id: selectedClientId,
           account_id: selectedAccountId,
           context_id: null,
-          platform: (raw as GeneratedContent).platform || "instagram",
+          platform: r.platform || "instagram",
           prompt,
           is_saved: false,
           created_at: new Date().toISOString(),
+          vault_prompt_used: r.vault_prompt_used ?? null,
         };
         setResults(prev => [content, ...prev]);
         invalidateHistory();

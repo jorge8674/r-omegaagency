@@ -26,7 +26,7 @@ function getStars(score: number): string {
 export function VaultPromptBadge({ vault, onViewPrompt }: VaultPromptBadgeProps) {
   if (!vault) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+      <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground select-none pointer-events-none opacity-70">
         <BookOpen className="h-3 w-3" /> Prompt por Defecto
       </span>
     );

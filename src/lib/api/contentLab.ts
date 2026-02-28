@@ -96,7 +96,8 @@ export async function generateText(
   contentType: string,
   brief: string,
   language?: string,
-  agent?: string
+  agent?: string,
+  clientId?: string
 ) {
   const params = new URLSearchParams({
     account_id: accountId,
@@ -105,6 +106,7 @@ export async function generateText(
     language: language || "es",
   });
   if (agent) params.set("agent", agent);
+  if (clientId) params.set("client_id", clientId);
   return apiCall(`/content-lab/generate/?${params.toString()}`, "POST");
 }
 

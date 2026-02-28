@@ -6,6 +6,7 @@ import { ResultActions } from "./ResultActions";
 import { VideoResult } from "./VideoResult";
 import { useResultAnalysis, type AnalysisType } from "../hooks/useResultAnalysis";
 import { ForecastDisplay, ViralityDisplay, InsightDisplay } from "./AnalysisDisplay";
+import { VaultPromptBadge } from "@/components/content-lab/VaultPromptBadge";
 
 interface ResultPanelProps {
   result: GeneratedContent | null;
@@ -79,6 +80,8 @@ export function ResultPanel({
           {result.generated_text}
         </div>
       )}
+
+      <VaultPromptBadge vault={result.vault_prompt_used ?? null} />
 
       <ResultActions
         result={result} copied={copied} isGenerating={isGenerating}

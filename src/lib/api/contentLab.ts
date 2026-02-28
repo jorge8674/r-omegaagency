@@ -17,6 +17,13 @@ export const CONTENT_TYPE_LABELS: Record<ContentType, { label: string; emoji: st
   video:       { label: "Video/Reel",  emoji: "",   desc: "Video corto con IA" },
 };
 
+export interface VaultPromptUsed {
+  id: string;
+  name: string;
+  technique: string;
+  performance_score: number;
+}
+
 export interface GeneratedContent {
   id: string;
   client_id: string;
@@ -30,6 +37,7 @@ export interface GeneratedContent {
   model_used: string;
   is_saved: boolean;
   created_at: string;
+  vault_prompt_used?: VaultPromptUsed | null;
 }
 
 export type ImageStyle = "realistic" | "cartoon" | "minimal";

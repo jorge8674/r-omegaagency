@@ -15,50 +15,29 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const processRecovery = async () => {
-      const hash = window.location.hash;
-
-      // Parse tokens from hash fragment: #access_token=XXX&type=recovery&refresh_token=YYY
-      if (hash.includes("type=recovery") && hash.includes("access_token=")) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-        const refreshToken = params.get("refresh_token");
-
-        if (accessToken && refreshToken) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (sessionError) {
-            console.error("Recovery session error:", sessionError);
-            setError("No se pudo verificar el enlace. Solicita uno nuevo.");
-          } else {
-            setSessionReady(true);
-          }
-          return;
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setSessionReady(true);
       }
+    });
 
-      // Fallback: listen for PASSWORD_RECOVERY event (in case Supabase handles it)
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === "PASSWORD_RECOVERY") {
-          setSessionReady(true);
-          subscription.unsubscribe();
-        }
+    // Also check if there's already an active session (page reload)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true);
+    });
+
+    // Timeout: if not ready after 5s, show expired error
+    const timeout = setTimeout(() => {
+      setSessionReady((ready) => {
+        if (!ready) setError("Enlace de recuperación inválido o expirado.");
+        return ready;
       });
+    }, 5000);
 
-      // Timeout: if nothing happens after 3s, show error
-      setTimeout(() => {
-        setSessionReady((ready) => {
-          if (!ready) setError("Enlace de recuperación inválido o expirado.");
-          return ready;
-        });
-        subscription.unsubscribe();
-      }, 3000);
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
     };
-
-    processRecovery();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,10 +87,19 @@ export default function ResetPassword() {
             </div>
             <p className="text-sm text-white/50">Contraseña actualizada correctamente</p>
           </div>
-        ) : !sessionReady ? (
+        ) : !sessionReady && !error ? (
           <div className="text-center text-sm text-white/50">
             <Loader2 size={20} className="animate-spin mx-auto mb-3 text-white/30" />
             Verificando enlace de recuperación...
+          </div>
+        ) : !sessionReady && error ? (
+          <div className="text-center">
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 mb-4">
+              {error}
+            </div>
+            <Link to="/auth/reset" className="text-xs text-[hsl(38,85%,55%)] hover:underline">
+              Solicitar un nuevo enlace →
+            </Link>
           </div>
         ) : (
           <>

@@ -59,6 +59,9 @@ export interface OmegaActivity {
   client_id?: string | null;
   client_name?: string | null;
   agent_code?: string | null;
+  status?: string | null;
+  tokens_used?: number | null;
+  provider?: string | null;
 }
 
 export interface OmegaActivityResponse {

@@ -57,13 +57,19 @@ function formatTokens(n: number): string {
   return n >= 1000 ? `${n.toLocaleString("es-ES")} tokens` : `${n} tokens`;
 }
 
-/** Build rich description: "AGENT → Client — Action — Mar 28" */
+/** Build rich description */
 function formatActivityLine(item: OmegaActivity): string {
+  // agent_task special format: "✅ DUDA — desc — hace X min (6,772 tokens)"
+  if (item.type === "agent_task") {
+    const icon = STATUS_ICON[item.status ?? ""] ?? "⚙️";
+    const tokens = item.tokens_used ? ` (${formatTokens(item.tokens_used)})` : "";
+    return `${icon} ${item.description}${tokens}`;
+  }
+
   const agent = item.agent_code?.toUpperCase();
   const client = item.client_name;
   const action = ACTION_LABEL[item.type];
 
-  // Try to format a short date like "Mar 28"
   let shortDate = "";
   try {
     shortDate = format(new Date(item.timestamp), "MMM dd", { locale: es });
@@ -71,28 +77,17 @@ function formatActivityLine(item: OmegaActivity): string {
     shortDate = "";
   }
 
-  // If we have structured fields, use the rich format
   if (agent || client) {
     const parts: string[] = [];
     if (agent) parts.push(agent);
-    if (client) {
-      parts.push(`→ ${client}`);
-    }
-    if (action) {
-      parts.push(`— ${action}`);
-    } else {
-      // Fallback to raw description
-      parts.push(`— ${item.description}`);
-    }
+    if (client) parts.push(`→ ${client}`);
+    if (action) parts.push(`— ${action}`);
+    else parts.push(`— ${item.description}`);
     if (shortDate) parts.push(`— ${shortDate}`);
     return parts.join(" ");
   }
 
-  // Fallback: use description as-is but append short date
-  if (action && shortDate) {
-    return `${action} — ${shortDate}`;
-  }
-
+  if (action && shortDate) return `${action} — ${shortDate}`;
   return item.description;
 }
 

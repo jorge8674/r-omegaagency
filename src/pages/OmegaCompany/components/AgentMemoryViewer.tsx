@@ -13,6 +13,22 @@ import { es } from "date-fns/locale";
 const AGENTS = ["NOVA", "ATLAS", "LUNA", "REX", "VERA", "KIRA", "ORACLE", "SOPHIA"] as const;
 type AgentCode = typeof AGENTS[number];
 
+function parseMemoryContent(content: Record<string, unknown>): { userPreview: string; assistantPreview: string } {
+  try {
+    const ctx = (content as { context?: { role: string; content: string }[] }).context;
+    if (Array.isArray(ctx)) {
+      const userMsg = ctx.find((m) => m.role === "user")?.content || "";
+      const assistantMsg = ctx.find((m) => m.role === "assistant")?.content || "";
+      return {
+        userPreview: userMsg.length > 120 ? userMsg.slice(0, 120) + "…" : userMsg || "Sin contenido",
+        assistantPreview: assistantMsg ? (assistantMsg.length > 80 ? assistantMsg.slice(0, 80) + "…" : assistantMsg) : "",
+      };
+    }
+  } catch { /* fall through */ }
+  const raw = JSON.stringify(content);
+  return { userPreview: raw.length > 120 ? raw.slice(0, 120) + "…" : raw, assistantPreview: "" };
+}
+
 const AGENT_COLORS: Record<AgentCode, string> = {
   NOVA: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
   ATLAS: "text-amber-400 bg-amber-500/10 border-amber-500/30",
@@ -104,22 +120,30 @@ export function AgentMemoryViewer() {
         <p className="text-xs text-muted-foreground py-6 text-center">Sin memorias para {selected}</p>
       ) : (
         <div className="space-y-2">
-          {memories.map((m) => (
-            <div key={m.id} className={`rounded-lg border px-3 py-2.5 ${colorCls}`}>
-              <div className="flex items-center gap-2 mb-1">
-                <Badge variant="outline" className={`text-[9px] px-1.5 py-0 border-current`}>
-                  {m.memory_type}
-                </Badge>
-                <span className="ml-auto flex items-center gap-1 text-[9px] opacity-60">
-                  <Clock className="h-2.5 w-2.5" />
-                  {format(new Date(m.updated_at), "dd MMM, HH:mm", { locale: es })}
-                </span>
+          {memories.map((m) => {
+            const { userPreview, assistantPreview } = parseMemoryContent(m.content);
+            return (
+              <div key={m.id} className={`rounded-lg border px-3 py-2.5 ${colorCls}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="outline" className={`text-[9px] px-1.5 py-0 border-current`}>
+                    {m.memory_type}
+                  </Badge>
+                  <span className="ml-auto flex items-center gap-1 text-[9px] opacity-60">
+                    <Clock className="h-2.5 w-2.5" />
+                    {format(new Date(m.updated_at), "dd MMM, HH:mm", { locale: es })}
+                  </span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-foreground">
+                  {userPreview}
+                </p>
+                {assistantPreview && (
+                  <p className="text-[10px] leading-relaxed text-muted-foreground mt-1">
+                    ↩ {assistantPreview}
+                  </p>
+                )}
               </div>
-              <p className="text-[10px] leading-relaxed line-clamp-2 text-foreground">
-                {typeof m.content === "object" ? JSON.stringify(m.content).slice(0, 120) : String(m.content)}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

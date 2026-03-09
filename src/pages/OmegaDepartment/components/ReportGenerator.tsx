@@ -1,16 +1,44 @@
-// 85 lines
-import { useState } from "react";
-import { FileText, Download, Eye, Trash2, X } from "lucide-react";
+// ReportGenerator — report list + modal with activity section
+import { useState, useEffect } from "react";
+import { FileText, Download, Eye, Trash2, Activity, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { type DeptReport } from "../hooks/useOmegaDepartment";
+import { omegaApi, type OmegaActivity } from "@/lib/api/omega";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface Props {
   reports: DeptReport[];
   onDelete: (id: string) => void;
 }
 
+/* ── Modal with activity ──────────────────────────────────── */
 function ReportViewModal({ report, onClose }: { report: DeptReport; onClose: () => void }) {
+  const [activities, setActivities] = useState<OmegaActivity[]>([]);
+  const [loadingAct, setLoadingAct] = useState(true);
+
+  useEffect(() => {
+    setLoadingAct(true);
+    omegaApi.getActivity()
+      .then((res) => {
+        const list = Array.isArray(res) ? res : (res?.activities ?? []);
+        // Filter by department keyword or client_id
+        const dept = report.department.toLowerCase();
+        const filtered = list.filter((a: OmegaActivity) => {
+          const desc = (a.description ?? "").toLowerCase();
+          const matchesDept = desc.includes(dept) || desc.includes(report.director.toLowerCase());
+          const matchesClient = report.client_id && a.client_id === report.client_id;
+          return matchesDept || matchesClient;
+        });
+        setActivities(filtered.slice(0, 5));
+      })
+      .catch(() => setActivities([]))
+      .finally(() => setLoadingAct(false));
+  }, [report]);
+
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -18,16 +46,63 @@ function ReportViewModal({ report, onClose }: { report: DeptReport; onClose: () 
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" />
             {report.department} · {report.director}
+            {report.client_name && (
+              <Badge variant="secondary" className="ml-2 text-[10px]">
+                <User className="h-3 w-3 mr-1" />
+                {report.client_name}
+              </Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
+
         <pre className="text-xs text-foreground whitespace-pre-wrap leading-relaxed font-mono bg-muted/10 rounded-lg p-4 border border-border/30">
           {report.content}
         </pre>
+
+        <Separator className="my-2 opacity-40" />
+
+        {/* ── Actividad Real ──────────────────────────────── */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Actividad Real
+            </h3>
+          </div>
+
+          {loadingAct ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-8 rounded-md bg-muted/20 animate-pulse" />
+              ))}
+            </div>
+          ) : activities.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-4 text-center opacity-60">
+              Sin actividad reciente para este agente/departamento
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              {activities.map((a, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 px-3 py-2"
+                >
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                  <p className="text-xs text-foreground flex-1 truncate">{a.description}</p>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                    {formatDistanceToNow(new Date(a.timestamp), { addSuffix: true, locale: es })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
 }
 
+/* ── Download helper ──────────────────────────────────────── */
 function downloadMd(report: DeptReport): void {
   const blob = new Blob([report.content], { type: "text/markdown" });
   const url = URL.createObjectURL(blob);
@@ -38,6 +113,7 @@ function downloadMd(report: DeptReport): void {
   URL.revokeObjectURL(url);
 }
 
+/* ── Report list ──────────────────────────────────────────── */
 export function ReportGenerator({ reports, onDelete }: Props) {
   const [viewing, setViewing] = useState<DeptReport | null>(null);
 
@@ -65,6 +141,14 @@ export function ReportGenerator({ reports, onDelete }: Props) {
                 {new Date(r.createdAt).toLocaleString("es-ES")}
               </p>
             </div>
+            {/* ── Client column ── */}
+            <Badge
+              variant={r.client_name ? "secondary" : "outline"}
+              className="text-[10px] shrink-0"
+            >
+              <User className="h-3 w-3 mr-1" />
+              {r.client_name || "Global"}
+            </Badge>
             <div className="flex items-center gap-1 shrink-0">
               <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setViewing(r)}>
                 <Eye className="h-3.5 w-3.5" />

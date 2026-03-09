@@ -34,6 +34,10 @@ export async function apiCall<T = any>(
     );
   }
 
+  if (response.status === 204) {
+    return {} as T;
+  }
+
   return response.json();
 }
 

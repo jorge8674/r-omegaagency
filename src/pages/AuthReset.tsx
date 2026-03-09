@@ -21,7 +21,7 @@ export default function AuthReset() {
     setLoading(true);
     try {
       await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: 'https://r-omega.agency/reset-password',
       });
     } catch {
       // Silently continue — don't reveal if email exists

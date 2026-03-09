@@ -57,6 +57,8 @@ export interface OmegaActivity {
   description: string;
   timestamp: string;
   client_id?: string | null;
+  client_name?: string | null;
+  agent_code?: string | null;
 }
 
 export interface OmegaActivityResponse {

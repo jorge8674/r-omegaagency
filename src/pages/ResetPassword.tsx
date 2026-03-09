@@ -87,10 +87,19 @@ export default function ResetPassword() {
             </div>
             <p className="text-sm text-white/50">Contraseña actualizada correctamente</p>
           </div>
-        ) : !sessionReady ? (
+        ) : !sessionReady && !error ? (
           <div className="text-center text-sm text-white/50">
             <Loader2 size={20} className="animate-spin mx-auto mb-3 text-white/30" />
             Verificando enlace de recuperación...
+          </div>
+        ) : !sessionReady && error ? (
+          <div className="text-center">
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 mb-4">
+              {error}
+            </div>
+            <Link to="/auth/reset" className="text-xs text-[hsl(38,85%,55%)] hover:underline">
+              Solicitar un nuevo enlace →
+            </Link>
           </div>
         ) : (
           <>

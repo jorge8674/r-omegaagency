@@ -17,6 +17,7 @@ const TYPE_LABEL: Record<string, string> = {
   post_scheduled: "Programado",
   agent_execution: "Agente",
   agent_executed: "Agente",
+  agent_task: "Tarea",
   client_created: "Cliente",
   reseller_created: "Reseller",
   video_generated: "Video",
@@ -28,6 +29,7 @@ const TYPE_COLOR: Record<string, string> = {
   post_scheduled:    "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
   agent_execution:   "bg-blue-500/20 text-blue-400 border-blue-500/30",
   agent_executed:    "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  agent_task:        "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
   client_created:    "bg-primary/20 text-primary border-primary/30",
   reseller_created:  "bg-primary/20 text-primary border-primary/30",
   video_generated:   "bg-purple-500/20 text-purple-400 border-purple-500/30",
@@ -39,10 +41,21 @@ const ACTION_LABEL: Record<string, string> = {
   post_scheduled:    "Post programado",
   agent_execution:   "Agente ejecutado",
   agent_executed:    "Agente ejecutado",
+  agent_task:        "Tarea de agente",
   client_created:    "Cliente creado",
   reseller_created:  "Reseller creado",
   video_generated:   "Video generado",
 };
+
+const STATUS_ICON: Record<string, string> = {
+  completed:   "✅",
+  in_progress: "🔄",
+  failed:      "❌",
+};
+
+function formatTokens(n: number): string {
+  return n >= 1000 ? `${n.toLocaleString("es-ES")} tokens` : `${n} tokens`;
+}
 
 /** Build rich description: "AGENT → Client — Action — Mar 28" */
 function formatActivityLine(item: OmegaActivity): string {

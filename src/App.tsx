@@ -11,6 +11,7 @@ import { NovaChatWrapper } from "@/components/NovaChat/NovaChatWrapper";
 import AuthLogin from "./pages/AuthLogin";
 import AuthRegister from "./pages/AuthRegister";
 import AuthReset from "./pages/AuthReset";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import OmegaDepartment from "./pages/OmegaDepartment/index";
 import Clients from "./pages/Clients/index";

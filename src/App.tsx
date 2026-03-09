@@ -11,6 +11,7 @@ import { NovaChatWrapper } from "@/components/NovaChat/NovaChatWrapper";
 import AuthLogin from "./pages/AuthLogin";
 import AuthRegister from "./pages/AuthRegister";
 import AuthReset from "./pages/AuthReset";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import OmegaDepartment from "./pages/OmegaDepartment/index";
 import Clients from "./pages/Clients/index";
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="/auth/login" element={<AuthLogin />} />
               <Route path="/auth/register" element={<AuthRegister />} />
               <Route path="/auth/reset" element={<AuthReset />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/login" element={<Navigate to="/auth/login" replace />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/landing/:slug" element={<LandingPage />} />

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
 export default function AuthReset() {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
@@ -19,8 +19,13 @@ export default function AuthReset() {
     e.preventDefault();
     if (!email.trim()) return;
     setLoading(true);
-    // Simulate delay — real logic later
-    await new Promise((r) => setTimeout(r, 1200));
+    try {
+      await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+    } catch {
+      // Silently continue — don't reveal if email exists
+    }
     setLoading(false);
     setSent(true);
     toast({ title: "Correo enviado", description: "Si ese email existe, recibirás instrucciones para restablecer tu contraseña." });

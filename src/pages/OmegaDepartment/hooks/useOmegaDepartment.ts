@@ -9,6 +9,8 @@ export interface DeptReport {
   content: string;
   createdAt: string;
   format: "markdown";
+  client_id?: string | null;
+  client_name?: string | null;
 }
 
 const STORAGE_KEY = "omega_reports";

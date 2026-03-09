@@ -1,4 +1,3 @@
-// 72 lines
 import { useQuery } from "@tanstack/react-query";
 import { omegaApi, type OmegaActivity } from "@/lib/api/omega";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +8,7 @@ import { es } from "date-fns/locale";
 const TYPE_BADGE: Record<string, string> = {
   content_generated: "bg-orange-500/15 text-orange-400 border-orange-500/30",
   agent_execution:   "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  agent_task:        "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
   post_scheduled:    "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   video_generated:   "bg-purple-500/15 text-purple-400 border-purple-500/30",
 };
@@ -16,9 +16,34 @@ const TYPE_BADGE: Record<string, string> = {
 const TYPE_LABEL: Record<string, string> = {
   content_generated: "Contenido",
   agent_execution:   "Agente",
+  agent_task:        "Tarea",
   post_scheduled:    "Programado",
   video_generated:   "Video",
 };
+
+const STATUS_ICON: Record<string, string> = {
+  completed:   "✅",
+  in_progress: "🔄",
+  failed:      "❌",
+};
+
+// Agent codes per department for filtering
+const DEPT_AGENTS: Record<string, string[]> = {
+  marketing: ["DANI", "DUDA", "LOLA", "LUAN", "MALU", "MAYA", "RAFA", "SARA"],
+};
+
+function formatTokens(n: number): string {
+  return n >= 1000 ? `${n.toLocaleString("es-ES")} tokens` : `${n} tokens`;
+}
+
+function formatLine(item: OmegaActivity): string {
+  if (item.type === "agent_task") {
+    const icon = STATUS_ICON[item.status ?? ""] ?? "⚙️";
+    const tokens = item.tokens_used ? ` (${formatTokens(item.tokens_used)})` : "";
+    return `${icon} ${item.description}${tokens}`;
+  }
+  return item.description;
+}
 
 interface Props {
   dept: string;
@@ -40,10 +65,18 @@ export function DeptActivityFeed({ dept }: Props) {
     );
   }
 
-  // Filter by department keyword (best-effort since API doesn't filter)
   const allActivity: OmegaActivity[] = data?.activities ?? [];
+
+  // Filter by department agent codes when available
+  const deptAgents = DEPT_AGENTS[dept.toLowerCase()];
   const filtered = allActivity
-    .filter((a) => a.description?.toLowerCase().includes(dept.toLowerCase()) || true)
+    .filter((a) => {
+      if (deptAgents && a.agent_code) {
+        return deptAgents.includes(a.agent_code.toUpperCase());
+      }
+      // Fallback: match department name in description
+      return a.description?.toLowerCase().includes(dept.toLowerCase());
+    })
     .slice(0, 20);
 
   if (!filtered.length) {
@@ -62,7 +95,7 @@ export function DeptActivityFeed({ dept }: Props) {
           <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${TYPE_BADGE[item.type] ?? "bg-muted/30 text-muted-foreground border-border/30"}`}>
             {TYPE_LABEL[item.type] ?? item.type}
           </span>
-          <p className="flex-1 text-xs text-foreground leading-snug">{item.description}</p>
+          <p className="flex-1 text-xs text-foreground leading-snug">{formatLine(item)}</p>
           <span className="shrink-0 text-[10px] text-muted-foreground">
             {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: es })}
           </span>

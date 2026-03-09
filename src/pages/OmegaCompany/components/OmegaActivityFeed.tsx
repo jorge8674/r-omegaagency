@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { formatDistanceToNow } from "date-fns";
 import type { OmegaActivity } from "@/lib/api/omega";
 
 interface Props {
@@ -21,7 +22,7 @@ const TYPE_LABEL: Record<string, string> = {
   video_generated: "Video",
 };
 
-// Custom color classes per type (tailwind bg + text)
+// Custom color classes per type
 const TYPE_COLOR: Record<string, string> = {
   content_generated: "bg-orange-500/20 text-orange-400 border-orange-500/30",
   post_scheduled:    "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
@@ -31,6 +32,56 @@ const TYPE_COLOR: Record<string, string> = {
   reseller_created:  "bg-primary/20 text-primary border-primary/30",
   video_generated:   "bg-purple-500/20 text-purple-400 border-purple-500/30",
 };
+
+// Action label by type
+const ACTION_LABEL: Record<string, string> = {
+  content_generated: "Contenido generado",
+  post_scheduled:    "Post programado",
+  agent_execution:   "Agente ejecutado",
+  agent_executed:    "Agente ejecutado",
+  client_created:    "Cliente creado",
+  reseller_created:  "Reseller creado",
+  video_generated:   "Video generado",
+};
+
+/** Build rich description: "AGENT → Client — Action — Mar 28" */
+function formatActivityLine(item: OmegaActivity): string {
+  const agent = item.agent_code?.toUpperCase();
+  const client = item.client_name;
+  const action = ACTION_LABEL[item.type];
+
+  // Try to format a short date like "Mar 28"
+  let shortDate = "";
+  try {
+    shortDate = format(new Date(item.timestamp), "MMM dd", { locale: es });
+  } catch {
+    shortDate = "";
+  }
+
+  // If we have structured fields, use the rich format
+  if (agent || client) {
+    const parts: string[] = [];
+    if (agent) parts.push(agent);
+    if (client) {
+      parts.push(`→ ${client}`);
+    }
+    if (action) {
+      parts.push(`— ${action}`);
+    } else {
+      // Fallback to raw description
+      parts.push(`— ${item.description}`);
+    }
+    if (shortDate) parts.push(`— ${shortDate}`);
+    return parts.join(" ");
+  }
+
+  // Fallback: use description as-is but append short date
+  if (action && shortDate) {
+    return `${action} — ${shortDate}`;
+  }
+
+  return item.description;
+}
 
 export function OmegaActivityFeed({ activity, loading }: Props) {
   if (loading) {
@@ -79,7 +130,7 @@ export function OmegaActivityFeed({ activity, loading }: Props) {
                 >
                   {TYPE_LABEL[item.type] ?? item.type}
                 </span>
-                <p className="flex-1 truncate text-xs">{item.description}</p>
+                <p className="flex-1 truncate text-xs">{formatActivityLine(item)}</p>
                 <span className="shrink-0 text-[10px] text-muted-foreground">
                   {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: es })}
                 </span>

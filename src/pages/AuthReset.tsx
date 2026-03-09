@@ -19,8 +19,13 @@ export default function AuthReset() {
     e.preventDefault();
     if (!email.trim()) return;
     setLoading(true);
-    // Simulate delay — real logic later
-    await new Promise((r) => setTimeout(r, 1200));
+    try {
+      await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+    } catch {
+      // Silently continue — don't reveal if email exists
+    }
     setLoading(false);
     setSent(true);
     toast({ title: "Correo enviado", description: "Si ese email existe, recibirás instrucciones para restablecer tu contraseña." });

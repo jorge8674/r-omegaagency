@@ -15,16 +15,50 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setSessionReady(true);
+    const processRecovery = async () => {
+      const hash = window.location.hash;
+
+      // Parse tokens from hash fragment: #access_token=XXX&type=recovery&refresh_token=YYY
+      if (hash.includes("type=recovery") && hash.includes("access_token=")) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get("access_token");
+        const refreshToken = params.get("refresh_token");
+
+        if (accessToken && refreshToken) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (sessionError) {
+            console.error("Recovery session error:", sessionError);
+            setError("No se pudo verificar el enlace. Solicita uno nuevo.");
+          } else {
+            setSessionReady(true);
+          }
+          return;
+        }
       }
-    });
-    // Also check if already in recovery session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true);
-    });
-    return () => subscription.unsubscribe();
+
+      // Fallback: listen for PASSWORD_RECOVERY event (in case Supabase handles it)
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          setSessionReady(true);
+          subscription.unsubscribe();
+        }
+      });
+
+      // Timeout: if nothing happens after 3s, show error
+      setTimeout(() => {
+        setSessionReady((ready) => {
+          if (!ready) setError("Enlace de recuperación inválido o expirado.");
+          return ready;
+        });
+        subscription.unsubscribe();
+      }, 3000);
+    };
+
+    processRecovery();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

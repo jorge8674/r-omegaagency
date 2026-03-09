@@ -13,6 +13,22 @@ import { es } from "date-fns/locale";
 const AGENTS = ["NOVA", "ATLAS", "LUNA", "REX", "VERA", "KIRA", "ORACLE", "SOPHIA"] as const;
 type AgentCode = typeof AGENTS[number];
 
+function parseMemoryContent(content: Record<string, unknown>): { userPreview: string; assistantPreview: string } {
+  try {
+    const ctx = (content as { context?: { role: string; content: string }[] }).context;
+    if (Array.isArray(ctx)) {
+      const userMsg = ctx.find((m) => m.role === "user")?.content || "";
+      const assistantMsg = ctx.find((m) => m.role === "assistant")?.content || "";
+      return {
+        userPreview: userMsg.length > 120 ? userMsg.slice(0, 120) + "…" : userMsg || "Sin contenido",
+        assistantPreview: assistantMsg ? (assistantMsg.length > 80 ? assistantMsg.slice(0, 80) + "…" : assistantMsg) : "",
+      };
+    }
+  } catch { /* fall through */ }
+  const raw = JSON.stringify(content);
+  return { userPreview: raw.length > 120 ? raw.slice(0, 120) + "…" : raw, assistantPreview: "" };
+}
+
 const AGENT_COLORS: Record<AgentCode, string> = {
   NOVA: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
   ATLAS: "text-amber-400 bg-amber-500/10 border-amber-500/30",

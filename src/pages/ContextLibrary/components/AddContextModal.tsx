@@ -9,6 +9,8 @@ import { ChipsInput } from "@/components/ui/ChipsInput";
 import { Upload, Loader2, PenLine, FileUp, Link2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiCall, API_BASE } from "@/lib/api/core";
+import { useBulkUpload } from "../hooks/useBulkUpload";
+import { BulkFileList } from "./BulkFileList";
 import type { ContextScope, CreateContextDocPayload, ContextDocument } from "@/lib/api/contextLibrary";
 import type { ClientProfile } from "@/lib/api/clients";
 
@@ -51,6 +53,19 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
 
   const isEdit = !!editDoc;
 
+  const buildPayload = useCallback((fileContent: string, fileName: string): CreateContextDocPayload => {
+    const scopeId = scope === "client" ? clientId : scope === "department" ? department : undefined;
+    return {
+      name: fileName.replace(/\.[^.]+$/, ""),
+      scope,
+      content: fileContent,
+      tags: tags.length > 0 ? tags : undefined,
+      ...(scopeId ? { scope_id: scopeId } : {}),
+    };
+  }, [scope, clientId, department, tags]);
+
+  const bulk = useBulkUpload({ buildPayload, onCreate });
+
   // Pre-fill when editing
   useEffect(() => {
     if (editDoc && open) {
@@ -71,9 +86,10 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
     setName(""); setScope("global"); setClientId("");
     setDepartment(""); setTags([]); setContent("");
     setSourceTab("write"); setUrlInput(""); setExtractedChars(0);
-  }, []);
+    bulk.clearFiles();
+  }, [bulk]);
 
-  const handleFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSingleFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsExtracting(true);
@@ -107,6 +123,11 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
     }
   }, [name, content, toast]);
 
+  const handleBulkFiles = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    bulk.addFiles(e.target.files);
+    e.target.value = "";
+  }, [bulk]);
+
   const handleExtractUrl = async () => {
     if (!urlInput.trim()) return;
     setIsExtracting(true);
@@ -131,6 +152,12 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
   };
 
   const handleSubmit = async () => {
+    // Bulk mode: multiple files selected
+    if (bulk.selectedFiles.length > 0) {
+      await bulk.uploadAll();
+      return;
+    }
+    // Single doc mode
     if (!name.trim() || !content.trim()) return;
     const scopeId = scope === "client" ? clientId : scope === "department" ? department : undefined;
     const payload: CreateContextDocPayload = {
@@ -147,7 +174,20 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
   };
 
   const handleClose = () => { if (!isEdit) reset(); onClose(); };
-  const busy = isCreating || (isUpdating ?? false);
+  const busy = isCreating || (isUpdating ?? false) || bulk.isUploading;
+
+  const isBulkMode = bulk.selectedFiles.length > 0;
+  const canSubmit = isBulkMode
+    ? !bulk.isUploading && !bulk.summary
+    : (name.trim().length > 0 && content.trim().length > 0);
+
+  const buttonLabel = () => {
+    if (busy) return <><Loader2 className="mr-1 h-4 w-4 animate-spin" />Guardando...</>;
+    if (bulk.summary) return "Cerrar";
+    if (isEdit) return "Guardar Cambios";
+    if (isBulkMode) return `Guardar ${bulk.selectedFiles.length} Documento${bulk.selectedFiles.length !== 1 ? "s" : ""}`;
+    return "Guardar Documento";
+  };
 
   const SRC_TABS: { key: SourceTab; label: string; icon: React.ReactNode }[] = [
     { key: "write", label: "Escribir", icon: <PenLine className="h-3.5 w-3.5" /> },
@@ -160,10 +200,13 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
       <DialogContent className="max-w-lg">
         <DialogHeader><DialogTitle>{isEdit ? "Editar Documento" : "Agregar Documento"}</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Nombre del documento</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Guía de marca..." />
-          </div>
+          {/* Name — hide in bulk mode */}
+          {!isBulkMode && (
+            <div className="space-y-1.5">
+              <Label>Nombre del documento</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Guía de marca..." />
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label>Scope</Label>
             <Select value={scope} onValueChange={(v) => setScope(v as ContextScope)}>
@@ -210,18 +253,45 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
               ))}
             </div>
 
-            {sourceTab === "write" && (
+            {sourceTab === "write" && !isBulkMode && (
               <Textarea rows={6} value={content} onChange={(e) => setContent(e.target.value)} placeholder="Pega el contenido aquí..." />
             )}
             {sourceTab === "file" && (
-              <label className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border/50 p-6 cursor-pointer hover:border-primary/40 transition-colors">
-                {isExtracting ? <Loader2 className="h-6 w-6 text-primary animate-spin" /> : <Upload className="h-6 w-6 text-muted-foreground" />}
-                <span className="text-sm text-muted-foreground">{isExtracting ? "Extrayendo texto..." : "Subir archivo (PDF/MD/TXT)"}</span>
-                {extractedChars > 0 && <span className="text-xs text-primary">{extractedChars.toLocaleString()} chars extraídos</span>}
-                <input type="file" accept=".pdf,.md,.txt,.docx" className="sr-only" onChange={handleFile} disabled={isExtracting} />
-              </label>
+              <>
+                <label className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border/50 p-6 cursor-pointer hover:border-primary/40 transition-colors">
+                  {isExtracting ? <Loader2 className="h-6 w-6 text-primary animate-spin" /> : <Upload className="h-6 w-6 text-muted-foreground" />}
+                  <span className="text-sm text-muted-foreground">
+                    {isExtracting ? "Extrayendo texto..." : "Subir archivos (PDF/MD/TXT/DOCX) — hasta 100"}
+                  </span>
+                  {extractedChars > 0 && !isBulkMode && (
+                    <span className="text-xs text-primary">{extractedChars.toLocaleString()} chars extraídos</span>
+                  )}
+                  <input
+                    type="file"
+                    accept=".pdf,.md,.txt,.docx"
+                    multiple
+                    className="sr-only"
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      if (files && files.length > 1) {
+                        handleBulkFiles(e);
+                      } else {
+                        handleSingleFile(e);
+                      }
+                    }}
+                    disabled={isExtracting || bulk.isUploading}
+                  />
+                </label>
+                <BulkFileList
+                  files={bulk.selectedFiles}
+                  onRemove={bulk.removeFile}
+                  progress={bulk.progress}
+                  summary={bulk.summary}
+                  disabled={bulk.isUploading}
+                />
+              </>
             )}
-            {sourceTab === "url" && (
+            {sourceTab === "url" && !isBulkMode && (
               <div className="space-y-3">
                 <div className="flex gap-2">
                   <Input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="https://raisen.agency/blog/..." className="flex-1" />
@@ -241,8 +311,11 @@ export function AddContextModal({ open, onClose, onCreate, onUpdate, isCreating,
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={busy || !name.trim() || !content.trim()}>
-            {busy ? <><Loader2 className="mr-1 h-4 w-4 animate-spin" />Guardando...</> : isEdit ? "Guardar Cambios" : "Guardar Documento"}
+          <Button
+            onClick={bulk.summary ? () => { reset(); onClose(); } : handleSubmit}
+            disabled={busy || (!canSubmit && !bulk.summary)}
+          >
+            {buttonLabel()}
           </Button>
         </DialogFooter>
       </DialogContent>

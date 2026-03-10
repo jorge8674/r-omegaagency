@@ -50,9 +50,9 @@ export function useCalendar() {
 
   const activeClientId = useMemo(() => {
     const stored = localStorage.getItem("omega_context_client_id");
-    if (stored && clientsData?.some((c) => c.id === stored)) return stored;
-    return clientsData?.[0]?.id ?? null;
-  }, [clientsData]);
+    if (stored) return stored;
+    return "bd68ca50-b8ef-4240-a0ce-44df58f53171";
+  }, []);
   const firstClientId = activeClientId;
   const clientNameMap = useMemo(() => {
     const map: Record<string, string> = {};

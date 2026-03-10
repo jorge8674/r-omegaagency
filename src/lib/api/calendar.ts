@@ -70,6 +70,7 @@ export async function listScheduledPosts(
   if (clientId) params.set("client_id", clientId);
   if (startDate) params.set("start_date", startDate);
   if (endDate) params.set("end_date", endDate);
+  params.set("limit", "5000");
   return apiCall<ListScheduleResponse>(`/calendar/?${params.toString()}`);
 }
 

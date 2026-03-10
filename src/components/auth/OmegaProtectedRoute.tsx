@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function OmegaProtectedRoute({ children, allowedRoles }: Props) {
-  const { user, isLoading, isAuthenticated } = useOmegaAuth();
+  const { user, isLoading, isAuthenticated, logout } = useOmegaAuth();
   const [supabaseRoleCheck, setSupabaseRoleCheck] = useState<"loading" | "has_role" | "no_role" | "no_session">("loading");
 
   useEffect(() => {

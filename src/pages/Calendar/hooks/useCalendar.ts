@@ -66,11 +66,6 @@ export function useCalendar() {
     queryFn: async () => {
       const res = await listScheduledPosts(undefined, firstClientId!, "2026-01-01", "2026-12-31");
       const posts = res.data ?? res.items ?? [];
-      console.log('Posts cargados:', posts.slice(0, 3).map(p => ({
-        id: p.id,
-        scheduled_at: `${p.scheduled_date}T${p.scheduled_time}`,
-        text: p.text_content?.slice(0, 30),
-      })));
       return posts.map((sp) => {
         const clientName = clientNameMap[sp.client_id] || "Cliente";
         const cleanText = sp.text_content

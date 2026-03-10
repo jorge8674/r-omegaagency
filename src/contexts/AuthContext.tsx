@@ -28,7 +28,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 });
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://omegaraisen-production.up.railway.app/api/v1";
+const API_BASE = import.meta.env.VITE_API_URL || "https://omegaraisen-production-2031.up.railway.app/api/v1";
 
 
 export function AuthProvider({ children }: { children: ReactNode }) {

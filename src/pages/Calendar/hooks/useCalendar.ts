@@ -64,7 +64,7 @@ export function useCalendar() {
   const { data: apiPosts = [] } = useQuery<Post[]>({
     queryKey: ["calendar-api-posts", firstClientId],
     queryFn: async () => {
-      const res = await listScheduledPosts(undefined, firstClientId!);
+      const res = await listScheduledPosts(undefined, firstClientId!, "2026-01-01", "2026-12-31");
       const posts = res.data ?? res.items ?? [];
       return posts.map((sp) => {
         const clientName = clientNameMap[sp.client_id] || "Cliente";

@@ -107,7 +107,7 @@ export async function generateText(
   });
   if (agent) params.set("agent", agent);
   if (clientId) params.set("client_id", clientId);
-  return apiCall(`/content-lab/generate/?${params.toString()}`, "POST");
+  return apiCall(`/content-lab/generate/text?${params.toString()}`, "POST");
 }
 
 export async function listGeneratedContent(

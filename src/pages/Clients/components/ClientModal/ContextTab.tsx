@@ -284,25 +284,42 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
               setIsSaving(true);
               try {
                 for (const account of pendingAccounts) {
-                  await createAccountWithContext({
-                    client_id: client.id,
-                    platform: account.platform,
-                    username: account.username,
-                    profile_url: account.profile_url,
-                    context: {
-                      business_name: businessName,
-                      industry,
-                      description,
-                      website_url: websiteUrl,
-                      keywords,
-                      forbidden_words: forbiddenWords,
-                      forbidden_topics: forbiddenTopics,
-                      tones: selectedTones,
-                      goals: selectedGoals,
-                    },
-                  });
+              await createAccountWithContext({
+                client_id: client.id,
+                platform: account.platform,
+                username: account.username,
+                profile_url: account.profile_url,
+                context: {
+                  business_name: businessName,
+                  industry,
+                  description,
+                  website_url: websiteUrl,
+                  keywords,
+                  forbidden_words: forbiddenWords,
+                  forbidden_topics: forbiddenTopics,
+                  tones: selectedTones,
+                  goals: selectedGoals,
+                },
+              });
+            }
+
+            // Sync to nova/context (silent — don't break flow)
+            try {
+              await fetch(
+                `https://omegaraisen-production-2031.up.railway.app/api/v1/nova/context/${client.id}`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    niche: industry,
+                    business_what: description,
+                    tone: selectedTones[0] || undefined,
+                  }),
                 }
-                setPendingAccounts([]);
+              );
+            } catch { /* silent */ }
+
+            setPendingAccounts([]);
                 toast({ title: `✅ ${pendingAccounts.length} cuenta(s) guardadas` });
                 onAccountsCreated?.();
               } catch (error: unknown) {

@@ -82,6 +82,21 @@ export function BrandVoiceForm({ clientId, onNext, onSkip }: BrandVoiceFormProps
       await updateClientContext(clientId, {
         custom_instructions: JSON.stringify(data),
       });
+
+      // Sync brand_voice to nova/context (silent)
+      try {
+        await fetch(
+          `https://omegaraisen-production-2031.up.railway.app/api/v1/nova/context/${clientId}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              brand_voice: JSON.stringify(data),
+            }),
+          }
+        );
+      } catch { /* silent */ }
+
       toast({ title: "Voz de marca guardada" });
       onNext();
     } catch (e: unknown) {

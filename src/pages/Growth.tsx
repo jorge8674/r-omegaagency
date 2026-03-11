@@ -81,7 +81,28 @@ export default function Growth() {
         samplePosts,
       );
       setBrandProfile(result);
-      toast({ title: "Perfil de marca creado" });
+
+      // Persistir en nova/context si hay client_id
+      const clientId = localStorage.getItem("omega_context_client_id");
+      if (clientId) {
+        try {
+          await fetch(
+            `https://omegaraisen-production-2031.up.railway.app/api/v1/nova/context/${clientId}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                brand_voice: JSON.stringify(result?.data || result),
+              }),
+            }
+          );
+          toast({ title: "Perfil guardado en contexto del cliente" });
+        } catch {
+          toast({ title: "Perfil creado localmente", description: "No se pudo sincronizar con el contexto" });
+        }
+      } else {
+        toast({ title: "Perfil creado localmente" });
+      }
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {

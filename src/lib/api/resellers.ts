@@ -1,4 +1,4 @@
-import { apiCall } from "./core";
+import { apiCall, API_BASE } from "./core";
 import type {
   ResellerBase,
   ResellerListResponse,
@@ -8,43 +8,36 @@ import type {
   ResellerBrandingPayload,
 } from "@/types/api-resellers.types";
 
-// ─── Auth helper (reads JWT from localStorage) ──────────
-const authHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem("omega_token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
 // ─── Reseller CRUD ──────────────────────────────────────
 export const resellersApi = {
   getAll: () =>
-    apiCall<ResellerListResponse>("/resellers/all", "GET", undefined, authHeaders()),
+    apiCall<ResellerListResponse>("/resellers/all"),
 
   getById: (id: string) =>
-    apiCall<ResellerBase>(`/resellers/${id}/`, "GET", undefined, authHeaders()),
+    apiCall<ResellerBase>(`/resellers/${id}/`),
 
   create: (data: ResellerCreateRequest) =>
-    apiCall<ResellerBase>("/resellers/create", "POST", data as unknown as Record<string, unknown>, authHeaders()),
+    apiCall<ResellerBase>("/resellers/create", "POST", data as unknown as Record<string, unknown>),
 
   updateStatus: (id: string, update: ResellerStatusUpdate) =>
-    apiCall<ResellerBase>(`/resellers/${id}/status`, "PATCH", update as unknown as Record<string, unknown>, authHeaders()),
+    apiCall<ResellerBase>(`/resellers/${id}/status`, "PATCH", update as unknown as Record<string, unknown>),
 
   // ─── Dashboard ──────────────────────────────────────
   getDashboard: (id: string) =>
-    apiCall(`/resellers/${id}/dashboard`, "GET", undefined, authHeaders()),
+    apiCall(`/resellers/${id}/dashboard`),
 
   // ─── Branding ───────────────────────────────────────
   getBranding: (id: string) =>
-    apiCall<ResellerBrandingPayload>(`/resellers/${id}/branding`, "GET", undefined, authHeaders()),
+    apiCall<ResellerBrandingPayload>(`/resellers/${id}/branding`),
 
   saveBranding: (id: string, payload: Record<string, unknown>) =>
-    apiCall<ResellerBrandingPayload>(`/resellers/${id}/branding`, "POST", payload, authHeaders()),
+    apiCall<ResellerBrandingPayload>(`/resellers/${id}/branding`, "POST", payload),
 
   uploadHeroMedia: async (id: string, file: File): Promise<{ url: string }> => {
     const token = localStorage.getItem("omega_token");
     const formData = new FormData();
     formData.append("file", file);
-    const base = import.meta.env.VITE_API_URL || "https://omegaraisen-production.up.railway.app/api/v1";
-    const res = await fetch(`${base}/resellers/${id}/upload-hero-media`, {
+    const res = await fetch(`${API_BASE}/resellers/${id}/upload-hero-media`, {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
@@ -56,7 +49,7 @@ export const resellersApi = {
 
   // ─── Clients under reseller ─────────────────────────
   getClients: (id: string) =>
-    apiCall(`/resellers/${id}/clients`, "GET", undefined, authHeaders()),
+    apiCall(`/resellers/${id}/clients`),
 
   // ─── Public (no auth) ─────────────────────────────────
   getBySlug: (slug: string) =>
@@ -64,14 +57,14 @@ export const resellersApi = {
 
   // ─── Leads ──────────────────────────────────────────
   getLeads: (id: string) =>
-    apiCall(`/resellers/${id}/leads`, "GET", undefined, authHeaders()),
+    apiCall(`/resellers/${id}/leads`),
 
   createLead: (id: string, data: Record<string, unknown>) =>
-    apiCall(`/resellers/${id}/leads`, "POST", data, authHeaders()),
+    apiCall(`/resellers/${id}/leads`, "POST", data),
 
   getLead: (leadId: string) =>
-    apiCall(`/resellers/leads/${leadId}`, "GET", undefined, authHeaders()),
+    apiCall(`/resellers/leads/${leadId}`),
 
   updateLead: (leadId: string, data: Record<string, unknown>) =>
-    apiCall(`/resellers/leads/${leadId}/status`, "PATCH", data, authHeaders()),
+    apiCall(`/resellers/leads/${leadId}/status`, "PATCH", data),
 };

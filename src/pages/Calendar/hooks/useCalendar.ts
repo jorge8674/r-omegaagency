@@ -51,7 +51,7 @@ export function useCalendar() {
   const activeClientId = useMemo(() => {
     const stored = localStorage.getItem("omega_context_client_id");
     if (stored) return stored;
-    return "bd68ca50-b8ef-4240-a0ce-44df58f53171";
+    return localStorage.getItem("omega_client_id") || null;
   }, []);
   const firstClientId = activeClientId;
   const clientNameMap = useMemo(() => {
@@ -63,6 +63,7 @@ export function useCalendar() {
   /* ─── Scheduled posts (Railway API) ────────────── */
   const { data: apiPosts = [] } = useQuery<Post[]>({
     queryKey: ["calendar-api-posts", firstClientId],
+    enabled: !!firstClientId,
     queryFn: async () => {
       const res = await listScheduledPosts(undefined, firstClientId!, "2026-01-01", "2026-12-31");
       const posts = res.data ?? res.items ?? [];
@@ -86,7 +87,6 @@ export function useCalendar() {
         };
       });
     },
-    enabled: !!firstClientId,
     retry: 1,
   });
 

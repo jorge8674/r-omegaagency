@@ -63,6 +63,7 @@ export function useCalendar() {
   /* ─── Scheduled posts (Railway API) ────────────── */
   const { data: apiPosts = [] } = useQuery<Post[]>({
     queryKey: ["calendar-api-posts", firstClientId],
+    enabled: !!firstClientId,
     queryFn: async () => {
       const res = await listScheduledPosts(undefined, firstClientId!, "2026-01-01", "2026-12-31");
       const posts = res.data ?? res.items ?? [];

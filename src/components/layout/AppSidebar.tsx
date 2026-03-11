@@ -3,6 +3,7 @@ import {
   Users,
   FlaskConical,
   CalendarDays,
+  ImageIcon,
   BarChart3,
   Settings,
   AlertTriangle,
@@ -46,6 +47,7 @@ const mainItems = [
   
   { title: "Content Lab", url: "/content-lab", icon: FlaskConical },
   { title: "Calendario", url: "/calendar", icon: CalendarDays },
+  { title: "Media", url: "/media", icon: ImageIcon },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Competitive", url: "/competitive", icon: Search },
   { title: "Crisis Room", url: "/crisis", icon: AlertTriangle },

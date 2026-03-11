@@ -3,6 +3,7 @@ import {
   Users,
   FlaskConical,
   CalendarDays,
+  ImageIcon,
   BarChart3,
   Settings,
   AlertTriangle,

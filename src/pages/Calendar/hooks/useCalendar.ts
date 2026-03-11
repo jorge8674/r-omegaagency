@@ -51,7 +51,7 @@ export function useCalendar() {
   const activeClientId = useMemo(() => {
     const stored = localStorage.getItem("omega_context_client_id");
     if (stored) return stored;
-    return "bd68ca50-b8ef-4240-a0ce-44df58f53171";
+    return localStorage.getItem("omega_client_id") || null;
   }, []);
   const firstClientId = activeClientId;
   const clientNameMap = useMemo(() => {

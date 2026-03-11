@@ -87,7 +87,6 @@ export function useCalendar() {
         };
       });
     },
-    enabled: !!firstClientId,
     retry: 1,
   });
 

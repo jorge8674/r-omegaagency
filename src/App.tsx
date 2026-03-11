@@ -94,26 +94,47 @@ const App = () => (
 
               {/* Owner + reseller + agent */}
               <Route path="/dashboard" element={
-                <OmegaProtectedRoute allowedRoles={["owner", "reseller", "agent"]}>
+                <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
                   <AppLayout><Dashboard /></AppLayout>
                 </OmegaProtectedRoute>
               } />
 
-              {/* General protected */}
+              {/* Routes with specific role restrictions */}
+              <Route path="/clients" element={
+                <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
+                  <AppLayout><Clients /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+              <Route path="/clients/:id" element={
+                <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
+                  <AppLayout><ClientDetail /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+              <Route path="/agents" element={
+                <OmegaProtectedRoute allowedRoles={["owner"]}>
+                  <AppLayout><AgentsPage /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+              <Route path="/context" element={
+                <OmegaProtectedRoute allowedRoles={["owner"]}>
+                  <AppLayout><ContextLibrary /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
+                  <AppLayout><SettingsPage /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
+
+              {/* General protected — owner + reseller + agent */}
               {[
-                { path: "/clients", el: <Clients /> },
-                { path: "/clients/:id", el: <ClientDetail /> },
-                { path: "/agents", el: <AgentsPage /> },
-                
                 { path: "/content-lab", el: <ContentLab /> },
-                { path: "/context", el: <ContextLibrary /> },
                 { path: "/calendar", el: <CalendarPage /> },
                 { path: "/media", el: <Media /> },
                 { path: "/analytics", el: <Analytics /> },
                 { path: "/crisis", el: <CrisisRoom /> },
                 { path: "/competitive", el: <Competitive /> },
                 { path: "/growth", el: <Growth /> },
-                { path: "/settings", el: <SettingsPage /> },
               ].map(({ path, el }) => (
                 <Route key={path} path={path} element={
                   <OmegaProtectedRoute allowedRoles={["owner", "reseller", "agent"]}>

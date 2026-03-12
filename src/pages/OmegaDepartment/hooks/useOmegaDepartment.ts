@@ -1,7 +1,6 @@
 // 78 lines
 import { useQuery } from "@tanstack/react-query";
 import { omegaApi, type OrgDirector, type OrgSubAgent } from "@/lib/api/omega";
-import { API_BASE } from "@/lib/api/core";
 
 export interface DeptReport {
   id: string;
@@ -38,10 +37,14 @@ export function deleteReport(id: string): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || "https://omegaraisen-production-2031.up.railway.app/api/v1";
 
-export async function generateReportFromBackend(director: OrgDirector, dept: string): Promise<string> {
-  const token = localStorage.getItem("omega_token");
+export async function generateReportFromBackend(
+  director: OrgDirector,
+  dept: string
+): Promise<string> {
   try {
+    const token = localStorage.getItem("omega_token");
     const res = await fetch(`${API_BASE}/omega/department-report/`, {
       method: "POST",
       headers: {
@@ -50,13 +53,11 @@ export async function generateReportFromBackend(director: OrgDirector, dept: str
       },
       body: JSON.stringify({ department: dept, requested_by: "Ibrain" }),
     });
-    if (!res.ok) throw new Error(`API ${res.status}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const content = data?.content || data?.data?.content;
-    if (content) return content;
-    throw new Error("No content in response");
+    if (data?.content) return data.content;
+    throw new Error("No content");
   } catch {
-    // Fallback to local generation
     return generateMarkdownLocal(director, dept);
   }
 }

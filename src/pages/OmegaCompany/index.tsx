@@ -35,6 +35,7 @@ export default function OmegaCompany() {
     stats, statsLoading,
     resellers, resellersLoading,
     activity, activityLoading,
+    sentinelLoading,
     refetchAll, lastUpdated,
   } = useOmegaDashboard();
 

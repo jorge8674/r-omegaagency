@@ -55,7 +55,7 @@ export async function generateReportFromBackend(
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (data?.content) return data.content;
+    if (data?.markdown) return data.markdown;
     throw new Error("No content");
   } catch {
     return generateMarkdownLocal(director, dept);

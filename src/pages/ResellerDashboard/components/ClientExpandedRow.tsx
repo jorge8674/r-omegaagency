@@ -49,7 +49,7 @@ export function ClientExpandedRow({ client: c, expanded, onToggle }: Props) {
           ))}
         </div>
         <span className="text-[11px] text-muted-foreground hidden sm:inline whitespace-nowrap">
-          {c.stats.posts_this_month} posts · {c.stats.connected_accounts}/{c.stats.total_accounts} redes · ${c.stats.revenue_monthly}/mes
+          {stats.posts_this_month} posts · {stats.connected_accounts}/{stats.total_accounts} redes · ${stats.revenue_monthly}/mes
         </span>
         {alertCount > 0 && (
           <Badge variant="destructive" className="text-[10px] px-1.5 py-0 shrink-0">{alertCount}</Badge>

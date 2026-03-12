@@ -32,11 +32,14 @@ export default function OmegaDepartment() {
   const { director, isLoading, refetch } = useOmegaDepartment(dept);
 
   const handleReport = async () => {
+    console.log(">>> handleReport called", { director: !!director, dept });
     if (!director) return;
     setGenerating(true);
     try {
       await refetch();
+      console.log(">>> calling generateReportFromBackend for", dept);
       const content = await generateReportFromBackend(director, dept);
+      console.log(">>> report content received, length:", content?.length);
       const report: DeptReport = {
         id: `${dept}-${Date.now()}`,
         department: dept,

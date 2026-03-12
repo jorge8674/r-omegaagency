@@ -43,33 +43,34 @@ import { useProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Client Home", url: "/client/home", icon: LayoutDashboard },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["owner"] },
+  { title: "Client Home", url: "/client/home", icon: LayoutDashboard, roles: ["owner", "client"] },
   { title: "Reseller Dashboard", url: "/reseller/dashboard", icon: Building2, roles: ["owner", "reseller"] },
-  { title: "Content Lab", url: "/content-lab", icon: FlaskConical },
-  { title: "Calendario", url: "/calendar", icon: CalendarDays },
-  { title: "Media", url: "/media", icon: ImageIcon },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Competitive", url: "/competitive", icon: Search },
-  { title: "Crisis Room", url: "/crisis", icon: AlertTriangle },
-  { title: "Growth", url: "/growth", icon: Rocket },
+  { title: "Content Lab", url: "/content-lab", icon: FlaskConical, roles: ["owner", "reseller", "agent", "client"] },
+  { title: "Calendario", url: "/calendar", icon: CalendarDays, roles: ["owner", "reseller", "agent", "client"] },
+  { title: "Media", url: "/media", icon: ImageIcon, roles: ["owner", "reseller", "agent", "client"] },
+  { title: "Analytics", url: "/analytics", icon: BarChart3, roles: ["owner", "reseller", "agent", "client"] },
+  { title: "Competitive", url: "/competitive", icon: Search, roles: ["owner", "reseller", "agent"] },
+  { title: "Crisis Room", url: "/crisis", icon: AlertTriangle, roles: ["owner", "reseller", "agent"] },
+  { title: "Growth", url: "/growth", icon: Rocket, roles: ["owner", "reseller", "agent"] },
 ];
 
 const configItems = [
-  { title: "Clientes", url: "/clients", icon: Users },
-  { title: "Agentes", url: "/agents", icon: Bot },
-  { title: "Configuración", url: "/settings", icon: Settings },
+  { title: "Clientes", url: "/clients", icon: Users, roles: ["owner", "reseller"] },
+  { title: "Mis Clientes", url: "/clients", icon: Users, roles: ["reseller"] },
+  { title: "Agentes", url: "/agents", icon: Bot, roles: ["owner"] },
+  { title: "Configuración", url: "/settings", icon: Settings, roles: ["owner", "reseller", "agent", "client"] },
 ];
 
 const adminItems = [
-  { title: "Resellers", url: "/admin/resellers", icon: Building2 },
-  { title: "OMEGA Company", url: "/omega", icon: LayoutGrid },
-  { title: "Contexto", url: "/context", icon: BookOpen },
+  { title: "Resellers", url: "/admin/resellers", icon: Building2, roles: ["owner"] },
+  { title: "OMEGA Company", url: "/omega", icon: LayoutGrid, roles: ["owner"] },
+  { title: "Contexto", url: "/context", icon: BookOpen, roles: ["owner"] },
 ];
 
 const agencyItems = [
-  { title: "Mi Panel", url: "/reseller/dashboard", icon: PanelLeft },
-  { title: "Editor de Landing", url: "/reseller/branding", icon: Palette },
+  { title: "Mi Panel", url: "/reseller/dashboard", icon: PanelLeft, roles: ["reseller"] },
+  { title: "Editor de Landing", url: "/reseller/branding", icon: Palette, roles: ["reseller"] },
 ];
 
 export function AppSidebar() {
@@ -88,8 +89,8 @@ export function AppSidebar() {
 
   const isOnline = health && !health?.error;
 
-  const showMain = role === "owner" || role === "reseller" || role === "agent";
-  const showConfig = role === "owner" || role === "reseller" || role === "agent";
+  const showMain = role === "owner" || role === "reseller" || role === "agent" || role === "client";
+  const showConfig = role === "owner" || role === "reseller" || role === "agent" || role === "client";
   const showAdmin = role === "owner";
   const showAgency = role === "reseller";
 

@@ -44,7 +44,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  
+  { title: "Client Home", url: "/client/home", icon: LayoutDashboard },
   { title: "Content Lab", url: "/content-lab", icon: FlaskConical },
   { title: "Calendario", url: "/calendar", icon: CalendarDays },
   { title: "Media", url: "/media", icon: ImageIcon },

@@ -102,7 +102,7 @@ const App = () => (
 
               {/* Routes with specific role restrictions */}
               <Route path="/client/home" element={
-                <OmegaProtectedRoute allowedRoles={["client"]}>
+                <OmegaProtectedRoute allowedRoles={["owner", "reseller", "client"]}>
                   <AppLayout><ClientHome /></AppLayout>
                 </OmegaProtectedRoute>
               } />

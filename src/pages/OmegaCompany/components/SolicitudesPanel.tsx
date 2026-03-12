@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, InboxIcon, CheckCircle } from "lucide-react";
+import { InboxIcon, CheckCircle } from "lucide-react";
 import { useAdminSolicitudes } from "../hooks/useAdminSolicitudes";
 import { SolicitudCard } from "./SolicitudCard";
 import { SolicitudConfirmModal } from "./SolicitudConfirmModal";
@@ -59,16 +59,11 @@ export function SolicitudesPanel() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <h2 className="text-lg font-bold tracking-tight">Solicitudes de Upsell</h2>
-          <p className="text-sm text-muted-foreground">
-            {pendingCount} pendientes · ${monthlyRevenue.toLocaleString()}/mes cobrados este mes
-          </p>
-        </div>
-        <Button size="sm" variant="outline" onClick={() => refetch()}>
-          <RefreshCw className="h-3.5 w-3.5 mr-1" /> Actualizar
-        </Button>
+      <div>
+        <h2 className="text-lg font-bold tracking-tight">Solicitudes de Upsell</h2>
+        <p className="text-sm text-muted-foreground">
+          {pendingCount} pendientes · ${monthlyRevenue.toLocaleString()}/mes cobrados este mes
+        </p>
       </div>
 
       {/* Summary */}

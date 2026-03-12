@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useOmegaDepartment, generateMarkdown, saveReport, type DeptReport } from "./hooks/useOmegaDepartment";
+import { useOmegaDepartment, generateReportFromBackend, saveReport, type DeptReport } from "./hooks/useOmegaDepartment";
 import { DirectorCard } from "./components/DirectorCard";
 import { SubAgentGrid } from "./components/SubAgentGrid";
 import { DeptActivityFeed } from "./components/DeptActivityFeed";

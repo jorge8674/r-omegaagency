@@ -27,7 +27,11 @@ export function ClientExpandedRow({ client: c, expanded, onToggle }: Props) {
   const navigate = useNavigate();
   const dot = HEALTH_DOT[c.health] ?? HEALTH_DOT.green;
   const pb = PLAN_BADGE[(c.plan ?? "").toLowerCase()] ?? PLAN_BADGE.basico_97;
-  const alertCount = c.alerts.length;
+  const alerts = c.alerts ?? [];
+  const socialAccounts = c.social_accounts ?? [];
+  const upcomingPosts = c.upcoming_posts ?? [];
+  const stats = c.stats ?? { posts_this_month: 0, connected_accounts: 0, total_accounts: 0, revenue_monthly: 0 };
+  const alertCount = alerts.length;
 
   return (
     <div className="rounded-xl border border-border/30 bg-card/50 overflow-hidden">
@@ -40,12 +44,12 @@ export function ClientExpandedRow({ client: c, expanded, onToggle }: Props) {
         <span className="text-sm font-semibold truncate flex-1">{c.name}</span>
         <Badge variant="outline" className={`text-[10px] px-1.5 py-0 shrink-0 ${pb.cls}`}>{pb.label}</Badge>
         <div className="flex items-center gap-1 shrink-0">
-          {c.social_accounts.map((sa) => (
+          {socialAccounts.map((sa) => (
             <PlatformIcon key={sa.id} platform={sa.platform} className={`h-4 w-4 ${sa.connected ? "" : "opacity-30"}`} />
           ))}
         </div>
         <span className="text-[11px] text-muted-foreground hidden sm:inline whitespace-nowrap">
-          {c.stats.posts_this_month} posts · {c.stats.connected_accounts}/{c.stats.total_accounts} redes · ${c.stats.revenue_monthly}/mes
+          {stats.posts_this_month} posts · {stats.connected_accounts}/{stats.total_accounts} redes · ${stats.revenue_monthly}/mes
         </span>
         {alertCount > 0 && (
           <Badge variant="destructive" className="text-[10px] px-1.5 py-0 shrink-0">{alertCount}</Badge>
@@ -63,10 +67,10 @@ export function ClientExpandedRow({ client: c, expanded, onToggle }: Props) {
           </div>
 
           {/* Upcoming posts */}
-          {c.upcoming_posts.length > 0 && (
+          {upcomingPosts.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground">Contenido programado</p>
-              {c.upcoming_posts.slice(0, 5).map((p) => (
+              {upcomingPosts.slice(0, 5).map((p) => (
                 <div key={p.id} className="flex items-center gap-2 text-xs rounded-lg bg-background/50 px-3 py-2">
                   <PlatformIcon platform={p.platform} className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate flex-1">{p.text_content}</span>
@@ -80,10 +84,10 @@ export function ClientExpandedRow({ client: c, expanded, onToggle }: Props) {
           )}
 
           {/* Alerts */}
-          {c.alerts.length > 0 && (
+          {alerts.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground">Alertas</p>
-              {c.alerts.map((a, i) => (
+              {alerts.map((a, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs text-yellow-400 bg-yellow-500/10 rounded-lg px-3 py-2">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                   <span>{a.message}</span>

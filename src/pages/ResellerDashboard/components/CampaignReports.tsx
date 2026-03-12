@@ -29,14 +29,18 @@ export function CampaignReports({ clients, loading }: Props) {
     );
   }
 
-  const rows: CampaignRow[] = clients
-    .filter((c) => c.upcoming_posts.length > 0 || c.stats.posts_this_month > 0)
-    .map((c) => ({
-      name: c.name,
-      activeCampaigns: c.upcoming_posts.filter((p) => p.status === "scheduled").length,
-      postsThisMonth: c.stats.posts_this_month,
-      trend: c.stats.posts_this_month > 5 ? "up" : c.stats.posts_this_month === 0 ? "down" : "flat",
-    }));
+  const rows: CampaignRow[] = (clients ?? [])
+    .filter((c) => (c.upcoming_posts ?? []).length > 0 || (c.stats?.posts_this_month ?? 0) > 0)
+    .map((c) => {
+      const posts = c.upcoming_posts ?? [];
+      const postsMonth = c.stats?.posts_this_month ?? 0;
+      return {
+        name: c.name ?? "—",
+        activeCampaigns: posts.filter((p) => p.status === "scheduled").length,
+        postsThisMonth: postsMonth,
+        trend: postsMonth > 5 ? "up" as const : postsMonth === 0 ? "down" as const : "flat" as const,
+      };
+    });
 
   const TrendIcon = { up: TrendingUp, down: TrendingDown, flat: Minus };
   const trendCls = { up: "text-emerald-400", down: "text-destructive", flat: "text-muted-foreground" };

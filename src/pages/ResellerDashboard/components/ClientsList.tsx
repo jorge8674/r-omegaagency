@@ -23,12 +23,12 @@ export function ClientsList({ clients, activeCount, loading, onAddClient }: Prop
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
-    let list = clients;
+    let list = clients ?? [];
     if (search) {
       const q = search.toLowerCase();
-      list = list.filter((c) => c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));
+      list = list.filter((c) => (c.name ?? "").toLowerCase().includes(q) || (c.email ?? "").toLowerCase().includes(q));
     }
-    if (filter === "alerts") list = list.filter((c) => c.alerts.length > 0);
+    if (filter === "alerts") list = list.filter((c) => (c.alerts ?? []).length > 0);
     if (filter === "basico") list = list.filter((c) => (c.plan ?? "").toLowerCase().includes("basico"));
     if (filter === "pro") list = list.filter((c) => (c.plan ?? "").toLowerCase().includes("pro"));
     return list;

@@ -33,7 +33,7 @@ export function AgentReports({ reports, loading }: Props) {
           </div>
         ) : (
           <div className="space-y-2">
-            {reports.slice(0, 5).map((r) => (
+            {(reports ?? []).slice(0, 5).map((r) => (
               <div key={r.id} className="flex items-start gap-3 rounded-lg border border-border/30 bg-secondary/20 p-3">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                   <Bot className="h-4 w-4 text-primary" />

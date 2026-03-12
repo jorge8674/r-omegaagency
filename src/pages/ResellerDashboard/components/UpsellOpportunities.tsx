@@ -41,7 +41,7 @@ export function UpsellOpportunities({ opportunities, loading, onPropose }: Props
           </p>
         ) : (
           <div className="space-y-2">
-            {opportunities.map((o) => (
+            {(opportunities ?? []).map((o) => (
               <div key={`${o.client_id}-${o.type}`} className="flex items-start gap-3 rounded-xl border border-border/30 bg-secondary/20 p-3">
                 <div className="shrink-0 mt-0.5">{TYPE_ICON[o.type] ?? TYPE_ICON.near_limit}</div>
                 <div className="flex-1 min-w-0">

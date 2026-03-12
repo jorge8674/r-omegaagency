@@ -44,7 +44,7 @@ export function ClientExpandedRow({ client: c, expanded, onToggle }: Props) {
         <span className="text-sm font-semibold truncate flex-1">{c.name}</span>
         <Badge variant="outline" className={`text-[10px] px-1.5 py-0 shrink-0 ${pb.cls}`}>{pb.label}</Badge>
         <div className="flex items-center gap-1 shrink-0">
-          {c.social_accounts.map((sa) => (
+          {socialAccounts.map((sa) => (
             <PlatformIcon key={sa.id} platform={sa.platform} className={`h-4 w-4 ${sa.connected ? "" : "opacity-30"}`} />
           ))}
         </div>

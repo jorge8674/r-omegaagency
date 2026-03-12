@@ -85,10 +85,11 @@ export default function OmegaCompany() {
       try {
         const report = {
           id: crypto.randomUUID(),
-          title: "❌ Error en actualización global",
-          date: new Date().toISOString(),
-          content: `Fallo al refrescar queries a las ${format(new Date(), "HH:mm:ss", { locale: es })}.\n\nError: ${err?.message || "Desconocido"}`,
           department: "omega-system",
+          director: "OMEGA System",
+          content: `Fallo al refrescar queries a las ${format(new Date(), "HH:mm:ss", { locale: es })}.\n\nError: ${err?.message || "Desconocido"}`,
+          createdAt: new Date().toISOString(),
+          format: "markdown" as const,
         };
         saveReport(report);
         window.dispatchEvent(new Event("omega_report_added"));

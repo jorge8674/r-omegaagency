@@ -89,8 +89,8 @@ export function AppSidebar() {
 
   const isOnline = health && !health?.error;
 
-  const showMain = role === "owner" || role === "reseller" || role === "agent";
-  const showConfig = role === "owner" || role === "reseller" || role === "agent";
+  const showMain = role === "owner" || role === "reseller" || role === "agent" || role === "client";
+  const showConfig = role === "owner" || role === "reseller" || role === "agent" || role === "client";
   const showAdmin = role === "owner";
   const showAgency = role === "reseller";
 

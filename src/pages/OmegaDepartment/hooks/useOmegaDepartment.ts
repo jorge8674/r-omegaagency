@@ -39,7 +39,29 @@ export function deleteReport(id: string): void {
 }
 
 
-export function generateMarkdown(director: OrgDirector, dept: string): string {
+export async function generateReportFromBackend(director: OrgDirector, dept: string): Promise<string> {
+  const token = localStorage.getItem("omega_token");
+  try {
+    const res = await fetch(`${API_BASE}/omega/department-report/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ department: dept, requested_by: "Ibrain" }),
+    });
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const data = await res.json();
+    const content = data?.content || data?.data?.content;
+    if (content) return content;
+    throw new Error("No content in response");
+  } catch {
+    // Fallback to local generation
+    return generateMarkdownLocal(director, dept);
+  }
+}
+
+function generateMarkdownLocal(director: OrgDirector, dept: string): string {
   const now = new Date();
   const date = now.toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" });
   const time = now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });

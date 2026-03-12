@@ -36,7 +36,7 @@ export default function OmegaDepartment() {
     setGenerating(true);
     try {
       await refetch();
-      const content = generateMarkdown(director, dept);
+      const content = await generateReportFromBackend(director, dept);
       const report: DeptReport = {
         id: `${dept}-${Date.now()}`,
         department: dept,

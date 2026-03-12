@@ -67,10 +67,10 @@ export function ClientExpandedRow({ client: c, expanded, onToggle }: Props) {
           </div>
 
           {/* Upcoming posts */}
-          {c.upcoming_posts.length > 0 && (
+          {upcomingPosts.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground">Contenido programado</p>
-              {c.upcoming_posts.slice(0, 5).map((p) => (
+              {upcomingPosts.slice(0, 5).map((p) => (
                 <div key={p.id} className="flex items-center gap-2 text-xs rounded-lg bg-background/50 px-3 py-2">
                   <PlatformIcon platform={p.platform} className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate flex-1">{p.text_content}</span>

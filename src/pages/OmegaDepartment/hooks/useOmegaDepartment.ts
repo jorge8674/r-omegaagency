@@ -1,6 +1,7 @@
 // 78 lines
 import { useQuery } from "@tanstack/react-query";
 import { omegaApi, type OrgDirector, type OrgSubAgent } from "@/lib/api/omega";
+import { API_BASE } from "@/lib/api/core";
 
 export interface DeptReport {
   id: string;

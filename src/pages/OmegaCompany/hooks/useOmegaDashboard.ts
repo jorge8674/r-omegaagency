@@ -1,10 +1,26 @@
 import { useQuery } from "@tanstack/react-query";
 import { omegaApi, type OmegaDashboardStats, type OmegaActivity } from "@/lib/api/omega";
+import { apiCall } from "@/lib/api/core";
 
 const REFETCH = 60000;
 
+interface SentinelAgent {
+  status: string;
+  last_run: string;
+  issues: number;
+  security_score: number;
+}
+
+interface SentinelStatus {
+  security_score: number;
+  status: string;
+  last_scan: string;
+  agents: Record<string, SentinelAgent>;
+  deploy_decision: string;
+  active_issues: Array<{ severity: string; type: string; message: string }>;
+}
+
 export function useOmegaDashboard() {
-  // dashboard endpoint has a backend bug (500) — retry:0 to avoid blocking UI
   const dashboard = useQuery({
     queryKey: ["omega-dashboard"],
     queryFn: () => omegaApi.getDashboard(),
@@ -13,7 +29,6 @@ export function useOmegaDashboard() {
     staleTime: 0,
   });
 
-  // resellers endpoint has same backend bug (500) — retry:0
   const resellers = useQuery({
     queryKey: ["omega-resellers"],
     queryFn: () => omegaApi.getResellers(),
@@ -30,7 +45,6 @@ export function useOmegaDashboard() {
     staleTime: 0,
   });
 
-  // revenue returns 200 — use as fallback for MRR/ARR when dashboard fails
   const revenue = useQuery({
     queryKey: ["omega-revenue"],
     queryFn: () => omegaApi.getRevenue(),
@@ -39,7 +53,20 @@ export function useOmegaDashboard() {
     staleTime: 0,
   });
 
-  // Compose stats: prefer dashboard data, fall back to revenue for MRR/ARR
+  const sentinel = useQuery<SentinelStatus | null>({
+    queryKey: ["sentinel-status"],
+    queryFn: async () => {
+      try {
+        return await apiCall<SentinelStatus>("/sentinel/status/");
+      } catch {
+        return null;
+      }
+    },
+    refetchInterval: REFETCH,
+    retry: 0,
+    staleTime: 0,
+  });
+
   const stats: OmegaDashboardStats | undefined = dashboard.data
     ? dashboard.data
     : revenue.data
@@ -61,20 +88,18 @@ export function useOmegaDashboard() {
       }
     : undefined;
 
-
   const refetchAll = () => {
     dashboard.refetch();
     resellers.refetch();
     activity.refetch();
     revenue.refetch();
+    sentinel.refetch();
   };
 
-  // Extract array from paginated activity response {activities: [...], total: N}
   const activityList: OmegaActivity[] = Array.isArray(activity.data)
     ? activity.data
     : (activity.data as { activities?: OmegaActivity[] } | undefined)?.activities ?? [];
 
-  // Guard resellers: 500 error returns non-array — normalize to []
   const resellersList = Array.isArray(resellers.data) ? resellers.data : [];
 
   return {
@@ -87,9 +112,8 @@ export function useOmegaDashboard() {
     activityLoading: activity.isLoading,
     revenue: revenue.data,
     revenueLoading: revenue.isLoading,
+    sentinelLoading: sentinel.isLoading,
     refetchAll,
     lastUpdated: new Date(),
   };
 }
-
-

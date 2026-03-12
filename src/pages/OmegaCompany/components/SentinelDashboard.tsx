@@ -114,7 +114,7 @@ function EmptyState({ onScan, isScanning }: { onScan: () => void; isScanning: bo
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function SentinelDashboard() {
-  const { status, isLoading, triggerScan, isScanning } = useSentinel();
+  const { status, isLoading, isError, triggerScan, isScanning } = useSentinel();
 
   if (isLoading) return (
     <div className="space-y-4">
@@ -124,6 +124,10 @@ export function SentinelDashboard() {
       </div>
     </div>
   );
+
+  if (isError || !status) {
+    return <EmptyState onScan={() => triggerScan()} isScanning={isScanning} />;
+  }
 
   if (!hasValidData(status.last_scan)) {
     return <EmptyState onScan={() => triggerScan()} isScanning={isScanning} />;

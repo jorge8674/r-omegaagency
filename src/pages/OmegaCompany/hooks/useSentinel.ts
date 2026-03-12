@@ -28,44 +28,24 @@ export interface SentinelStatus {
 
 type ScanResponse = { success: boolean; score: number };
 
-// ─── Fallback ─────────────────────────────────────────────────────────────────
-
-const FALLBACK: SentinelStatus = {
-  security_score: 94,
-  last_scan: new Date().toISOString(),
-  agents: [
-    { name: "VAULT",          status: "pass",    issues_count: 0, last_scan: new Date().toISOString() },
-    { name: "PULSE_MONITOR",  status: "pass",    issues_count: 0, last_scan: new Date().toISOString() },
-    { name: "DB_GUARDIAN",    status: "pass",    issues_count: 0, last_scan: new Date().toISOString() },
-    { name: "FORTRESS",       status: "warning", issues_count: 1, last_scan: new Date().toISOString() },
-    { name: "COMPLIANCE",     status: "pass",    issues_count: 0, last_scan: new Date().toISOString() },
-    { name: "SENTINEL_BRAIN", status: "pass",    issues_count: 0, last_scan: new Date().toISOString() },
-  ],
-  issues: [],
-};
-
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useSentinel() {
   const qc = useQueryClient();
 
-  const { data, isLoading } = useQuery<SentinelStatus>({
+  const { data, isLoading, isError } = useQuery<SentinelStatus | null>({
     queryKey: ["sentinel-status"],
     queryFn: async () => {
-      try {
-        const res = await apiCall<SentinelStatus>("/sentinel/status/");
-        if (!res) return FALLBACK;
-        return {
-          ...FALLBACK,
-          ...res,
-          agents: Array.isArray(res.agents) ? res.agents : FALLBACK.agents,
-          issues: Array.isArray(res.issues) ? res.issues : FALLBACK.issues,
-        };
-      } catch {
-        return FALLBACK;
-      }
+      const res = await apiCall<SentinelStatus>("/sentinel/status/");
+      if (!res) return null;
+      return {
+        security_score: res.security_score ?? 0,
+        last_scan: res.last_scan ?? new Date().toISOString(),
+        agents: Array.isArray(res.agents) ? res.agents : [],
+        issues: Array.isArray(res.issues) ? res.issues : [],
+      };
     },
-    retry: 0,
+    retry: 1,
     staleTime: 1000 * 60 * 5,
     refetchInterval: 1000 * 60 * 5,
   });
@@ -82,5 +62,5 @@ export function useSentinel() {
     },
   });
 
-  return { status: data ?? FALLBACK, isLoading, triggerScan, isScanning };
+  return { status: data ?? null, isLoading, isError, triggerScan, isScanning };
 }

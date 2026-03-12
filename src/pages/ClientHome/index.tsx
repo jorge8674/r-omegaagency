@@ -3,7 +3,9 @@ import { useState, useCallback } from "react";
 import { useOmegaAuth } from "@/contexts/AuthContext";
 import { useClientHome } from "./hooks/useClientHome";
 import { useFeatureUsage } from "./hooks/useFeatureUsage";
+import { useSubBrands } from "./hooks/useSubBrands";
 import IdentityHeader from "./components/IdentityHeader";
+import BrandSelector from "./components/BrandSelector";
 import KpiCards from "./components/KpiCards";
 import ScheduledContent from "./components/ScheduledContent";
 import MetricsAlerts from "./components/MetricsAlerts";
@@ -18,7 +20,9 @@ export default function ClientHome() {
   const clientId = user?.client_id || user?.id || "";
   const { data, isLoading } = useClientHome(clientId);
   const { data: usage, isLoading: usageLoading } = useFeatureUsage(clientId);
+  const { data: subBrands = [] } = useSubBrands(clientId);
 
+  const [activeBrandId, setActiveBrandId] = useState<string | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [upsellItem, setUpsellItem] = useState<Omit<UpsellPayload, "client_id" | "current_plan" | "client_message"> | null>(null);
 
@@ -48,10 +52,18 @@ export default function ClientHome() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Block 1 */}
+      {/* Block 1 — Identity */}
       <IdentityHeader profile={profile} loading={isLoading} />
 
-      {/* Block 2 */}
+      {/* Brand Selector — only if 2+ brands */}
+      <BrandSelector
+        brands={subBrands}
+        activeBrandId={activeBrandId}
+        onSelect={setActiveBrandId}
+        clientId={clientId}
+      />
+
+      {/* Block 2 — KPIs */}
       <KpiCards
         usage={usage}
         accounts={accounts}

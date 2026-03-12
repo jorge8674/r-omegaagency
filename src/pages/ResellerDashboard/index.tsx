@@ -20,9 +20,9 @@ export default function ResellerDashboard() {
   const { user } = useOmegaAuth();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const resellerId = searchParams.get("reseller_id") || user?.reseller_id || "";
+  const resellerId = user?.id || "";
 
-  const { data, isLoading } = useResellerHome(resellerId);
+  const { data, isLoading } = useResellerHome();
   const upsellMutation = useResellerUpsell();
 
   const [addClientOpen, setAddClientOpen] = useState(false);

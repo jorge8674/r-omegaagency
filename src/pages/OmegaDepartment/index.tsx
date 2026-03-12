@@ -1,4 +1,4 @@
-// 125 lines
+// OmegaDepartment v2 — generateReportFromBackend integrated
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ArrowLeft, FileText, RefreshCw, Users, Activity } from "lucide-react";

@@ -12,16 +12,23 @@ export function useResellerHome() {
   const { user } = useOmegaAuth();
   const resellerId = user?.id;
 
-  return useQuery<ResellerHomeData>({
+  return useQuery<ResellerHomeData | null>({
     queryKey: ["reseller-home", resellerId],
     queryFn: async () => {
-      const res = await apiCall<ApiResponse>(
-        `/reseller/${resellerId}/home/`,
-        "GET"
-      );
-      return res.data;
+      try {
+        const res = await apiCall<ApiResponse>(
+          `/reseller/${resellerId}/home/`,
+          "GET"
+        );
+        return res.data;
+      } catch (err: any) {
+        if (err?.status === 406) {
+          return null;
+        }
+        throw err;
+      }
     },
     enabled: !!resellerId,
-    retry: 1,
+    retry: 0,
   });
 }

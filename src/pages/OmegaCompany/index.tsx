@@ -59,8 +59,8 @@ export default function OmegaCompany() {
           <span className="text-xs text-muted-foreground">
             Actualizado: {format(lastUpdated, "HH:mm:ss", { locale: es })}
           </span>
-          <Button size="sm" variant="outline" onClick={refetchAll} className="gap-2">
-            <RefreshCw className="h-3.5 w-3.5" />
+          <Button size="sm" variant="outline" onClick={refetchAll} disabled={sentinelLoading} className="gap-2">
+            <RefreshCw className={`h-3.5 w-3.5 ${sentinelLoading ? "animate-spin" : ""}`} />
             Actualizar
           </Button>
         </div>

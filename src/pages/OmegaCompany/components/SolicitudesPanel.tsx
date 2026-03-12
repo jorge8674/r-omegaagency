@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, InboxIcon, CheckCircle } from "lucide-react";
+import { InboxIcon, CheckCircle } from "lucide-react";
 import { useAdminSolicitudes } from "../hooks/useAdminSolicitudes";
 import { SolicitudCard } from "./SolicitudCard";
 import { SolicitudConfirmModal } from "./SolicitudConfirmModal";

@@ -27,7 +27,11 @@ export function ClientExpandedRow({ client: c, expanded, onToggle }: Props) {
   const navigate = useNavigate();
   const dot = HEALTH_DOT[c.health] ?? HEALTH_DOT.green;
   const pb = PLAN_BADGE[(c.plan ?? "").toLowerCase()] ?? PLAN_BADGE.basico_97;
-  const alertCount = c.alerts.length;
+  const alerts = c.alerts ?? [];
+  const socialAccounts = c.social_accounts ?? [];
+  const upcomingPosts = c.upcoming_posts ?? [];
+  const stats = c.stats ?? { posts_this_month: 0, connected_accounts: 0, total_accounts: 0, revenue_monthly: 0 };
+  const alertCount = alerts.length;
 
   return (
     <div className="rounded-xl border border-border/30 bg-card/50 overflow-hidden">

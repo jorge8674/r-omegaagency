@@ -34,12 +34,13 @@ export function AgencyHeader({ profile, loading }: Props) {
     );
   }
 
-  const initials = profile.company
+  const initials = (profile.company ?? "")
     .split(" ")
+    .filter(Boolean)
     .map((w) => w[0])
     .join("")
     .slice(0, 2)
-    .toUpperCase();
+    .toUpperCase() || "AG";
 
   const plan = (profile.reseller_plan ?? "starter").toLowerCase();
   const label = PLAN_LABEL[plan] ?? PLAN_LABEL.starter;

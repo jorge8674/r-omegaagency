@@ -17,6 +17,7 @@ import OmegaDepartment from "./pages/OmegaDepartment/index";
 import Clients from "./pages/Clients/index";
 import AgentsPage from "./pages/Agents/index";
 import ClientDetail from "./pages/ClientDetail/index";
+import ClientHome from "./pages/ClientHome/index";
 
 import ContentLab from "./pages/ContentLab/index";
 import ContextLibrary from "./pages/ContextLibrary/index";
@@ -100,6 +101,11 @@ const App = () => (
               } />
 
               {/* Routes with specific role restrictions */}
+              <Route path="/client/home" element={
+                <OmegaProtectedRoute allowedRoles={["client"]}>
+                  <AppLayout><ClientHome /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
               <Route path="/clients" element={
                 <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
                   <AppLayout><Clients /></AppLayout>

@@ -1,47 +1,42 @@
+/* ClientHome — 7-block orchestrator page */
+import { useState, useCallback } from "react";
 import { useOmegaAuth } from "@/contexts/AuthContext";
 import { useClientHome } from "./hooks/useClientHome";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
-import {
-  Users,
-  Calendar,
-  FileText,
-  Plus,
-  Instagram,
-  Facebook,
-  Twitter,
-  Linkedin,
-  Youtube,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-
-const platformIcons: Record<string, React.ReactNode> = {
-  instagram: <Instagram className="h-4 w-4" />,
-  facebook: <Facebook className="h-4 w-4" />,
-  twitter: <Twitter className="h-4 w-4" />,
-  linkedin: <Linkedin className="h-4 w-4" />,
-  youtube: <Youtube className="h-4 w-4" />,
-  tiktok: <FileText className="h-4 w-4" />,
-};
+import { useFeatureUsage } from "./hooks/useFeatureUsage";
+import IdentityHeader from "./components/IdentityHeader";
+import KpiCards from "./components/KpiCards";
+import ScheduledContent from "./components/ScheduledContent";
+import MetricsAlerts from "./components/MetricsAlerts";
+import UpsellSection from "./components/UpsellSection";
+import QuickActions from "./components/QuickActions";
+import AgentCatalogModal from "./components/AgentCatalogModal";
+import UpsellRequestModal from "./components/UpsellRequestModal";
+import type { UpsellPayload } from "./types";
 
 export default function ClientHome() {
   const { user } = useOmegaAuth();
-  const navigate = useNavigate();
-  const clientId = user?.id || "";
+  const clientId = user?.client_id || user?.id || "";
+  const { data, isLoading } = useClientHome(clientId);
+  const { data: usage, isLoading: usageLoading } = useFeatureUsage(clientId);
 
-  const { data, isLoading, isError } = useClientHome(clientId);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [upsellItem, setUpsellItem] = useState<Omit<UpsellPayload, "client_id" | "current_plan" | "client_message"> | null>(null);
+
+  const profile = data?.profile;
+  const plan = profile?.plan || "basic";
+  const accounts = data?.social_accounts || [];
+  const posts = data?.upcoming_posts || [];
+  const stats = data?.stats || { total_posts: 0, connected_accounts: 0, this_month_posts: 0 };
+
+  const handleUpsellRequest = useCallback(
+    (item: Omit<UpsellPayload, "client_id" | "current_plan">) => setUpsellItem(item),
+    []
+  );
+
+  const handleOpenNova = useCallback(() => {
+    const btn = document.querySelector<HTMLButtonElement>('[aria-label="Abrir chat con NOVA"]');
+    btn?.click();
+  }, []);
 
   if (!clientId) {
     return (
@@ -51,208 +46,53 @@ export default function ClientHome() {
     );
   }
 
-  if (isError) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-center">
-          <p className="text-destructive mb-2">Error al cargar el dashboard</p>
-          <Button onClick={() => window.location.reload()} variant="outline" size="sm">
-            Reintentar
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  const profile = data?.profile;
-  const stats = data?.stats || { total_posts: 0, connected_accounts: 0, this_month_posts: 0 };
-  const socialAccounts = data?.social_accounts || [];
-  const upcomingPosts = data?.upcoming_posts || [];
-
-  const kpis = [
-    { title: "Posts Totales", value: stats.total_posts, icon: FileText },
-    { title: "Cuentas Conectadas", value: stats.connected_accounts, icon: Users },
-    { title: "Posts Este Mes", value: stats.this_month_posts, icon: Calendar },
-  ];
-
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          {isLoading ? (
-            <>
-              <Skeleton className="h-8 w-64 mb-2" />
-              <Skeleton className="h-4 w-40" />
-            </>
-          ) : (
-            <>
-              <h1 className="font-display text-2xl font-bold tracking-tight">
-                {profile?.name || "Dashboard"}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {profile?.company || profile?.email}
-              </p>
-            </>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge
-            variant={profile?.trial_active ? "default" : "outline"}
-            className="text-xs"
-          >
-            {profile?.plan || "basic"}
-          </Badge>
-          <Button
-            size="sm"
-            onClick={() => navigate("/calendar")}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4 mr-1" /> Nuevo Post
-          </Button>
-        </div>
-      </div>
+      {/* Block 1 */}
+      <IdentityHeader profile={profile} loading={isLoading} />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {kpis.map((kpi) => (
-          <Card key={kpi.title} className="glass">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {kpi.title}
-              </CardTitle>
-              <kpi.icon className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-20" />
-              ) : (
-                <p className="text-2xl font-bold font-display">{kpi.value}</p>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Block 2 */}
+      <KpiCards
+        usage={usage}
+        accounts={accounts}
+        nextPosts={posts}
+        loading={isLoading || usageLoading}
+        onUpsell={() => handleUpsellRequest({
+          request_type: "plan_upgrade", item_name: "Ampliar límite",
+          item_code: "LIMIT_INCREASE", monthly_price: 0, new_monthly_total: 0,
+        })}
+      />
 
-      {/* Social Accounts */}
-      <Card className="glass">
-        <CardHeader>
-          <CardTitle className="text-lg font-display">Redes Sociales</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : socialAccounts.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground text-sm mb-3">
-                No tienes cuentas conectadas
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => navigate("/media")}
-              >
-                <Plus className="h-4 w-4 mr-1" /> Conectar Redes
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Plataforma</TableHead>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Seguidores</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {socialAccounts.map((account) => (
-                  <TableRow key={account.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {platformIcons[account.platform] || <FileText className="h-4 w-4" />}
-                        <span className="capitalize">{account.platform}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>@{account.username}</TableCell>
-                    <TableCell>
-                      {account.followers_count?.toLocaleString() || "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={account.connected ? "default" : "secondary"}
-                        className="text-xs"
-                      >
-                        {account.connected ? "Conectado" : "Desconectado"}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* Block 3 */}
+      <ScheduledContent posts={posts} accounts={accounts} loading={isLoading} />
 
-      {/* Upcoming Posts */}
-      <Card className="glass">
-        <CardHeader>
-          <CardTitle className="text-lg font-display">
-            Próximos Posts (7 días)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </div>
-          ) : upcomingPosts.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground text-sm mb-3">
-                No hay posts programados en los próximos 7 días
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => navigate("/calendar")}
-              >
-                <Calendar className="h-4 w-4 mr-1" /> Ver Calendario
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Contenido</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {upcomingPosts.slice(0, 5).map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell>
-                      {format(new Date(`${post.scheduled_date}T${post.scheduled_time}`), "d MMM, HH:mm", { locale: es })}
-                    </TableCell>
-                    <TableCell className="max-w-md truncate">
-                      {post.text_content}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {post.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* Block 4 */}
+      <MetricsAlerts profile={profile} accounts={accounts} stats={stats} loading={isLoading} />
+
+      {/* Block 5 */}
+      <UpsellSection
+        plan={plan}
+        clientId={clientId}
+        onRequestUpsell={handleUpsellRequest}
+        onOpenCatalog={() => setCatalogOpen(true)}
+      />
+
+      {/* Block 6 */}
+      <QuickActions plan={plan} usage={usage} onOpenNova={handleOpenNova} />
+
+      {/* Modals */}
+      <AgentCatalogModal
+        open={catalogOpen}
+        onClose={() => setCatalogOpen(false)}
+        onRequestAgent={(item) => { setCatalogOpen(false); setUpsellItem(item); }}
+      />
+      <UpsellRequestModal
+        open={!!upsellItem}
+        onClose={() => setUpsellItem(null)}
+        clientId={clientId}
+        currentPlan={plan}
+        item={upsellItem}
+      />
     </div>
   );
 }

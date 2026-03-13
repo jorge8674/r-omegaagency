@@ -15,7 +15,9 @@ interface Props {
   isPending: boolean;
 }
 
-export function ResellerUpsellModal({ open, onOpenChange, opportunity, resellerId, onSubmit, isPending }: Props) {
+export function ResellerUpsellModal({
+  open, onOpenChange, opportunity, resellerId, onSubmit, isPending,
+}: Props) {
   const [msg, setMsg] = useState("");
 
   if (!opportunity) return null;
@@ -47,7 +49,7 @@ export function ResellerUpsellModal({ open, onOpenChange, opportunity, resellerI
           <p className="text-sm text-muted-foreground">{opportunity.message}</p>
           <p className="text-sm">
             Revenue potencial:{" "}
-            <strong className="text-emerald-400">
+            <strong className="text-[hsl(var(--success))]">
               +${opportunity.potential_revenue_min}–${opportunity.potential_revenue_max}/mes
             </strong>
           </p>
@@ -60,8 +62,14 @@ export function ResellerUpsellModal({ open, onOpenChange, opportunity, resellerI
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={isPending} className="bg-primary text-primary-foreground">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isPending}
+            className="bg-primary text-primary-foreground"
+          >
             {isPending ? "Enviando..." : "Enviar solicitud"}
           </Button>
         </DialogFooter>

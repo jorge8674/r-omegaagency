@@ -13,17 +13,13 @@ export function QuickActions({ resellerId, onAddClient, onOpenNova }: Props) {
 
   const actions = [
     { icon: UserPlus, label: "Nuevo Cliente", onClick: onAddClient },
-    {
-      icon: BarChart2,
-      label: "Reportes Globales",
-      onClick: () => navigate("/analytics"),
-    },
+    { icon: BarChart2, label: "Reportes", onClick: () => navigate("/analytics") },
     {
       icon: Palette,
       label: "Mi Branding",
       onClick: () => navigate(`/reseller/branding?reseller_id=${resellerId}`),
     },
-    { icon: MessageCircle, label: "NOVA Panel Completo", onClick: onOpenNova },
+    { icon: MessageCircle, label: "NOVA Agencia", onClick: onOpenNova },
   ];
 
   return (

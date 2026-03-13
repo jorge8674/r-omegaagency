@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Plus, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { ClientExpandedRow } from "./ClientExpandedRow";
 import type { ResellerClient } from "../types";
 
@@ -21,16 +22,23 @@ export function ClientsList({ clients, activeCount, loading, onAddClient }: Prop
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const filtered = useMemo(() => {
     let list = clients ?? [];
     if (search) {
       const q = search.toLowerCase();
-      list = list.filter((c) => (c.name ?? "").toLowerCase().includes(q) || (c.email ?? "").toLowerCase().includes(q));
+      list = list.filter(
+        (c) =>
+          (c.name ?? "").toLowerCase().includes(q) ||
+          (c.email ?? "").toLowerCase().includes(q),
+      );
     }
     if (filter === "alerts") list = list.filter((c) => (c.alerts ?? []).length > 0);
-    if (filter === "basico") list = list.filter((c) => (c.plan ?? "").toLowerCase().includes("basico"));
-    if (filter === "pro") list = list.filter((c) => (c.plan ?? "").toLowerCase().includes("pro"));
+    if (filter === "basico")
+      list = list.filter((c) => (c.plan ?? "").toLowerCase().includes("basic"));
+    if (filter === "pro")
+      list = list.filter((c) => (c.plan ?? "").toLowerCase().includes("pro"));
     return list;
   }, [clients, search, filter]);
 
@@ -38,7 +46,9 @@ export function ClientsList({ clients, activeCount, loading, onAddClient }: Prop
     return (
       <Card className="border-border/30 bg-card/60">
         <CardContent className="pt-6 space-y-2">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-14 w-full rounded-xl" />
+          ))}
         </CardContent>
       </Card>
     );
@@ -61,7 +71,11 @@ export function ClientsList({ clients, activeCount, loading, onAddClient }: Prop
               className="pl-8 h-9 w-40 text-sm"
             />
           </div>
-          <Button size="sm" className="bg-primary text-primary-foreground" onClick={onAddClient}>
+          <Button
+            size="sm"
+            className="bg-primary text-primary-foreground"
+            onClick={onAddClient}
+          >
             <Plus className="h-4 w-4 mr-1" /> Nuevo Cliente
           </Button>
         </div>
@@ -80,7 +94,16 @@ export function ClientsList({ clients, activeCount, loading, onAddClient }: Prop
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center py-10 text-muted-foreground">
             <Users className="h-10 w-10 opacity-30 mb-2" />
-            <p className="text-sm">Sin clientes en esta vista</p>
+            <p className="text-sm">
+              {(clients ?? []).length === 0
+                ? "Aún no tienes clientes activos."
+                : "Sin clientes en esta vista"}
+            </p>
+            {(clients ?? []).length === 0 && (
+              <Button size="sm" variant="outline" className="mt-3" onClick={onAddClient}>
+                <Plus className="h-4 w-4 mr-1" /> Agregar tu primer cliente
+              </Button>
+            )}
           </div>
         ) : (
           filtered.map((c) => (

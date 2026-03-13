@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useOmegaAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { useResellerHome } from "./hooks/useResellerHome";
@@ -18,7 +17,6 @@ import type { UpsellOpportunity } from "./types";
 
 export default function ResellerDashboard() {
   const { user } = useOmegaAuth();
-  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const resellerId = user?.id || "";
 
@@ -32,7 +30,7 @@ export default function ResellerDashboard() {
   if (!resellerId) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <p className="text-muted-foreground">No se proporcionó reseller_id</p>
+        <p className="text-muted-foreground">Inicia sesión para ver tu dashboard</p>
       </div>
     );
   }
@@ -45,16 +43,16 @@ export default function ResellerDashboard() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Block 1 — Agency Identity */}
       <AgencyHeader profile={profile} loading={isLoading} />
 
-      {/* Block 2 — KPIs */}
-      <AgencyKpis kpis={kpis} activeClients={profile?.active_clients ?? 0} loading={isLoading} />
+      <AgencyKpis
+        kpis={kpis}
+        activeClients={profile?.active_clients ?? 0}
+        loading={isLoading}
+      />
 
-      {/* Block 3 — Agent Reports */}
       <AgentReports reports={reports} loading={isLoading} />
 
-      {/* Block 4 — Clients List */}
       <ClientsList
         clients={clients}
         activeCount={profile?.active_clients ?? 0}
@@ -62,29 +60,27 @@ export default function ResellerDashboard() {
         onAddClient={() => setAddClientOpen(true)}
       />
 
-      {/* Block 5 — Upsell Opportunities */}
       <UpsellOpportunities
         opportunities={opportunities}
         loading={isLoading}
         onPropose={(opp) => setUpsellOpp(opp)}
       />
 
-      {/* Block 6 — Campaign Reports */}
       <CampaignReports clients={clients} loading={isLoading} />
 
-      {/* Block 7 — Quick Actions */}
       <QuickActions
         resellerId={resellerId}
         onAddClient={() => setAddClientOpen(true)}
         onOpenNova={() => setNovaOpen(true)}
       />
 
-      {/* Modals / Drawers */}
       <AddClientModal
         open={addClientOpen}
         onOpenChange={setAddClientOpen}
         resellerId={resellerId}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["reseller-home", resellerId] })}
+        onSuccess={() =>
+          queryClient.invalidateQueries({ queryKey: ["reseller-home", resellerId] })
+        }
       />
 
       <NovaDrawer

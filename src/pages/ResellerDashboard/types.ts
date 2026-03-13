@@ -9,11 +9,12 @@ export interface ResellerProfile {
   reseller_plan: string;
   max_clients: number;
   active_clients: number;
-  payment_status: "ok" | "upcoming" | "overdue";
+  payment_status: "active" | "overdue" | "warning" | "ok" | "upcoming";
 }
 
 export interface ResellerKpis {
   mrr_generated: number;
+  mrr_prev_month: number;
   mrr_delta: number;
   total_posts_month: number;
   active_alerts: number;
@@ -64,6 +65,7 @@ export interface ResellerClient {
   upcoming_posts: ClientUpcomingPost[];
   stats: ClientStats;
   alerts: ClientAlert[];
+  last_activity_days: number;
 }
 
 export interface UpsellOpportunity {

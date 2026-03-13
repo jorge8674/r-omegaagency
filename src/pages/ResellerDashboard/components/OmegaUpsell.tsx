@@ -50,10 +50,7 @@ export function OmegaUpsell({ resellerId }: Props) {
 
   const { data: orgChart, isLoading } = useQuery<OrgChart>({
     queryKey: ["org-chart-upsell"],
-    queryFn: async () => {
-      const res = await apiCall<{ data: any }>("/omega/org-chart/", "GET");
-      return res.data ?? res;
-    },
+    queryFn: () => omegaApi.getOrgChart(),
     retry: 1,
     staleTime: 300_000,
   });

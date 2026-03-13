@@ -50,11 +50,15 @@ export default function ResellerAgents() {
   // Group by department
   const deptMap = new Map<string, AgentItem[]>();
   if (orgChart) {
-    for (const d of orgChart.directors ?? []) {
+    const dirs = Array.isArray(orgChart.directors) ? orgChart.directors : [];
+    for (const d of dirs) {
+      if (!d || typeof d !== "object") continue;
       const list: AgentItem[] = [
         { code: d.code, name: d.name, department: d.department, role: "director", status: d.status },
       ];
-      for (const sa of d.sub_agents ?? []) {
+      const subs = Array.isArray(d.sub_agents) ? d.sub_agents : [];
+      for (const sa of subs) {
+        if (!sa || typeof sa !== "object") continue;
         list.push({ code: sa.code, name: sa.name, department: d.department, role: "sub_agent", status: sa.status });
       }
       deptMap.set(d.department, list);

@@ -58,17 +58,21 @@ export function OmegaUpsell({ resellerId }: Props) {
     staleTime: 300_000,
   });
 
-  // Flatten agents
+  // Flatten agents — defensive: API may return unexpected shapes
   const allAgents: AgentCardData[] = [];
   const deptMap = new Map<string, AgentCardData[]>();
 
   if (orgChart) {
-    for (const d of orgChart.directors ?? []) {
+    const dirs = Array.isArray(orgChart.directors) ? orgChart.directors : [];
+    for (const d of dirs) {
+      if (!d || typeof d !== "object") continue;
       const entry: AgentCardData = { code: d.code, name: d.name, department: d.department, role: "director" };
       allAgents.push(entry);
       const list = deptMap.get(d.department) ?? [];
       list.push(entry);
-      for (const sa of d.sub_agents ?? []) {
+      const subs = Array.isArray(d.sub_agents) ? d.sub_agents : [];
+      for (const sa of subs) {
+        if (!sa || typeof sa !== "object") continue;
         const sub: AgentCardData = { code: sa.code, name: sa.name, department: d.department, role: "sub_agent" };
         allAgents.push(sub);
         list.push(sub);

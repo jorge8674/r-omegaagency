@@ -70,6 +70,7 @@ export function AgencyKpis({ kpis, activeClients, loading, onKpiClick }: Props) 
     {
       icon: AlertTriangle,
       label: "Alertas Activas",
+      drawerType: "alerts",
       value: String(kpis.active_alerts),
       valueCls: alertCls,
       sub: "Redes no conectadas · Posts vencidos",

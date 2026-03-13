@@ -55,7 +55,7 @@ export default function ResellerAgents() {
         { code: d.code, name: d.name, department: d.department, role: "director", status: d.status },
       ];
       for (const sa of d.sub_agents ?? []) {
-        list.push({ code: sa.code, name: sa.name, department: d.department, role: sa.role, status: sa.status });
+        list.push({ code: sa.code, name: sa.name, department: d.department, role: "sub_agent", status: sa.status });
       }
       deptMap.set(d.department, list);
     }

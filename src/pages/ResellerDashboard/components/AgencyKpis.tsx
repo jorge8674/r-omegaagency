@@ -90,7 +90,11 @@ export function AgencyKpis({ kpis, activeClients, loading, onKpiClick }: Props) 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((c) => (
-        <Card key={c.label} className="border-border/30 bg-card/60">
+        <Card
+          key={c.label}
+          className="border-border/30 bg-card/60 cursor-pointer hover:bg-card/80 transition-colors"
+          onClick={() => onKpiClick?.(c.drawerType)}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-1">
             <CardTitle className="text-xs font-medium text-muted-foreground">
               {c.label}

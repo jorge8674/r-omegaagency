@@ -69,7 +69,7 @@ export function OmegaUpsell({ resellerId }: Props) {
       const list = deptMap.get(d.department) ?? [];
       list.push(entry);
       for (const sa of d.sub_agents ?? []) {
-        const sub: AgentCardData = { code: sa.code, name: sa.name, department: d.department, role: sa.role };
+        const sub: AgentCardData = { code: sa.code, name: sa.name, department: d.department, role: "sub_agent" };
         allAgents.push(sub);
         list.push(sub);
       }

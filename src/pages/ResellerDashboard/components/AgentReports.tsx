@@ -37,9 +37,19 @@ export function AgentReports({ reports, loading }: Props) {
   return (
     <Card className="border-border/30 bg-card/60">
       <CardHeader>
-        <CardTitle className="text-base font-display flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" /> Últimos reportes de agentes
-        </CardTitle>
+        <div className="flex items-center justify-between w-full">
+          <CardTitle className="text-base font-display flex items-center gap-2">
+            <Bot className="h-5 w-5 text-primary" /> Últimos reportes de agentes
+          </CardTitle>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1"
+            onClick={() => navigate("/reseller/agents")}
+          >
+            <Search className="h-3 w-3" /> Solicitar Reporte
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {(reports ?? []).length === 0 ? (

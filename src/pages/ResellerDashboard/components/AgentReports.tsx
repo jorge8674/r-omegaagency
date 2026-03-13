@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bot, Clock, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { AgentReport } from "../types";
 
 interface Props {

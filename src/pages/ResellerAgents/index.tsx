@@ -17,7 +17,7 @@ import { Bot, Search, Send, ChevronDown, ChevronUp } from "lucide-react";
 import { apiCall } from "@/lib/api/core";
 import { useToast } from "@/hooks/use-toast";
 import { useOmegaAuth } from "@/contexts/AuthContext";
-import type { OrgChart } from "@/lib/api/omega";
+import { omegaApi, type OrgChart } from "@/lib/api/omega";
 
 interface AgentItem {
   code: string;
@@ -39,10 +39,7 @@ export default function ResellerAgents() {
 
   const { data: orgChart, isLoading } = useQuery<OrgChart>({
     queryKey: ["org-chart-reseller-agents"],
-    queryFn: async () => {
-      const res = await apiCall<{ data: any }>("/omega/org-chart/", "GET");
-      return res.data ?? res;
-    },
+    queryFn: () => omegaApi.getOrgChart(),
     retry: 1,
     staleTime: 300_000,
   });
@@ -50,11 +47,15 @@ export default function ResellerAgents() {
   // Group by department
   const deptMap = new Map<string, AgentItem[]>();
   if (orgChart) {
-    for (const d of orgChart.directors ?? []) {
+    const dirs = Array.isArray(orgChart.directors) ? orgChart.directors : [];
+    for (const d of dirs) {
+      if (!d || typeof d !== "object") continue;
       const list: AgentItem[] = [
         { code: d.code, name: d.name, department: d.department, role: "director", status: d.status },
       ];
-      for (const sa of d.sub_agents ?? []) {
+      const subs = Array.isArray(d.sub_agents) ? d.sub_agents : [];
+      for (const sa of subs) {
+        if (!sa || typeof sa !== "object") continue;
         list.push({ code: sa.code, name: sa.name, department: d.department, role: "sub_agent", status: sa.status });
       }
       deptMap.set(d.department, list);

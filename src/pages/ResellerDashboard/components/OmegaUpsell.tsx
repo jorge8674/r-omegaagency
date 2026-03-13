@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Lightbulb, Plus, Users } from "lucide-react";
 import { apiCall } from "@/lib/api/core";
 import { useToast } from "@/hooks/use-toast";
-import type { OrgChart } from "@/lib/api/omega";
+import { omegaApi, type OrgChart } from "@/lib/api/omega";
 
 // ─── Pricing map ────────────────────────────────────────
 const DIRECTOR_CODES = ["ATLAS", "LUNA", "REX", "VERA", "KIRA", "ORACLE", "SOPHIA"];

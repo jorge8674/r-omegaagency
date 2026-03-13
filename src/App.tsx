@@ -88,6 +88,11 @@ const App = () => (
                   <AppLayout><ResellerDashboard /></AppLayout>
                 </OmegaProtectedRoute>
               } />
+              <Route path="/reseller/agents" element={
+                <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
+                  <AppLayout><ResellerAgents /></AppLayout>
+                </OmegaProtectedRoute>
+              } />
               <Route path="/reseller/branding" element={
                 <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
                   <AppLayout><ResellerBranding /></AppLayout>

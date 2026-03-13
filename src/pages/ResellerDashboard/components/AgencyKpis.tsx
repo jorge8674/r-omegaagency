@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, FileText, AlertTriangle, Heart } from "lucide-react";
 import type { ResellerKpis } from "../types";
+import type { KpiDrawerType } from "./KpiDrawer";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-US", {
@@ -12,6 +13,7 @@ interface Props {
   kpis: ResellerKpis | undefined;
   activeClients: number;
   loading: boolean;
+  onKpiClick?: (type: KpiDrawerType) => void;
 }
 
 export function AgencyKpis({ kpis, activeClients, loading }: Props) {

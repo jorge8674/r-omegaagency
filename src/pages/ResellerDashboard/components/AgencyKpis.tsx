@@ -79,6 +79,7 @@ export function AgencyKpis({ kpis, activeClients, loading, onKpiClick }: Props) 
     {
       icon: Heart,
       label: "Salud General",
+      drawerType: "health",
       value: `${kpis.healthy_clients}/${activeClients} saludables`,
       sub: "",
       subCls: "",

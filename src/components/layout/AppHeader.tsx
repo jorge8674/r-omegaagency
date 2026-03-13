@@ -21,6 +21,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { NovaChip } from "@/pages/ResellerDashboard/components/NovaChip";
 
 const WORKFLOWS = [
   { name: "full_content_pipeline", label: "Full Content Pipeline" },
@@ -75,6 +76,7 @@ export function AppHeader() {
   };
 
   const badge = roleBadge[user?.role || ""] || roleBadge.client;
+  const isReseller = user?.role === "reseller";
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl px-4">
@@ -96,6 +98,9 @@ export function AppHeader() {
       )}
 
       <div className="flex-1" />
+
+      {/* NOVA Chip — resellers only */}
+      {isReseller && <NovaChip />}
 
       {/* Workflow Dropdown */}
       <DropdownMenu>
@@ -151,8 +156,6 @@ export function AppHeader() {
       <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme}>
         {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </Button>
-
-
 
     </header>
   );

@@ -21,6 +21,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export function AgentReports({ reports, loading }: Props) {
+  const navigate = useNavigate();
   if (loading) {
     return (
       <Card className="border-border/30 bg-card/60">

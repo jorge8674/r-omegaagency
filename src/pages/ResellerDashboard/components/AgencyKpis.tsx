@@ -62,6 +62,7 @@ export function AgencyKpis({ kpis, activeClients, loading, onKpiClick }: Props) 
     {
       icon: FileText,
       label: "Posts del Mes",
+      drawerType: "posts",
       value: String(kpis.total_posts_month),
       sub: `Para ${activeClients} clientes activos`,
       subCls: "text-muted-foreground",

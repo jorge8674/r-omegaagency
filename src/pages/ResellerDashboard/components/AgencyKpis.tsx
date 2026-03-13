@@ -16,7 +16,7 @@ interface Props {
   onKpiClick?: (type: KpiDrawerType) => void;
 }
 
-export function AgencyKpis({ kpis, activeClients, loading }: Props) {
+export function AgencyKpis({ kpis, activeClients, loading, onKpiClick }: Props) {
   if (loading || !kpis) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

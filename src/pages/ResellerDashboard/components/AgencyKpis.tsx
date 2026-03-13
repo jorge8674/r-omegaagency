@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, FileText, AlertTriangle, Heart } from "lucide-react";
 import type { ResellerKpis } from "../types";
+import type { KpiDrawerType } from "./KpiDrawer";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-US", {
@@ -12,9 +13,10 @@ interface Props {
   kpis: ResellerKpis | undefined;
   activeClients: number;
   loading: boolean;
+  onKpiClick?: (type: KpiDrawerType) => void;
 }
 
-export function AgencyKpis({ kpis, activeClients, loading }: Props) {
+export function AgencyKpis({ kpis, activeClients, loading, onKpiClick }: Props) {
   if (loading || !kpis) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -48,10 +50,11 @@ export function AgencyKpis({ kpis, activeClients, loading }: Props) {
       ? "text-[hsl(var(--warning))]"
       : "text-destructive";
 
-  const cards = [
+  const cards: Array<{ icon: any; label: string; value: string; valueCls?: string; sub: string; subCls: string; dots?: boolean; drawerType: KpiDrawerType }> = [
     {
       icon: DollarSign,
       label: "MRR Generado",
+      drawerType: "mrr",
       value: `${fmt(kpis.mrr_generated)}/mes`,
       sub: deltaText,
       subCls: deltaCls,
@@ -59,6 +62,7 @@ export function AgencyKpis({ kpis, activeClients, loading }: Props) {
     {
       icon: FileText,
       label: "Posts del Mes",
+      drawerType: "posts",
       value: String(kpis.total_posts_month),
       sub: `Para ${activeClients} clientes activos`,
       subCls: "text-muted-foreground",
@@ -66,6 +70,7 @@ export function AgencyKpis({ kpis, activeClients, loading }: Props) {
     {
       icon: AlertTriangle,
       label: "Alertas Activas",
+      drawerType: "alerts",
       value: String(kpis.active_alerts),
       valueCls: alertCls,
       sub: "Redes no conectadas · Posts vencidos",
@@ -74,6 +79,7 @@ export function AgencyKpis({ kpis, activeClients, loading }: Props) {
     {
       icon: Heart,
       label: "Salud General",
+      drawerType: "health",
       value: `${kpis.healthy_clients}/${activeClients} saludables`,
       sub: "",
       subCls: "",
@@ -84,7 +90,11 @@ export function AgencyKpis({ kpis, activeClients, loading }: Props) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((c) => (
-        <Card key={c.label} className="border-border/30 bg-card/60">
+        <Card
+          key={c.label}
+          className="border-border/30 bg-card/60 cursor-pointer hover:bg-card/80 transition-colors"
+          onClick={() => onKpiClick?.(c.drawerType)}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-1">
             <CardTitle className="text-xs font-medium text-muted-foreground">
               {c.label}

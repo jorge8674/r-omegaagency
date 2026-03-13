@@ -9,7 +9,8 @@ import { AgentReports } from "./components/AgentReports";
 import { ClientsList } from "./components/ClientsList";
 import { UpsellOpportunities } from "./components/UpsellOpportunities";
 import { CampaignReports } from "./components/CampaignReports";
-import { QuickActions } from "./components/QuickActions";
+import { OmegaUpsell } from "./components/OmegaUpsell";
+import { KpiDrawer, type KpiDrawerType } from "./components/KpiDrawer";
 import { NovaDrawer } from "./components/NovaDrawer";
 import { ResellerUpsellModal } from "./components/ResellerUpsellModal";
 import { AddClientModal } from "@/components/dashboard/AddClientModal";
@@ -18,7 +19,7 @@ import type { UpsellOpportunity } from "./types";
 export default function ResellerDashboard() {
   const { user } = useOmegaAuth();
   const queryClient = useQueryClient();
-  const resellerId = user?.id || "";
+  const resellerId = user?.reseller_id ?? localStorage.getItem("omega_reseller_id") ?? user?.id ?? "";
 
   const { data, isLoading } = useResellerHome();
   const upsellMutation = useResellerUpsell();
@@ -26,6 +27,7 @@ export default function ResellerDashboard() {
   const [addClientOpen, setAddClientOpen] = useState(false);
   const [novaOpen, setNovaOpen] = useState(false);
   const [upsellOpp, setUpsellOpp] = useState<UpsellOpportunity | null>(null);
+  const [kpiDrawer, setKpiDrawer] = useState<KpiDrawerType>(null);
 
   if (!resellerId) {
     return (
@@ -49,6 +51,7 @@ export default function ResellerDashboard() {
         kpis={kpis}
         activeClients={profile?.active_clients ?? 0}
         loading={isLoading}
+        onKpiClick={(type) => setKpiDrawer(type)}
       />
 
       <AgentReports reports={reports} loading={isLoading} />
@@ -68,10 +71,13 @@ export default function ResellerDashboard() {
 
       <CampaignReports clients={clients} loading={isLoading} />
 
-      <QuickActions
-        resellerId={resellerId}
-        onAddClient={() => setAddClientOpen(true)}
-        onOpenNova={() => setNovaOpen(true)}
+      <OmegaUpsell resellerId={resellerId} />
+
+      <KpiDrawer
+        type={kpiDrawer}
+        onClose={() => setKpiDrawer(null)}
+        clients={clients}
+        kpis={kpis}
       />
 
       <AddClientModal

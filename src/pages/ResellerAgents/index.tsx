@@ -17,7 +17,7 @@ import { Bot, Search, Send, ChevronDown, ChevronUp } from "lucide-react";
 import { apiCall } from "@/lib/api/core";
 import { useToast } from "@/hooks/use-toast";
 import { useOmegaAuth } from "@/contexts/AuthContext";
-import type { OrgChart } from "@/lib/api/omega";
+import { omegaApi, type OrgChart } from "@/lib/api/omega";
 
 interface AgentItem {
   code: string;

@@ -6,25 +6,32 @@ export function useProfile() {
   const { user } = useOmegaAuth();
   const queryClient = useQueryClient();
 
+  const clientId = user?.client_id;
+
   const profileQuery = useQuery({
-    queryKey: ["my-profile", user?.client_id],
-    enabled: !!user,
+    queryKey: ["my-profile", clientId],
+    enabled: !!user && !!clientId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user!.id)
-        .single();
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", clientId!)
+          .single();
+        if (error) return null;
+        return data;
+      } catch {
+        return null;
+      }
     },
+    retry: 0,
   });
 
   const updateAvatar = useMutation({
     mutationFn: async (file: File) => {
-      if (!user) throw new Error("Not authenticated");
+      if (!user || !clientId) throw new Error("Not authenticated");
       const ext = file.name.split(".").pop();
-      const path = `${user.client_id}/avatar.${ext}`;
+      const path = `${clientId}/avatar.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
@@ -40,7 +47,7 @@ export function useProfile() {
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: avatarUrl })
-        .eq("user_id", user.client_id!);
+        .eq("user_id", clientId);
       if (updateError) throw updateError;
 
       return avatarUrl;
@@ -53,9 +60,9 @@ export function useProfile() {
   });
 
   return {
-    profile: profileQuery.data,
+    profile: profileQuery.data ?? null,
     loading: profileQuery.isLoading,
-    avatarUrl: profileQuery.data?.avatar_url,
+    avatarUrl: profileQuery.data?.avatar_url ?? null,
     updateAvatar,
   };
 }

@@ -10,7 +10,9 @@ interface ApiResponse {
 
 export function useResellerHome() {
   const { user } = useOmegaAuth();
-  const resellerId = user?.id;
+  const resellerId = user?.reseller_id 
+    ?? localStorage.getItem("omega_reseller_id") 
+    ?? undefined;
 
   return useQuery<ResellerHomeData | null>({
     queryKey: ["reseller-home", resellerId],

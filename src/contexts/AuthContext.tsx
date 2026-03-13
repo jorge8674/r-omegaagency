@@ -119,6 +119,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("omega_token", authToken);
     localStorage.setItem("omega_user", JSON.stringify(authUser));
     localStorage.setItem("omega_client_id", authUser.id ?? "");
+    if (authUser.reseller_id) {
+      localStorage.setItem("omega_reseller_id", authUser.reseller_id);
+    }
     return authUser;
   }, []);
 

@@ -50,10 +50,11 @@ export function AgencyKpis({ kpis, activeClients, loading, onKpiClick }: Props) 
       ? "text-[hsl(var(--warning))]"
       : "text-destructive";
 
-  const cards = [
+  const cards: Array<{ icon: any; label: string; value: string; valueCls?: string; sub: string; subCls: string; dots?: boolean; drawerType: KpiDrawerType }> = [
     {
       icon: DollarSign,
       label: "MRR Generado",
+      drawerType: "mrr",
       value: `${fmt(kpis.mrr_generated)}/mes`,
       sub: deltaText,
       subCls: deltaCls,

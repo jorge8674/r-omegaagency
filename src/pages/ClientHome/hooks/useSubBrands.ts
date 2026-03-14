@@ -11,7 +11,8 @@ export interface SubBrand {
 
 interface SubBrandsResponse {
   success: boolean;
-  data: { sub_brands: SubBrand[] };
+  data: SubBrand[];
+  total: number;
 }
 
 export function useSubBrands(clientId: string) {
@@ -20,7 +21,7 @@ export function useSubBrands(clientId: string) {
     queryFn: async () => {
       const res = await apiCall<SubBrandsResponse>(`/clients/${clientId}/sub-brands/`);
       if (!res.success) return [];
-      return (res.data?.sub_brands ?? []).filter((b) => b.is_active);
+      return (res.data ?? []).filter((b) => b.is_active);
     },
     enabled: !!clientId,
     retry: 1,

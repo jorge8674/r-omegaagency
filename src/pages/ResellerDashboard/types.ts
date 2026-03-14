@@ -97,10 +97,12 @@ export interface ResellerHomeData {
 
 export interface ResellerUpsellPayload {
   client_id: string;
-  client_name: string;
-  reseller_id: string;
+  client_name: string;          // UI only — backend ignores extra fields
+  current_plan: string;
   request_type: string;
   item_name: string;
+  item_code: string;
   monthly_price: number;
-  reseller_message?: string;
+  new_monthly_total: number;
+  client_message?: string;
 }

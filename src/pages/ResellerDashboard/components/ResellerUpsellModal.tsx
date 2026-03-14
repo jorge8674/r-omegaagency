@@ -10,13 +10,13 @@ interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   opportunity: UpsellOpportunity | null;
-  resellerId: string;
+  currentPlan: string;
   onSubmit: (payload: ResellerUpsellPayload) => void;
   isPending: boolean;
 }
 
 export function ResellerUpsellModal({
-  open, onOpenChange, opportunity, resellerId, onSubmit, isPending,
+  open, onOpenChange, opportunity, currentPlan, onSubmit, isPending,
 }: Props) {
   const [msg, setMsg] = useState("");
 
@@ -26,11 +26,13 @@ export function ResellerUpsellModal({
     onSubmit({
       client_id: opportunity.client_id,
       client_name: opportunity.client_name,
-      reseller_id: resellerId,
+      current_plan: currentPlan,
       request_type: opportunity.type,
       item_name: opportunity.cta,
+      item_code: opportunity.type,
       monthly_price: opportunity.potential_revenue_min,
-      reseller_message: msg || undefined,
+      new_monthly_total: opportunity.potential_revenue_min,
+      client_message: msg || undefined,
     });
     setMsg("");
     onOpenChange(false);

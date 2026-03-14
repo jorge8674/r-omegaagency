@@ -99,7 +99,11 @@ export default function ResellerDashboard() {
         open={!!upsellOpp}
         onOpenChange={(v) => !v && setUpsellOpp(null)}
         opportunity={upsellOpp}
-        resellerId={resellerId}
+        currentPlan={
+          clients.find((c) => c.id === upsellOpp?.client_id)?.plan ??
+          data?.profile?.plan ??
+          "basic"
+        }
         onSubmit={(payload) => upsellMutation.mutate(payload)}
         isPending={upsellMutation.isPending}
       />

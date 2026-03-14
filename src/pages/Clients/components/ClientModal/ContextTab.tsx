@@ -1,41 +1,19 @@
 // src/pages/Clients/components/ClientModal/ContextTab.tsx
 // Responsabilidad: Contexto de marca + lista local de cuentas sociales pendientes
 
-import { useState, forwardRef, useImperativeHandle, useCallback } from "react";
+import { useState, forwardRef, useImperativeHandle } from "react";
 import { createAccountWithContext } from "@/lib/api/socialAccounts";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { ChipsInput } from "@/components/ui/ChipsInput";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Palette, X, Loader2, ArrowRight } from "lucide-react";
+import { Palette, Loader2, ArrowRight } from "lucide-react";
 import { BrandFilesUpload } from "./BrandFilesUpload";
+import { SocialAccountForm } from "./SocialAccountForm";
+import { ContextBrandVoiceSection } from "./ContextBrandVoiceSection";
 import type { Platform, ContextData } from "@/lib/api/socialAccounts";
-
-const PLATFORMS = [
-  { value: "instagram" as Platform, label: "Instagram" },
-  { value: "facebook" as Platform, label: "Facebook" },
-  { value: "tiktok" as Platform, label: "TikTok" },
-  { value: "twitter" as Platform, label: "X / Twitter" },
-  { value: "linkedin" as Platform, label: "LinkedIn" },
-  { value: "youtube" as Platform, label: "YouTube" },
-  { value: "pinterest" as Platform, label: "Pinterest" },
-];
-
-const TONE_OPTIONS = [
-  "Profesional", "Inspiracional", "Humorístico",
-  "Casual", "Educativo", "Energético",
-];
-
-const GOAL_OPTIONS = ["Ventas", "Comunidad", "Retención", "Awareness", "Leads"];
-
-const REQUIRED_CONTEXT_FIELDS = ["businessName", "industry", "description", "keywords", "selectedTones"] as const;
 
 export interface PendingAccount {
   platform: Platform;
@@ -62,7 +40,6 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
     const { toast } = useToast();
     const [isSaving, setIsSaving] = useState(false);
 
-    // Context fields
     const [businessName, setBusinessName] = useState("");
     const [industry, setIndustry] = useState("");
     const [description, setDescription] = useState("");
@@ -73,27 +50,17 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
     const [selectedTones, setSelectedTones] = useState<string[]>([]);
     const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
 
-    // Account fields (form)
     const [platform, setPlatform] = useState<Platform>("instagram");
     const [username, setUsername] = useState("");
     const [profileUrl, setProfileUrl] = useState("");
-
-    // Local pending accounts list
     const [pendingAccounts, setPendingAccounts] = useState<PendingAccount[]>([]);
 
-    const toggleTone = (tone: string) => {
-      setSelectedTones((prev) =>
-        prev.includes(tone) ? prev.filter((t) => t !== tone) : [...prev, tone]
-      );
-    };
+    const toggleTone = (tone: string) =>
+      setSelectedTones((prev) => prev.includes(tone) ? prev.filter((t) => t !== tone) : [...prev, tone]);
 
-    const toggleGoal = (goal: string) => {
-      setSelectedGoals((prev) =>
-        prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]
-      );
-    };
+    const toggleGoal = (goal: string) =>
+      setSelectedGoals((prev) => prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]);
 
-    // Expose data to parent for "Guardar Cambios"
     useImperativeHandle(ref, () => ({
       getData: () => {
         if (!businessName.trim() || !industry.trim()) return null;
@@ -103,11 +70,9 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
             industry: industry.trim(),
             description: description.trim() || undefined,
             website_url: websiteUrl.trim() || undefined,
-            keywords,
-            forbidden_words: forbiddenWords,
+            keywords, forbidden_words: forbiddenWords,
             forbidden_topics: forbiddenTopics,
-            tones: selectedTones,
-            goals: selectedGoals,
+            tones: selectedTones, goals: selectedGoals,
           },
           pendingAccounts,
         };
@@ -116,37 +81,45 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
 
     const handleAddAccount = () => {
       if (!username.trim()) return;
-      const exists = pendingAccounts.some(
-        (a) => a.platform === platform && a.username === username.trim()
-      );
+      const exists = pendingAccounts.some((a) => a.platform === platform && a.username === username.trim());
       if (exists) {
         toast({ title: "Cuenta duplicada", variant: "destructive" });
         return;
       }
-      setPendingAccounts((prev) => [
-        ...prev,
-        { platform, username: username.trim(), profile_url: profileUrl.trim() || undefined },
-      ]);
+      setPendingAccounts((prev) => [...prev, { platform, username: username.trim(), profile_url: profileUrl.trim() || undefined }]);
       setUsername("");
       setProfileUrl("");
       toast({ title: "Cuenta agregada a la lista" });
     };
 
-    const removeAccount = (index: number) => {
-      setPendingAccounts((prev) => prev.filter((_, i) => i !== index));
-    };
+    const removeAccount = (index: number) => setPendingAccounts((prev) => prev.filter((_, i) => i !== index));
 
-    const platformLabel = (p: string) =>
-      PLATFORMS.find((pl) => pl.value === p)?.label ?? p;
+    const handleSaveAccounts = async () => {
+      if (!client || pendingAccounts.length === 0) {
+        toast({ title: "Agrega al menos una cuenta", description: "Necesitas agregar una cuenta social antes de continuar", variant: "destructive" });
+        return;
+      }
+      setIsSaving(true);
+      const count = pendingAccounts.length;
+      try {
+        for (const account of pendingAccounts) {
+          await createAccountWithContext({ client_id: client.id, platform: account.platform, username: account.username, profile_url: account.profile_url, context: { business_name: businessName, industry, description, website_url: websiteUrl, keywords, forbidden_words: forbiddenWords, forbidden_topics: forbiddenTopics, tones: selectedTones, goals: selectedGoals } });
+        }
+        try { await fetch(`https://omegaraisen-production-2031.up.railway.app/api/v1/nova/context/${client.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ niche: industry, business_what: description, tone: selectedTones[0] || undefined }) }); } catch { /* silent */ }
+        setPendingAccounts([]);
+        toast({ title: `✅ ${count} cuenta(s) guardadas` });
+        onAccountsCreated?.();
+      } catch (error: unknown) {
+        toast({ title: "Error al guardar", description: error instanceof Error ? error.message : "Error guardando cuentas", variant: "destructive" });
+      } finally { setIsSaving(false); }
+    };
 
     if (!client) {
       return (
         <Card className="border-dashed mt-4">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Palette className="h-10 w-10 text-muted-foreground/40 mb-3" />
-            <p className="text-sm text-muted-foreground text-center">
-              Primero guarda el cliente para configurar contexto.
-            </p>
+            <p className="text-sm text-muted-foreground text-center">Primero guarda el cliente para configurar contexto.</p>
           </CardContent>
         </Card>
       );
@@ -154,10 +127,8 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
 
     return (
       <div className="space-y-6 mt-4">
-        {/* Contexto General */}
         <div className="space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Contexto de Marca</h3>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Nombre del negocio *</Label>
@@ -168,167 +139,38 @@ export const ContextTab = forwardRef<ContextTabRef, ContextTabProps>(
               <Input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="Marketing, Fitness, Tech..." />
             </div>
           </div>
-
           <div className="space-y-1.5">
             <Label className="text-xs">Descripcion</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe tu negocio y propuesta de valor..." rows={3} />
           </div>
         </div>
 
-        {/* Agregar Cuenta Social */}
-        <div className="border-t border-border pt-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Agregar Cuenta Social</h3>
+        <SocialAccountForm
+          platform={platform} setPlatform={setPlatform}
+          username={username} setUsername={setUsername}
+          profileUrl={profileUrl} setProfileUrl={setProfileUrl}
+          pendingAccounts={pendingAccounts}
+          onAdd={handleAddAccount}
+          onRemove={removeAccount}
+        />
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Plataforma</Label>
-              <Select value={platform} onValueChange={(v) => setPlatform(v as Platform)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {PLATFORMS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Nombre de usuario *</Label>
-              <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="@usuario" />
-            </div>
-          </div>
+        <ContextBrandVoiceSection
+          websiteUrl={websiteUrl} setWebsiteUrl={setWebsiteUrl}
+          keywords={keywords} setKeywords={setKeywords}
+          forbiddenWords={forbiddenWords} setForbiddenWords={setForbiddenWords}
+          forbiddenTopics={forbiddenTopics} setForbiddenTopics={setForbiddenTopics}
+          selectedTones={selectedTones} toggleTone={toggleTone}
+          selectedGoals={selectedGoals} toggleGoal={toggleGoal}
+        />
 
-          <div className="space-y-1.5">
-            <Label className="text-xs">URL del perfil (opcional)</Label>
-            <Input value={profileUrl} onChange={(e) => setProfileUrl(e.target.value)} placeholder="https://instagram.com/usuario" />
-          </div>
-
-          <div className="flex justify-end">
-            <Button size="sm" className="gradient-primary" onClick={handleAddAccount} disabled={!username.trim()}>
-              <Plus className="mr-1 h-3 w-3" />
-              Agregar
-            </Button>
-          </div>
-
-          {/* Pending accounts list */}
-          {pendingAccounts.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-xs text-muted-foreground">{pendingAccounts.length} cuenta(s) pendiente(s) de guardar</p>
-              {pendingAccounts.map((acc, i) => (
-                <div key={i} className="flex items-center gap-2 rounded border border-border/30 bg-muted/20 px-3 py-1.5">
-                  <span className="text-sm font-medium flex-1 truncate">{acc.username}</span>
-                  <span className="text-xs text-muted-foreground">{platformLabel(acc.platform)}</span>
-                  <button type="button" onClick={() => removeAccount(i)} className="p-0.5 rounded hover:bg-muted">
-                    <X className="h-3 w-3 text-muted-foreground" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Resto del contexto */}
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Website URL</Label>
-            <Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://ejemplo.com" />
-          </div>
-
-          <ChipsInput value={keywords} onChange={setKeywords} label="Keywords" placeholder="keyword + Enter" maxChips={15} />
-          <ChipsInput value={forbiddenWords} onChange={setForbiddenWords} label="Palabras prohibidas" placeholder="palabra + Enter" maxChips={15} />
-          <ChipsInput value={forbiddenTopics} onChange={setForbiddenTopics} label="Temas prohibidos" placeholder="tema + Enter" maxChips={10} />
-
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Tono de comunicacion</Label>
-            <div className="grid grid-cols-3 gap-2">
-              {TONE_OPTIONS.map((tone) => (
-                <label key={tone} className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox checked={selectedTones.includes(tone)} onCheckedChange={() => toggleTone(tone)} />
-                  <span className="text-sm">{tone}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Objetivos</Label>
-            <div className="grid grid-cols-3 gap-2">
-              {GOAL_OPTIONS.map((goal) => (
-                <label key={goal} className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox checked={selectedGoals.includes(goal)} onCheckedChange={() => toggleGoal(goal)} />
-                  <span className="text-sm">{goal}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Upload guía de marca */}
         <div className="border-t border-border pt-4">
           <BrandFilesUpload client={client} />
         </div>
 
-        {/* Guardar y Continuar */}
         <div className="flex justify-end pt-2">
           <Button
             className="gradient-primary"
-            onClick={async () => {
-              if (!client) return;
-              if (pendingAccounts.length === 0) {
-                toast({
-                  title: "Agrega al menos una cuenta",
-                  description: "Necesitas agregar una cuenta social antes de continuar",
-                  variant: "destructive",
-                });
-                return;
-              }
-              setIsSaving(true);
-              try {
-                for (const account of pendingAccounts) {
-              await createAccountWithContext({
-                client_id: client.id,
-                platform: account.platform,
-                username: account.username,
-                profile_url: account.profile_url,
-                context: {
-                  business_name: businessName,
-                  industry,
-                  description,
-                  website_url: websiteUrl,
-                  keywords,
-                  forbidden_words: forbiddenWords,
-                  forbidden_topics: forbiddenTopics,
-                  tones: selectedTones,
-                  goals: selectedGoals,
-                },
-              });
-            }
-
-            // Sync to nova/context (silent — don't break flow)
-            try {
-              await fetch(
-                `https://omegaraisen-production-2031.up.railway.app/api/v1/nova/context/${client.id}`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    niche: industry,
-                    business_what: description,
-                    tone: selectedTones[0] || undefined,
-                  }),
-                }
-              );
-            } catch { /* silent */ }
-
-            setPendingAccounts([]);
-                toast({ title: `✅ ${pendingAccounts.length} cuenta(s) guardadas` });
-                onAccountsCreated?.();
-              } catch (error: unknown) {
-                const msg = error instanceof Error ? error.message : "Error guardando cuentas";
-                toast({ title: "Error al guardar", description: msg, variant: "destructive" });
-              } finally {
-                setIsSaving(false);
-              }
-            }}
+            onClick={handleSaveAccounts}
             disabled={isSaving || pendingAccounts.length === 0}
           >
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

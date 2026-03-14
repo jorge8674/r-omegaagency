@@ -1,327 +1,23 @@
-import { useState } from "react";
-import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Rocket, Mic2, FlaskConical } from "lucide-react";
+import { useGrowth } from "@/hooks/useGrowth";
+import {
+  OpportunityCards, QuickWinsList, BrandProfileCard,
+  ExperimentCard, ValidationCard, ImproveCard,
+} from "@/components/growth/GrowthCards";
 
 const PLATFORMS = ["instagram", "tiktok", "facebook", "twitter", "linkedin", "youtube"];
 
 export default function Growth() {
-  const { toast } = useToast();
-
-  // Opportunities
-  const [niche, setNiche] = useState("");
-  const [platform, setPlatform] = useState("instagram");
-  const [findingOpps, setFindingOpps] = useState(false);
-  const [oppsResult, setOppsResult] = useState<any>(null);
-  const [findingQuickWins, setFindingQuickWins] = useState(false);
-  const [quickWinsResult, setQuickWinsResult] = useState<any>(null);
-
-  // Brand Voice
-  const [brandName, setBrandName] = useState("");
-  const [brandDesc, setBrandDesc] = useState("");
-  const [samplePosts, setSamplePosts] = useState("");
-  const [creatingProfile, setCreatingProfile] = useState(false);
-  const [brandProfile, setBrandProfile] = useState<any>(null);
-  const [validateText, setValidateText] = useState("");
-  const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<any>(null);
-  const [improveText, setImproveText] = useState("");
-  const [improving, setImproving] = useState(false);
-  const [improvedResult, setImprovedResult] = useState<any>(null);
-
-  // Experiments
-  const [hypothesis, setHypothesis] = useState("");
-  const [variable, setVariable] = useState("");
-  const [designing, setDesigning] = useState(false);
-  const [experimentResult, setExperimentResult] = useState<any>(null);
-
-  const handleFindOpps = async () => {
-    setFindingOpps(true);
-    try {
-      const result = await api.identifyOpportunities({ niche, platform, account_data: {} });
-      setOppsResult(result);
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setFindingOpps(false);
-    }
-  };
-
-  const handleQuickWins = async () => {
-    setFindingQuickWins(true);
-    try {
-      const result = await api.quickWins(niche, platform);
-      setQuickWinsResult(result);
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setFindingQuickWins(false);
-    }
-  };
-
-  const handleCreateProfile = async () => {
-    setCreatingProfile(true);
-    try {
-      const result = await api.createBrandProfile(
-        brandName,
-        brandDesc,
-        samplePosts,
-      );
-      setBrandProfile(result);
-
-      // Persistir en nova/context si hay client_id
-      const clientId = localStorage.getItem("omega_context_client_id");
-      if (clientId) {
-        try {
-          await fetch(
-            `https://omegaraisen-production-2031.up.railway.app/api/v1/nova/context/${clientId}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                brand_voice: JSON.stringify(result?.data || result),
-              }),
-            }
-          );
-          toast({ title: "Perfil guardado en contexto del cliente" });
-        } catch {
-          toast({ title: "Perfil creado localmente", description: "No se pudo sincronizar con el contexto" });
-        }
-      } else {
-        toast({ title: "Perfil creado localmente" });
-      }
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setCreatingProfile(false);
-    }
-  };
-
-  const getBrandProfileForApi = () => {
-    const raw = brandProfile?.data || brandProfile;
-    if (raw?.brand_name || raw?.client_id) return raw;
-    return { brand_name: brandName || 'default' };
-  };
-
-  const handleValidate = async () => {
-    setValidating(true);
-    try {
-      const raw = brandProfile?.data || brandProfile;
-      const result = await api.validateContent(validateText, raw || {}, brandName);
-      setValidationResult(result);
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setValidating(false);
-    }
-  };
-
-  const handleImprove = async () => {
-    setImproving(true);
-    try {
-      const raw = brandProfile?.data || brandProfile;
-      const result = await api.improveContent(improveText, raw || {}, brandName);
-      setImprovedResult(result);
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setImproving(false);
-    }
-  };
-
-  const handleDesignExperiment = async () => {
-    setDesigning(true);
-    try {
-      const result = await api.designExperiment(hypothesis, variable, platform);
-      setExperimentResult(result);
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setDesigning(false);
-    }
-  };
-
-  const OpportunityCards = ({ data }: { data: any }) => {
-    const raw = data?.data || data;
-    const opportunities = raw?.opportunities || raw?.data || (Array.isArray(raw) ? raw : []);
-    if (Array.isArray(opportunities) && opportunities.length > 0 && opportunities[0]?.title) {
-      return (
-        <div className="mt-3 space-y-3">
-          {opportunities.map((opp: any, i: number) => (
-            <div key={i} className="border border-border/50 rounded-lg p-4 bg-secondary/30">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium text-sm">{opp.title}</h4>
-                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                  opp.potential_impact === 'high' ? 'bg-green-500/20 text-green-400' :
-                  opp.potential_impact === 'medium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-muted text-muted-foreground'
-                }`}>
-                  {opp.potential_impact?.toUpperCase()} IMPACT
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-2">{opp.description}</p>
-              <div className="flex gap-4 text-xs text-muted-foreground">
-                <span>⚡ Esfuerzo: {opp.effort_required}</span>
-                <span>📈 ROI estimado: {opp.estimated_roi}x</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return <ResultBlock data={data} />;
-  };
-
-  const QuickWinsList = ({ data }: { data: any }) => {
-    const raw = data?.data || data;
-    const wins = raw?.quick_wins || raw?.data || (Array.isArray(raw) ? raw : []);
-    if (Array.isArray(wins) && wins.length > 0) {
-      return (
-        <div className="mt-3 space-y-2">
-          {wins.map((w: any, i: number) => (
-            <div key={i} className="border border-border/50 rounded-lg p-3 bg-secondary/30">
-              <p className="text-sm whitespace-pre-line">{typeof w === 'string' ? w : w.title || w.description || JSON.stringify(w)}</p>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return <ResultBlock data={data} />;
-  };
-
-  const BrandProfileCard = ({ data }: { data: any }) => {
-    const raw = data?.data || data;
-    if (!raw?.brand_name && !raw?.tone) return <ResultBlock data={data} />;
-    return (
-      <div className="mt-3 border border-border/50 rounded-lg p-4 bg-secondary/30 space-y-3">
-        <div className="flex justify-between items-center">
-          <h4 className="font-medium">{raw.brand_name}</h4>
-          <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary/20 text-primary">{raw.tone}</span>
-        </div>
-        {raw.personality_traits?.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            {raw.personality_traits.map((t: string, i: number) => (
-              <span key={i} className="px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground">{t}</span>
-            ))}
-          </div>
-        )}
-        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-          <span>😀 Emojis: {raw.emoji_usage || 'N/A'}</span>
-          <span>📏 Formalidad: {raw.formality_level ?? 'N/A'}/10</span>
-        </div>
-        {raw.sample_posts?.length > 0 && (
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Posts de ejemplo:</p>
-            {raw.sample_posts.map((p: string, i: number) => (
-              <p key={i} className="text-sm">• {p}</p>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const ExperimentCard = ({ data }: { data: any }) => {
-    const raw = data?.data || data;
-    if (!raw?.experiment_id && !raw?.hypothesis) return <ResultBlock data={data} />;
-    return (
-      <div className="mt-3 border border-border/50 rounded-lg p-4 bg-secondary/30 space-y-2">
-        <div className="flex justify-between items-center">
-          <h4 className="font-medium text-sm">{raw.hypothesis}</h4>
-          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-            raw.status === 'draft' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
-          }`}>{raw.status?.toUpperCase()}</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-          <span>🔬 Variable: {raw.variable_tested}</span>
-          <span>📱 Plataforma: {raw.platform}</span>
-          <span>👥 Muestra: {raw.target_sample_size}</span>
-          <span>🆔 {raw.experiment_id}</span>
-        </div>
-      </div>
-    );
-  };
-
-  const ValidationCard = ({ data }: { data: any }) => {
-    const raw = data?.data || data;
-    if (!raw?.compliance_score && raw?.compliance_score !== 0) return <ResultBlock data={data} />;
-    const score = Math.round((raw.compliance_score || 0) * 100);
-    return (
-      <div className="mt-3 border border-border/50 rounded-lg p-4 bg-secondary/30 space-y-3">
-        <div className="flex justify-between items-center">
-          <h4 className="font-medium text-sm">Resultado de Validación</h4>
-          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-            raw.is_compliant ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-          }`}>{raw.is_compliant ? '✅ Cumple' : '❌ No Cumple'}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-            <div className={`h-full rounded-full ${score >= 80 ? 'bg-green-500' : score >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${score}%` }} />
-          </div>
-          <span className="text-xs font-medium">{score}%</span>
-        </div>
-        {raw.violations?.length > 0 && (
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">⚠️ Violaciones:</p>
-            {raw.violations.map((v: string, i: number) => (
-              <p key={i} className="text-sm text-red-400">• {v}</p>
-            ))}
-          </div>
-        )}
-        {raw.suggestions?.length > 0 && (
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">💡 Sugerencias:</p>
-            {raw.suggestions.map((s: string, i: number) => (
-              <p key={i} className="text-sm whitespace-pre-line">{s}</p>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const ImproveCard = ({ data }: { data: any }) => {
-    const raw = data?.data || data;
-    if (!raw?.improved && !raw?.original) return <ResultBlock data={data} />;
-    const score = Math.round((raw.tone_alignment_score || 0) * 100);
-    return (
-      <div className="mt-3 border border-border/50 rounded-lg p-4 bg-secondary/30 space-y-3">
-        <div className="flex justify-between items-center">
-          <h4 className="font-medium text-sm">Contenido Mejorado</h4>
-          <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary/20 text-primary">Alineación: {score}%</span>
-        </div>
-        <div className="rounded-lg bg-muted/50 p-3">
-          <p className="text-sm whitespace-pre-line">{raw.improved}</p>
-        </div>
-        {raw.changes_made?.length > 0 && (
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">📝 Cambios realizados:</p>
-            {raw.changes_made.map((c: string, i: number) => (
-              <p key={i} className="text-sm">• {c}</p>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const ResultBlock = ({ data }: { data: any }) => (
-    <div className="rounded-lg bg-secondary/50 p-3 mt-3">
-      <pre className="text-sm whitespace-pre-wrap overflow-x-auto">{typeof data === "string" ? data : JSON.stringify(data, null, 2)}</pre>
-    </div>
-  );
+  const g = useGrowth();
 
   return (
     <div className="space-y-6">
@@ -349,28 +45,28 @@ export default function Growth() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-sm">Nicho</Label>
-                  <Input value={niche} onChange={(e) => setNiche(e.target.value)} placeholder="ej: fitness, moda..." />
+                  <Input value={g.niche} onChange={(e) => g.setNiche(e.target.value)} placeholder="ej: fitness, moda..." />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-sm">Plataforma</Label>
-                  <Select value={platform} onValueChange={setPlatform}>
+                  <Select value={g.platform} onValueChange={g.setPlatform}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{PLATFORMS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button className="flex-1 gradient-primary" onClick={handleFindOpps} disabled={findingOpps || !niche}>
-                  {findingOpps && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button className="flex-1 gradient-primary" onClick={g.handleFindOpps} disabled={g.findingOpps || !g.niche}>
+                  {g.findingOpps && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Oportunidades
                 </Button>
-                <Button variant="outline" className="flex-1" onClick={handleQuickWins} disabled={findingQuickWins || !niche}>
-                  {findingQuickWins && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button variant="outline" className="flex-1" onClick={g.handleQuickWins} disabled={g.findingQuickWins || !g.niche}>
+                  {g.findingQuickWins && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Quick Wins
                 </Button>
               </div>
-              {oppsResult && <OpportunityCards data={oppsResult} />}
-              {quickWinsResult && <QuickWinsList data={quickWinsResult} />}
+              {g.oppsResult && <OpportunityCards data={g.oppsResult} />}
+              {g.quickWinsResult && <QuickWinsList data={g.quickWinsResult} />}
             </CardContent>
           </Card>
         </TabsContent>
@@ -384,30 +80,28 @@ export default function Growth() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Input value={brandName} onChange={(e) => setBrandName(e.target.value)} placeholder="Nombre de la marca" />
-              <Textarea value={brandDesc} onChange={(e) => setBrandDesc(e.target.value)} placeholder="Descripción de la marca..." rows={2} />
-              <Textarea value={samplePosts} onChange={(e) => setSamplePosts(e.target.value)} placeholder="3 posts de ejemplo (uno por línea)" rows={3} />
-              <Button className="w-full gradient-primary" onClick={handleCreateProfile} disabled={creatingProfile || !brandName}>
-                {creatingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Input value={g.brandName} onChange={(e) => g.setBrandName(e.target.value)} placeholder="Nombre de la marca" />
+              <Textarea value={g.brandDesc} onChange={(e) => g.setBrandDesc(e.target.value)} placeholder="Descripción de la marca..." rows={2} />
+              <Textarea value={g.samplePosts} onChange={(e) => g.setSamplePosts(e.target.value)} placeholder="3 posts de ejemplo (uno por línea)" rows={3} />
+              <Button className="w-full gradient-primary" onClick={g.handleCreateProfile} disabled={g.creatingProfile || !g.brandName}>
+                {g.creatingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Crear Perfil
               </Button>
-              {brandProfile && <BrandProfileCard data={brandProfile} />}
-
-              {brandProfile && (
+              {g.brandProfile && <BrandProfileCard data={g.brandProfile} />}
+              {g.brandProfile && (
                 <div className="border-t border-border pt-3 space-y-3">
-                  <Textarea placeholder="Contenido a validar..." value={validateText} onChange={(e) => setValidateText(e.target.value)} rows={2} />
-                  <Button variant="outline" className="w-full" onClick={handleValidate} disabled={validating || !validateText}>
-                    {validating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Textarea placeholder="Contenido a validar..." value={g.validateText} onChange={(e) => g.setValidateText(e.target.value)} rows={2} />
+                  <Button variant="outline" className="w-full" onClick={g.handleValidate} disabled={g.validating || !g.validateText}>
+                    {g.validating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Validar Contenido
                   </Button>
-                  {validationResult && <ValidationCard data={validationResult} />}
-
-                  <Textarea placeholder="Contenido a mejorar..." value={improveText} onChange={(e) => setImproveText(e.target.value)} rows={2} />
-                  <Button variant="outline" className="w-full" onClick={handleImprove} disabled={improving || !improveText}>
-                    {improving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {g.validationResult && <ValidationCard data={g.validationResult} />}
+                  <Textarea placeholder="Contenido a mejorar..." value={g.improveText} onChange={(e) => g.setImproveText(e.target.value)} rows={2} />
+                  <Button variant="outline" className="w-full" onClick={g.handleImprove} disabled={g.improving || !g.improveText}>
+                    {g.improving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Mejorar Contenido
                   </Button>
-                  {improvedResult && <ImproveCard data={improvedResult} />}
+                  {g.improvedResult && <ImproveCard data={g.improvedResult} />}
                 </div>
               )}
             </CardContent>
@@ -423,13 +117,13 @@ export default function Growth() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Input value={hypothesis} onChange={(e) => setHypothesis(e.target.value)} placeholder="Hipótesis: ej. 'Los reels cortos generan más engagement'" />
-              <Input value={variable} onChange={(e) => setVariable(e.target.value)} placeholder="Variable a testear: ej. 'duración del video'" />
-              <Button className="w-full gradient-primary" onClick={handleDesignExperiment} disabled={designing || !hypothesis}>
-                {designing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Input value={g.hypothesis} onChange={(e) => g.setHypothesis(e.target.value)} placeholder="Hipótesis: ej. 'Los reels cortos generan más engagement'" />
+              <Input value={g.variable} onChange={(e) => g.setVariable(e.target.value)} placeholder="Variable a testear: ej. 'duración del video'" />
+              <Button className="w-full gradient-primary" onClick={g.handleDesignExperiment} disabled={g.designing || !g.hypothesis}>
+                {g.designing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Diseñar Experimento
               </Button>
-              {experimentResult && <ExperimentCard data={experimentResult} />}
+              {g.experimentResult && <ExperimentCard data={g.experimentResult} />}
             </CardContent>
           </Card>
         </TabsContent>

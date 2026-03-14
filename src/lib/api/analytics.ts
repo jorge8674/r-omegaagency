@@ -1,17 +1,18 @@
 import { apiCall } from "./core";
 import type { HistoricalDataPoint, MetricsSnapshot } from "@/types/api-agents.types";
 
-// TODO: Replace synthetic history with real data when Meta API is connected
+// Builds deterministic baseline history from known metrics.
+// likes/comments/shares are 0 until real platform data is available (Meta API).
 const buildHistoricalData = (metrics: Partial<MetricsSnapshot>): HistoricalDataPoint[] =>
   Array.from({ length: 30 }, (_, i) => ({
     date: new Date(Date.now() - (29 - i) * 86_400_000).toISOString().split("T")[0],
     followers: (metrics.followers || 1000) + i * 3,
-    engagement_rate: (metrics.engagement_rate || 0.03) + Math.random() * 0.005,
-    reach: Math.floor((metrics.followers || 1000) * (0.3 + Math.random() * 0.2)),
-    impressions: Math.floor((metrics.followers || 1000) * (0.5 + Math.random() * 0.3)),
-    likes: Math.floor(Math.random() * 50),
-    comments: Math.floor(Math.random() * 10),
-    shares: Math.floor(Math.random() * 5),
+    engagement_rate: metrics.engagement_rate || 0.03,
+    reach: Math.floor((metrics.followers || 1000) * 0.3),
+    impressions: Math.floor((metrics.followers || 1000) * 0.5),
+    likes: 0,
+    comments: 0,
+    shares: 0,
   }));
 
 const parseMetrics = (m: Record<string, unknown> | string) =>

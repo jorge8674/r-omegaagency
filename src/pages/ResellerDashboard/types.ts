@@ -43,7 +43,7 @@ export interface ClientUpcomingPost {
 export interface ClientAlert {
   type: string;
   message: string;
-  severity: "low" | "medium" | "high";
+  severity: "warning" | "critical";
 }
 
 export interface ClientStats {

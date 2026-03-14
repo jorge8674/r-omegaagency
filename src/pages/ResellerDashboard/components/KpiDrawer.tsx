@@ -146,8 +146,8 @@ function AlertsContent({ clients }: { clients: ResellerClient[] }) {
           <p className="text-sm font-semibold">{c.name}</p>
           {(c.alerts ?? []).map((a, i) => {
             const dotCls =
-              a.severity === "high" ? "bg-destructive" :
-              a.severity === "medium" ? "bg-[hsl(var(--warning))]" :
+              a.severity === "critical" ? "bg-destructive" :
+              a.severity === "warning" ? "bg-[hsl(var(--warning))]" :
               "bg-[hsl(var(--success))]";
             return (
               <div key={i} className="flex items-start gap-2 pl-2">

@@ -81,7 +81,7 @@ export interface UpsellOpportunity {
 export interface AgentReport {
   id: string;
   agent_code: string;
-  agent_type: string;
+  agent_name: string;
   client_name: string;
   summary: string;
   created_at: string;

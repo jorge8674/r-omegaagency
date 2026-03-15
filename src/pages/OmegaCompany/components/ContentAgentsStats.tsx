@@ -113,9 +113,12 @@ export function ContentAgentsStats({ stats, loading }: Props) {
             <div className="space-y-1.5 pt-1">
               <p className="text-xs font-medium text-muted-foreground">Top agentes</p>
               {topAgents.slice(0, 5).map((a) => (
-                <div key={a.name} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{a.name}</span>
-                  <span className="font-medium">{a.executions}</span>
+                <div key={a.name} className="space-y-0">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{a.name}</span>
+                    <span className="font-medium">{a.executions}</span>
+                  </div>
+                  <AgentLastActivity code={a.name} />
                 </div>
               ))}
             </div>

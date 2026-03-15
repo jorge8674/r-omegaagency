@@ -1,6 +1,7 @@
-// 78 lines
+// useOmegaDepartment — reports + sentinel-aware score
 import { useQuery } from "@tanstack/react-query";
 import { omegaApi, type OrgDirector, type OrgSubAgent } from "@/lib/api/omega";
+import { apiCall } from "@/lib/api/core";
 
 export interface DeptReport {
   id: string;
@@ -13,6 +14,13 @@ export interface DeptReport {
   client_name?: string | null;
 }
 
+interface SentinelScan {
+  scan_type?: string;
+  security_score?: number;
+  created_at?: string;
+  triggered_by?: string;
+}
+
 const STORAGE_KEY = "omega_reports";
 
 export function loadReports(): DeptReport[] {
@@ -23,11 +31,9 @@ export function loadReports(): DeptReport[] {
 
 export function saveReport(report: DeptReport): void {
   const list = loadReports();
-  // Avoid duplicates
   if (!list.find((r) => r.id === report.id)) {
     list.unshift(report);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    // Dual-persist (silent)
     omegaApi.saveNovaData("reports", list).catch(() => {});
   }
 }
@@ -62,7 +68,24 @@ export async function generateReportFromBackend(
   }
 }
 
-function generateMarkdownLocal(director: OrgDirector, dept: string): string {
+async function fetchSentinelAvgScore(): Promise<{ avg: number; count: number }> {
+  try {
+    const res = await apiCall<{ scans?: SentinelScan[]; items?: SentinelScan[] }>(
+      "/sentinel/history/?limit=10"
+    );
+    const scans = res?.scans ?? res?.items ?? [];
+    const scores = scans
+      .map((s) => s.security_score)
+      .filter((s): s is number => s != null);
+    if (!scores.length) return { avg: 0, count: 0 };
+    const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    return { avg, count: scores.length };
+  } catch {
+    return { avg: 0, count: 0 };
+  }
+}
+
+async function generateMarkdownLocal(director: OrgDirector, dept: string): Promise<string> {
   const now = new Date();
   const date = now.toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" });
   const time = now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
@@ -79,6 +102,14 @@ function generateMarkdownLocal(director: OrgDirector, dept: string): string {
         .join("\n")
     : "| — | Sin sub-agentes registrados | — | — |";
 
+  // For security dept, fetch real score from sentinel history
+  const isSecurity = dept.toLowerCase() === "security";
+  const scoreLabel = isSecurity
+    ? await fetchSentinelAvgScore().then(({ avg, count }) =>
+        count > 0 ? `${avg}/100 (promedio de ${count} scans)` : "Sin datos de scan"
+      )
+    : `${director.performance_score}/100`;
+
   return `# Reporte — ${director.code} (${dept.charAt(0).toUpperCase() + dept.slice(1)})
 
 **Generado:** ${date} a las ${time}
@@ -89,7 +120,7 @@ function generateMarkdownLocal(director: OrgDirector, dept: string): string {
 - **Director:** ${director.code} · ${director.name}
 - **Departamento:** ${dept.charAt(0).toUpperCase() + dept.slice(1)}
 - **Sub-agentes:** ${activeCount} activos / ${director.sub_agents.length} total
-- **Performance promedio:** ${director.performance_score}/100
+- **${isSecurity ? "Average Security Score" : "Performance promedio"}:** ${scoreLabel}
 
 ## Estado de Agentes
 

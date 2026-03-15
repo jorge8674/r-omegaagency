@@ -3,13 +3,20 @@ import { apiCall } from "@/lib/api/core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Clock } from "lucide-react";
+
+interface ScanIssue {
+  code?: string;
+  message?: string;
+  severity?: string;
+}
 
 interface ScanEntry {
   scan_type?: string;
   score?: number;
   created_at?: string;
   triggered_by?: string;
+  issues?: ScanIssue[];
 }
 
 interface HistoryResponse {
@@ -17,16 +24,46 @@ interface HistoryResponse {
   items?: ScanEntry[];
 }
 
+function scanLabel(t?: string): string {
+  if (!t) return "FULL SCAN";
+  const upper = t.toUpperCase();
+  if (upper.includes("VAULT")) return "VAULT";
+  if (upper.includes("PULSE")) return "PULSE";
+  if (upper.includes("DB")) return "DB";
+  return upper;
+}
+
 function triggerLabel(t?: string): string {
   if (!t) return "manual";
-  return t.includes("cron") ? "cron" : "manual";
+  return t.includes("cron") ? "cron automático" : "manual";
+}
+
+function scoreColor(score?: number): string {
+  if (score == null) return "text-muted-foreground";
+  if (score >= 100) return "text-emerald-400";
+  if (score >= 85) return "text-yellow-400";
+  return "text-red-400";
+}
+
+function scoreBorder(score?: number): string {
+  if (score == null) return "border-border/30";
+  if (score >= 100) return "border-emerald-500/20";
+  if (score >= 85) return "border-yellow-500/20";
+  return "border-red-500/20";
+}
+
+function scoreBg(score?: number): string {
+  if (score == null) return "bg-muted/5";
+  if (score >= 100) return "bg-emerald-500/5";
+  if (score >= 85) return "bg-yellow-500/5";
+  return "bg-red-500/5";
 }
 
 export function SentinelHistoryFeed() {
   const { data, isLoading } = useQuery<ScanEntry[]>({
     queryKey: ["sentinel-history"],
     queryFn: async () => {
-      const res = await apiCall<HistoryResponse>("/sentinel/history/?limit=3");
+      const res = await apiCall<HistoryResponse>("/sentinel/history/?limit=5");
       return res?.scans ?? res?.items ?? [];
     },
     staleTime: 5 * 60_000,
@@ -36,39 +73,59 @@ export function SentinelHistoryFeed() {
   if (isLoading) {
     return (
       <div className="space-y-1.5">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
         ))}
       </div>
     );
   }
 
   const scans = data ?? [];
-  if (!scans.length) return null;
+
+  if (!scans.length) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+        <Clock className="mb-2 h-8 w-8 opacity-30" />
+        <p className="text-sm">Esperando primer scan del cron (02:43 UTC)</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-1.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        Últimos scans
-      </p>
       {scans.map((scan, i) => (
         <div
           key={i}
-          className="flex items-start gap-2.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2"
+          className={`flex flex-col gap-1 rounded-lg border ${scoreBorder(scan.score)} ${scoreBg(scan.score)} px-3 py-2`}
         >
-          <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-foreground leading-snug">
-              {scan.scan_type ?? "full"} scan — Score: {scan.score ?? "—"}/100
-              <span className="ml-1.5 text-muted-foreground">
-                ({triggerLabel(scan.triggered_by)})
+          <div className="flex items-start gap-2.5">
+            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-foreground leading-snug">
+                <span className="font-semibold">{scanLabel(scan.scan_type)}</span>
+                {" — Score: "}
+                <span className={`font-bold ${scoreColor(scan.score)}`}>
+                  {scan.score ?? "—"}/100
+                </span>
+                <span className="ml-1.5 text-muted-foreground text-[10px]">
+                  ({triggerLabel(scan.triggered_by)})
+                </span>
+              </p>
+            </div>
+            {scan.created_at && (
+              <span className="shrink-0 text-[10px] text-muted-foreground">
+                {formatDistanceToNow(new Date(scan.created_at), { addSuffix: true, locale: es })}
               </span>
-            </p>
+            )}
           </div>
-          {scan.created_at && (
-            <span className="shrink-0 text-[10px] text-muted-foreground">
-              {formatDistanceToNow(new Date(scan.created_at), { addSuffix: true, locale: es })}
-            </span>
+          {scan.score != null && scan.score < 100 && scan.issues && scan.issues.length > 0 && (
+            <div className="ml-6 space-y-0.5">
+              {scan.issues.slice(0, 3).map((issue, j) => (
+                <p key={j} className="text-[10px] text-muted-foreground">
+                  • {issue.message ?? issue.code ?? "Issue detectado"}
+                </p>
+              ))}
+            </div>
           )}
         </div>
       ))}

@@ -96,18 +96,23 @@ export function DeptActivityFeed({ dept }: Props) {
 
   const isSecurity = dept.toLowerCase() === "security";
 
+  // Security dept uses SentinelHistoryFeed exclusively (agents don't write to omega_activity)
+  if (isSecurity) {
+    return <SentinelHistoryFeed />;
+  }
+
+  if (!filtered.length) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+        <Activity className="mb-2 h-8 w-8 opacity-20" />
+        <p className="text-sm">Sin actividad reciente</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-3">
-      {isSecurity && <SentinelHistoryFeed />}
-
-      {isSecurity && filtered.length > 0 && (
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Actividad de agentes
-        </p>
-      )}
-
-      <div className="space-y-1.5">
-        {filtered.map((item, i) => (
+    <div className="space-y-1.5">
+      {filtered.map((item, i) => (
           <div key={i} className="flex items-start gap-2.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2">
             <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${TYPE_BADGE[item.type] ?? "bg-muted/30 text-muted-foreground border-border/30"}`}>
               {TYPE_LABEL[item.type] ?? item.type}

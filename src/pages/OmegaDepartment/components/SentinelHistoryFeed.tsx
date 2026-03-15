@@ -13,7 +13,7 @@ interface ScanIssue {
 
 interface ScanEntry {
   scan_type?: string;
-  score?: number;
+  security_score?: number;
   created_at?: string;
   triggered_by?: string;
   issues?: ScanIssue[];

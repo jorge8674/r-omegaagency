@@ -15,7 +15,6 @@ import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import OmegaDepartment from "./pages/OmegaDepartment/index";
 import Clients from "./pages/Clients/index";
-import AgentsPage from "./pages/Agents/index";
 import ClientDetail from "./pages/ClientDetail/index";
 import ClientHome from "./pages/ClientHome/index";
 

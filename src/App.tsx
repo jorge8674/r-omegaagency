@@ -127,11 +127,6 @@ const App = () => (
                   <AppLayout><ClientDetail /></AppLayout>
                 </OmegaProtectedRoute>
               } />
-              <Route path="/agents" element={
-                <OmegaProtectedRoute allowedRoles={["owner"]}>
-                  <AppLayout><AgentsPage /></AppLayout>
-                </OmegaProtectedRoute>
-              } />
               <Route path="/context" element={
                 <OmegaProtectedRoute allowedRoles={["owner"]}>
                   <AppLayout><ContextLibrary /></AppLayout>

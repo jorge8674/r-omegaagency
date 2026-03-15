@@ -58,7 +58,6 @@ const mainItems = [
 const configItems = [
   { title: "Clientes", url: "/clients", icon: Users, roles: ["owner", "reseller"] },
   { title: "Mis Clientes", url: "/clients", icon: Users, roles: ["reseller"] },
-  { title: "Agentes", url: "/agents", icon: Bot, roles: ["owner"] },
   { title: "Configuración", url: "/settings", icon: Settings, roles: ["owner", "reseller", "agent", "client"] },
 ];
 

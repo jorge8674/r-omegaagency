@@ -69,6 +69,7 @@ export const api = {
   createReseller: resellersApi.create,
   getResellerDashboard: resellersApi.getDashboard,
   updateResellerStatus: resellersApi.updateStatus,
+  deleteReseller: resellersApi.delete,
   saveResellerBranding: resellersApi.saveBranding,
   getResellerBranding: resellersApi.getBranding,
   getResellerClients: resellersApi.getClients,

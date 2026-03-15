@@ -1,10 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Bot, ChevronDown, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAgents } from "@/pages/Agents/hooks/useAgents";
-import { DEPARTMENT_LABELS, STATUS_DOT } from "@/pages/Agents/types";
-import type { Agent } from "@/pages/Agents/types";
 
 function deptHealthColor(agents: Agent[]): string {
   if (!agents.length) return "bg-muted-foreground";

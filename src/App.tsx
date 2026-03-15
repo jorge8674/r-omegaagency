@@ -33,6 +33,7 @@ import OmegaCompany from "./pages/OmegaCompany/index";
 import ResellerDashboard from "./pages/ResellerDashboard";
 import ResellerAgents from "./pages/ResellerAgents/index";
 import ResellerBranding from "./pages/ResellerBranding";
+import ResellerMarketplace from "./pages/ResellerMarketplace/index";
 import ResellerDetail from "./pages/ResellerDetail/index";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";

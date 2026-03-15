@@ -114,18 +114,24 @@ async function generateMarkdownLocal(director: OrgDirector, dept: string): Promi
     (director.sub_agents.filter((a: OrgSubAgent) => ["active", "online"].includes(a.status)).length /
       Math.max(director.sub_agents.length, 1)) * 100
   );
+  const isSecurity = dept.toLowerCase() === "security";
+  const sentinelData = isSecurity ? await fetchSentinelScores() : null;
+
   const agentsTable = director.sub_agents.length > 0
     ? director.sub_agents
-        .map((a: OrgSubAgent) => `| ${a.code} | ${a.name} | ${a.status} | ${director.performance_score} |`)
+        .map((a: OrgSubAgent) => {
+          const score = sentinelData
+            ? (sentinelData.agentScores[a.code] ?? "—")
+            : director.performance_score;
+          return `| ${a.code} | ${a.name} | ${a.status} | ${score} |`;
+        })
         .join("\n")
     : "| — | Sin sub-agentes registrados | — | — |";
 
-  // For security dept, fetch real score from sentinel history
-  const isSecurity = dept.toLowerCase() === "security";
-  const scoreLabel = isSecurity
-    ? await fetchSentinelAvgScore().then(({ avg, count }) =>
-        count > 0 ? `${avg}/100 (promedio de ${count} scans)` : "Sin datos de scan"
-      )
+  const scoreLabel = sentinelData
+    ? sentinelData.count > 0
+      ? `${sentinelData.avgScore}/100 (promedio de ${sentinelData.count} scans)`
+      : "Sin datos de scan"
     : `${director.performance_score}/100`;
 
   return `# Reporte — ${director.code} (${dept.charAt(0).toUpperCase() + dept.slice(1)})

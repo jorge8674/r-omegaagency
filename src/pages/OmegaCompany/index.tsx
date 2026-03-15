@@ -136,7 +136,7 @@ export default function OmegaCompany() {
         </div>
       </div>
 
-      <div className="space-y-2 pb-4">
+      <div className="space-y-2 pb-8">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Sistema de agentes OMEGA</p>
         <OmegaDirectorBar />
       </div>

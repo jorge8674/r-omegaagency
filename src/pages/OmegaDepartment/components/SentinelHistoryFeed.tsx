@@ -38,24 +38,24 @@ function triggerLabel(t?: string): string {
   return t.includes("cron") ? "cron automático" : "manual";
 }
 
-function scoreColor(score?: number): string {
-  if (score == null) return "text-muted-foreground";
-  if (score >= 100) return "text-emerald-400";
-  if (score >= 85) return "text-yellow-400";
+function scoreColor(s?: number): string {
+  if (s == null) return "text-muted-foreground";
+  if (s >= 100) return "text-emerald-400";
+  if (s >= 85) return "text-yellow-400";
   return "text-red-400";
 }
 
-function scoreBorder(score?: number): string {
-  if (score == null) return "border-border/30";
-  if (score >= 100) return "border-emerald-500/20";
-  if (score >= 85) return "border-yellow-500/20";
+function scoreBorder(s?: number): string {
+  if (s == null) return "border-border/30";
+  if (s >= 100) return "border-emerald-500/20";
+  if (s >= 85) return "border-yellow-500/20";
   return "border-red-500/20";
 }
 
-function scoreBg(score?: number): string {
-  if (score == null) return "bg-muted/5";
-  if (score >= 100) return "bg-emerald-500/5";
-  if (score >= 85) return "bg-yellow-500/5";
+function scoreBg(s?: number): string {
+  if (s == null) return "bg-muted/5";
+  if (s >= 100) return "bg-emerald-500/5";
+  if (s >= 85) return "bg-yellow-500/5";
   return "bg-red-500/5";
 }
 

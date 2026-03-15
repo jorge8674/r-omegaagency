@@ -15,10 +15,17 @@ export interface DeptReport {
 }
 
 interface SentinelScan {
+  agent_code?: string;
   scan_type?: string;
   security_score?: number;
   created_at?: string;
   triggered_by?: string;
+}
+
+interface SentinelScoreResult {
+  avgScore: number;
+  count: number;
+  agentScores: Record<string, number | null>;
 }
 
 const STORAGE_KEY = "omega_reports";
@@ -68,7 +75,9 @@ export async function generateReportFromBackend(
   }
 }
 
-async function fetchSentinelAvgScore(): Promise<{ avg: number; count: number }> {
+const SENTINEL_AGENTS = ["VAULT", "PULSE_MONITOR", "DB_GUARDIAN"];
+
+async function fetchSentinelScores(): Promise<SentinelScoreResult> {
   try {
     const res = await apiCall<{ scans?: SentinelScan[]; items?: SentinelScan[] }>(
       "/sentinel/history/?limit=10"
@@ -77,11 +86,20 @@ async function fetchSentinelAvgScore(): Promise<{ avg: number; count: number }> 
     const scores = scans
       .map((s) => s.security_score)
       .filter((s): s is number => s != null);
-    if (!scores.length) return { avg: 0, count: 0 };
-    const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-    return { avg, count: scores.length };
+    const avg = scores.length
+      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      : 0;
+    const agentScores: Record<string, number | null> = {};
+    for (const agent of SENTINEL_AGENTS) {
+      const match = scans.find((s) => {
+        const key = (s.agent_code ?? s.scan_type ?? "").toUpperCase();
+        return key.includes(agent) || key.includes(agent.replace("_", ""));
+      });
+      agentScores[agent] = match?.security_score ?? null;
+    }
+    return { avgScore: avg, count: scores.length, agentScores };
   } catch {
-    return { avg: 0, count: 0 };
+    return { avgScore: 0, count: 0, agentScores: {} };
   }
 }
 
@@ -96,18 +114,24 @@ async function generateMarkdownLocal(director: OrgDirector, dept: string): Promi
     (director.sub_agents.filter((a: OrgSubAgent) => ["active", "online"].includes(a.status)).length /
       Math.max(director.sub_agents.length, 1)) * 100
   );
+  const isSecurity = dept.toLowerCase() === "security";
+  const sentinelData = isSecurity ? await fetchSentinelScores() : null;
+
   const agentsTable = director.sub_agents.length > 0
     ? director.sub_agents
-        .map((a: OrgSubAgent) => `| ${a.code} | ${a.name} | ${a.status} | ${director.performance_score} |`)
+        .map((a: OrgSubAgent) => {
+          const score = sentinelData
+            ? (sentinelData.agentScores[a.code] ?? "—")
+            : director.performance_score;
+          return `| ${a.code} | ${a.name} | ${a.status} | ${score} |`;
+        })
         .join("\n")
     : "| — | Sin sub-agentes registrados | — | — |";
 
-  // For security dept, fetch real score from sentinel history
-  const isSecurity = dept.toLowerCase() === "security";
-  const scoreLabel = isSecurity
-    ? await fetchSentinelAvgScore().then(({ avg, count }) =>
-        count > 0 ? `${avg}/100 (promedio de ${count} scans)` : "Sin datos de scan"
-      )
+  const scoreLabel = sentinelData
+    ? sentinelData.count > 0
+      ? `${sentinelData.avgScore}/100 (promedio de ${sentinelData.count} scans)`
+      : "Sin datos de scan"
     : `${director.performance_score}/100`;
 
   return `# Reporte — ${director.code} (${dept.charAt(0).toUpperCase() + dept.slice(1)})

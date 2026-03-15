@@ -68,7 +68,7 @@ export function OmegaDirectorBar() {
     .filter((d): d is NonNullable<typeof d> => d !== undefined);
 
   return (
-    <div className="flex items-start gap-3 overflow-x-auto pb-2 scrollbar-thin">
+    <div className="flex items-start gap-3 overflow-x-auto pb-2 pt-2 scrollbar-thin">
       {/* NOVA CEO */}
       {ceo && (
         <div className="shrink-0 flex flex-col items-center gap-2 rounded-xl border-2 border-yellow-500/60 bg-yellow-500/8 shadow-lg shadow-yellow-500/10 px-5 py-3 min-w-[110px] cursor-default">

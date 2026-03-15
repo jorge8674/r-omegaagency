@@ -71,7 +71,7 @@ export default function ResellerDashboard() {
 
       <CampaignReports clients={clients} loading={isLoading} />
 
-      <OmegaUpsell resellerId={resellerId} />
+      <OmegaUpsell />
 
       <KpiDrawer
         type={kpiDrawer}

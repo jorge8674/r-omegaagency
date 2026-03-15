@@ -2,63 +2,6 @@ import { useState } from "react";
 import { Bot, ChevronDown, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function deptHealthColor(agents: Agent[]): string {
-  if (!agents.length) return "bg-muted-foreground";
-  const active = agents.filter((a) => a.status === "active" || a.status === "running").length;
-  const ratio = active / agents.length;
-  if (ratio === 1) return "bg-emerald-500";
-  if (ratio >= 0.5) return "bg-amber-400";
-  return "bg-destructive";
-}
-
-const STATUS_BADGE: Record<string, string> = {
-  active:   "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  running:  "bg-amber-400/15  text-amber-400  border-amber-400/30",
-  inactive: "bg-muted/40      text-muted-foreground border-border/30",
-  error:    "bg-destructive/15 text-destructive border-destructive/30",
-};
-
-function DeptAccordion({ dept, agents }: { dept: string; agents: Agent[] }) {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const active = agents.filter((a) => a.status === "active" || a.status === "running").length;
-
-  return (
-    <div className="rounded-lg border border-border/40 bg-muted/10 overflow-hidden">
-      <button
-        className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-muted/20 transition-colors"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <div className={`h-2 w-2 rounded-full shrink-0 ${deptHealthColor(agents)}`} />
-        <span className="flex-1 text-sm font-medium">
-          {DEPARTMENT_LABELS[dept] ?? dept}
-        </span>
-        <span className="text-xs text-muted-foreground">{active}/{agents.length} activos</span>
-        {open
-          ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-          : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
-      </button>
-
-      {open && (
-        <div className="border-t border-border/30 divide-y divide-border/20">
-          {agents.map((agent) => (
-            <div
-              key={agent.id}
-              className="flex items-center gap-2 px-4 py-1.5 hover:bg-muted/20 cursor-pointer"
-              onClick={() => navigate("/agents")}
-            >
-              <div className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_DOT[agent.status]}`} />
-              <span className="flex-1 truncate text-xs">{agent.name}</span>
-              <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${STATUS_BADGE[agent.status] ?? STATUS_BADGE.inactive}`}>
-                {agent.status}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function OmegaAgentsSection() {
   const navigate = useNavigate();

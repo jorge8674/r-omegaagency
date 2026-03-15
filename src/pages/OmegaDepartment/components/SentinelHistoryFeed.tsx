@@ -118,7 +118,7 @@ export function SentinelHistoryFeed() {
               </span>
             )}
           </div>
-          {scan.score != null && scan.score < 100 && scan.issues && scan.issues.length > 0 && (
+          {scan.security_score != null && scan.security_score < 100 && scan.issues && scan.issues.length > 0 && (
             <div className="ml-6 space-y-0.5">
               {scan.issues.slice(0, 3).map((issue, j) => (
                 <p key={j} className="text-[10px] text-muted-foreground">

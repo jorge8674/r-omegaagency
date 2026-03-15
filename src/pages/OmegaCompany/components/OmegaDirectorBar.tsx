@@ -37,11 +37,17 @@ const DEPT_BG: Record<string, string> = {
   people:     "bg-pink-500/5 hover:bg-pink-500/10",
   security:   "bg-rose-500/5 hover:bg-rose-500/10",
 };
+function getSentinelBadgeColor(score: number): string | null {
+  if (score === 100) return null;
+  if (score >= 85) return "bg-yellow-400 animate-pulse";
+  if (score >= 70) return "bg-orange-500 animate-pulse";
+  return "bg-red-600 animate-pulse";
+}
 
 export function OmegaDirectorBar() {
   const navigate = useNavigate();
   const { status: sentinelStatus } = useSentinel();
-  const hasSecurityAlert = (sentinelStatus?.security_score ?? 100) < 100;
+  const sentinelBadgeColor = getSentinelBadgeColor(sentinelStatus?.security_score ?? 100);
   const { data, isLoading } = useQuery({
     queryKey: ["omega-org-chart"],
     queryFn: () => omegaApi.getOrgChart(),
@@ -102,8 +108,8 @@ export function OmegaDirectorBar() {
             onClick={() => navigate(`/omega/department/${dept}`)}
             className={`relative overflow-visible shrink-0 flex flex-col items-center gap-1.5 rounded-xl border ${style.border} ${bg} shadow-sm ${style.glow} px-4 py-2.5 min-w-[100px] transition-all duration-150 hover:scale-[1.03] cursor-pointer`}
           >
-            {dept === "security" && hasSecurityAlert && (
-              <span className="absolute -top-2 -right-2 z-10 h-4 w-4 rounded-full bg-destructive text-[9px] font-bold text-white flex items-center justify-center">
+            {dept === "security" && sentinelBadgeColor && (
+              <span className={`absolute -top-2 -right-2 z-10 h-4 w-4 rounded-full ${sentinelBadgeColor} text-[9px] font-bold text-white flex items-center justify-center`}>
                 !
               </span>
             )}

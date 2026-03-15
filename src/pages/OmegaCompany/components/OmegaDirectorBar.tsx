@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Crown, Users } from "lucide-react";
+import { useSentinel } from "../hooks/useSentinel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { omegaApi, type OrgAgentStatus } from "@/lib/api/omega";
 
@@ -39,6 +40,8 @@ const DEPT_BG: Record<string, string> = {
 
 export function OmegaDirectorBar() {
   const navigate = useNavigate();
+  const { status: sentinelStatus } = useSentinel();
+  const hasSecurityAlert = (sentinelStatus?.security_score ?? 100) < 100;
   const { data, isLoading } = useQuery({
     queryKey: ["omega-org-chart"],
     queryFn: () => omegaApi.getOrgChart(),
@@ -97,8 +100,13 @@ export function OmegaDirectorBar() {
           <button
             key={d.id}
             onClick={() => navigate(`/omega/department/${dept}`)}
-            className={`shrink-0 flex flex-col items-center gap-1.5 rounded-xl border ${style.border} ${bg} shadow-sm ${style.glow} px-4 py-2.5 min-w-[100px] transition-all duration-150 hover:scale-[1.03] cursor-pointer`}
+            className={`relative shrink-0 flex flex-col items-center gap-1.5 rounded-xl border ${style.border} ${bg} shadow-sm ${style.glow} px-4 py-2.5 min-w-[100px] transition-all duration-150 hover:scale-[1.03] cursor-pointer`}
           >
+            {dept === "security" && hasSecurityAlert && (
+              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-destructive text-[9px] font-bold text-white flex items-center justify-center">
+                !
+              </span>
+            )}
             <div className="flex items-center gap-1.5">
               <div className={`h-2 w-2 rounded-full shrink-0 ${STATUS_DOT[d.status] ?? STATUS_DOT.idle}`} />
               <span className={`font-mono text-xs font-bold ${style.text}`}>{d.code}</span>

@@ -133,7 +133,6 @@ export function DeptActivityFeed({ dept }: Props) {
             </span>
           </div>
         ))}
-      </div>
     </div>
   );
 }

@@ -104,8 +104,8 @@ export function SentinelHistoryFeed() {
               <p className="text-xs text-foreground leading-snug">
                 <span className="font-semibold">{scanLabel(scan.scan_type)}</span>
                 {" — Score: "}
-                <span className={`font-bold ${scoreColor(scan.score)}`}>
-                  {scan.score ?? "—"}/100
+                <span className={`font-bold ${scoreColor(scan.security_score)}`}>
+                  {scan.security_score ?? "—"}/100
                 </span>
                 <span className="ml-1.5 text-muted-foreground text-[10px]">
                   ({triggerLabel(scan.triggered_by)})

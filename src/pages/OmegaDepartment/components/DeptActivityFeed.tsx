@@ -63,6 +63,11 @@ export function DeptActivityFeed({ dept }: Props) {
     retry: 0,
   });
 
+  // Security dept uses SentinelHistoryFeed exclusively (agents don't write to omega_activity)
+  if (dept.toLowerCase() === "security") {
+    return <SentinelHistoryFeed />;
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -80,26 +85,9 @@ export function DeptActivityFeed({ dept }: Props) {
       if (deptAgents && a.agent_code) {
         return deptAgents.includes(a.agent_code.toUpperCase());
       }
-      // Fallback: match department name in description
       return a.description?.toLowerCase().includes(dept.toLowerCase());
     })
     .slice(0, 20);
-
-  if (!filtered.length) {
-    return (
-      <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
-        <Activity className="mb-2 h-8 w-8 opacity-20" />
-        <p className="text-sm">Sin actividad reciente</p>
-      </div>
-    );
-  }
-
-  const isSecurity = dept.toLowerCase() === "security";
-
-  // Security dept uses SentinelHistoryFeed exclusively (agents don't write to omega_activity)
-  if (isSecurity) {
-    return <SentinelHistoryFeed />;
-  }
 
   if (!filtered.length) {
     return (

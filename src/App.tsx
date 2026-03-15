@@ -15,7 +15,6 @@ import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import OmegaDepartment from "./pages/OmegaDepartment/index";
 import Clients from "./pages/Clients/index";
-import AgentsPage from "./pages/Agents/index";
 import ClientDetail from "./pages/ClientDetail/index";
 import ClientHome from "./pages/ClientHome/index";
 
@@ -126,11 +125,6 @@ const App = () => (
               <Route path="/clients/:id" element={
                 <OmegaProtectedRoute allowedRoles={["owner", "reseller"]}>
                   <AppLayout><ClientDetail /></AppLayout>
-                </OmegaProtectedRoute>
-              } />
-              <Route path="/agents" element={
-                <OmegaProtectedRoute allowedRoles={["owner"]}>
-                  <AppLayout><AgentsPage /></AppLayout>
                 </OmegaProtectedRoute>
               } />
               <Route path="/context" element={

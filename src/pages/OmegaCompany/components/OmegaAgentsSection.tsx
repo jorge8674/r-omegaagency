@@ -1,111 +1,20 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Bot, ChevronDown, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAgents } from "@/pages/Agents/hooks/useAgents";
-import { DEPARTMENT_LABELS, STATUS_DOT } from "@/pages/Agents/types";
-import type { Agent } from "@/pages/Agents/types";
 
-function deptHealthColor(agents: Agent[]): string {
-  if (!agents.length) return "bg-muted-foreground";
-  const active = agents.filter((a) => a.status === "active" || a.status === "running").length;
-  const ratio = active / agents.length;
-  if (ratio === 1) return "bg-emerald-500";
-  if (ratio >= 0.5) return "bg-amber-400";
-  return "bg-destructive";
-}
-
-const STATUS_BADGE: Record<string, string> = {
-  active:   "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  running:  "bg-amber-400/15  text-amber-400  border-amber-400/30",
-  inactive: "bg-muted/40      text-muted-foreground border-border/30",
-  error:    "bg-destructive/15 text-destructive border-destructive/30",
-};
-
-function DeptAccordion({ dept, agents }: { dept: string; agents: Agent[] }) {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const active = agents.filter((a) => a.status === "active" || a.status === "running").length;
-
-  return (
-    <div className="rounded-lg border border-border/40 bg-muted/10 overflow-hidden">
-      <button
-        className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-muted/20 transition-colors"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <div className={`h-2 w-2 rounded-full shrink-0 ${deptHealthColor(agents)}`} />
-        <span className="flex-1 text-sm font-medium">
-          {DEPARTMENT_LABELS[dept] ?? dept}
-        </span>
-        <span className="text-xs text-muted-foreground">{active}/{agents.length} activos</span>
-        {open
-          ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-          : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
-      </button>
-
-      {open && (
-        <div className="border-t border-border/30 divide-y divide-border/20">
-          {agents.map((agent) => (
-            <div
-              key={agent.id}
-              className="flex items-center gap-2 px-4 py-1.5 hover:bg-muted/20 cursor-pointer"
-              onClick={() => navigate("/agents")}
-            >
-              <div className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_DOT[agent.status]}`} />
-              <span className="flex-1 truncate text-xs">{agent.name}</span>
-              <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${STATUS_BADGE[agent.status] ?? STATUS_BADGE.inactive}`}>
-                {agent.status}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function OmegaAgentsSection() {
-  const navigate = useNavigate();
-  const { grouped, stats, isLoading } = useAgents();
-
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
-      </div>
-    );
-  }
-
-  const depts = Object.keys(grouped);
-
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-3 text-sm text-muted-foreground mb-1">
         <Bot className="h-4 w-4 text-primary" />
-        <span>
-          <span className="font-semibold text-foreground">{stats.active + stats.running}</span>
-          /{stats.total} activos
-        </span>
-        <span
-          className="ml-auto cursor-pointer text-xs hover:underline underline-offset-2"
-          onClick={() => navigate("/agents")}
-        >
-          Ver panel completo →
-        </span>
+        <span className="text-xs">Sistema de agentes en desarrollo</span>
       </div>
 
-      {depts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-          <Bot className="mb-2 h-8 w-8 opacity-30" />
-          <p className="text-sm">Sin agentes disponibles</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {depts.map((dept) => (
-            <DeptAccordion key={dept} dept={dept} agents={grouped[dept]} />
-          ))}
-        </div>
-      )}
+      <div className="flex flex-col items-center justify-center py-8 text-muted-foreground rounded-lg border border-border/30 bg-muted/10">
+        <Bot className="mb-2 h-8 w-8 opacity-30" />
+        <p className="text-sm">Panel de agentes próximamente</p>
+      </div>
     </div>
   );
 }

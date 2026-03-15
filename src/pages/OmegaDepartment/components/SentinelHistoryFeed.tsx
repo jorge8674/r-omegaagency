@@ -96,7 +96,7 @@ export function SentinelHistoryFeed() {
       {scans.map((scan, i) => (
         <div
           key={i}
-          className={`flex flex-col gap-1 rounded-lg border ${scoreBorder(scan.score)} ${scoreBg(scan.score)} px-3 py-2`}
+          className={`flex flex-col gap-1 rounded-lg border ${scoreBorder(scan.security_score)} ${scoreBg(scan.security_score)} px-3 py-2`}
         >
           <div className="flex items-start gap-2.5">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />

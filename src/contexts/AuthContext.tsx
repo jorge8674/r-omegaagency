@@ -52,10 +52,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return u;
       };
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       try {
         const response = await fetch(`${API_BASE}/auth/me`, {
           headers: { Authorization: `Bearer ${savedToken}` },
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const data = await response.json();
@@ -68,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem("omega_user");
         }
       } catch {
+        clearTimeout(timeoutId);
         // Offline fallback — use cached user, normalize role
         const parsed = JSON.parse(savedUser) as AuthUser;
         setUser(normalizeRole(parsed));

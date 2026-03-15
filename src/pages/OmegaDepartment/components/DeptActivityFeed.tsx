@@ -30,6 +30,11 @@ const STATUS_ICON: Record<string, string> = {
 // Agent codes per department for filtering
 const DEPT_AGENTS: Record<string, string[]> = {
   marketing: ["DANI", "DUDA", "LOLA", "LUAN", "MALU", "MAYA", "RAFA", "SARA"],
+  security: [
+    "SENTINEL", "VAULT", "PULSE_MONITOR", "FORTRESS", "CIPHER",
+    "PHANTOM", "IRONWALL", "TRACE", "SHIELD", "WATCHDOG",
+    "LOCKBOX", "SENTRY", "AEGIS",
+  ],
 };
 
 function formatTokens(n: number): string {

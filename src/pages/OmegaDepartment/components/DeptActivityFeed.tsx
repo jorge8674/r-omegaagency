@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Activity } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { SentinelHistoryFeed } from "./SentinelHistoryFeed";
 
 const TYPE_BADGE: Record<string, string> = {
   content_generated: "bg-orange-500/15 text-orange-400 border-orange-500/30",
@@ -30,6 +31,11 @@ const STATUS_ICON: Record<string, string> = {
 // Agent codes per department for filtering
 const DEPT_AGENTS: Record<string, string[]> = {
   marketing: ["DANI", "DUDA", "LOLA", "LUAN", "MALU", "MAYA", "RAFA", "SARA"],
+  security: [
+    "SENTINEL", "VAULT", "PULSE_MONITOR", "FORTRESS", "CIPHER",
+    "PHANTOM", "IRONWALL", "TRACE", "SHIELD", "WATCHDOG",
+    "LOCKBOX", "SENTRY", "AEGIS",
+  ],
 };
 
 function formatTokens(n: number): string {
@@ -88,19 +94,41 @@ export function DeptActivityFeed({ dept }: Props) {
     );
   }
 
+  const isSecurity = dept.toLowerCase() === "security";
+
   return (
-    <div className="space-y-1.5">
-      {filtered.map((item, i) => (
-        <div key={i} className="flex items-start gap-2.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2">
-          <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${TYPE_BADGE[item.type] ?? "bg-muted/30 text-muted-foreground border-border/30"}`}>
-            {TYPE_LABEL[item.type] ?? item.type}
-          </span>
-          <p className="flex-1 text-xs text-foreground leading-snug">{formatLine(item)}</p>
-          <span className="shrink-0 text-[10px] text-muted-foreground">
-            {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: es })}
-          </span>
-        </div>
-      ))}
+    <div className="space-y-3">
+      {isSecurity && <SentinelHistoryFeed />}
+
+      {isSecurity && filtered.length > 0 && (
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Actividad de agentes
+        </p>
+      )}
+
+      <div className="space-y-1.5">
+        {filtered.map((item, i) => (
+          <div key={i} className="flex items-start gap-2.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2">
+            <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${TYPE_BADGE[item.type] ?? "bg-muted/30 text-muted-foreground border-border/30"}`}>
+              {TYPE_LABEL[item.type] ?? item.type}
+            </span>
+            <div className="flex-1 min-w-0">
+              {item.agent_code && (
+                <span className="text-[10px] font-medium text-muted-foreground">{item.agent_code} · </span>
+              )}
+              <span className="text-xs text-foreground leading-snug">{formatLine(item)}</span>
+              {item.description && item.description.length > 0 && item.type !== "agent_task" && (
+                <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                  {item.description.slice(0, 80)}{item.description.length > 80 ? "…" : ""}
+                </p>
+              )}
+            </div>
+            <span className="shrink-0 text-[10px] text-muted-foreground">
+              {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: es })}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

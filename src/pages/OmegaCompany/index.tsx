@@ -14,7 +14,6 @@ import { ReportsTab } from "./components/ReportsTab";
 import { AgentMemoryViewer } from "./components/AgentMemoryViewer";
 import { SolicitudesPanel } from "./components/SolicitudesPanel";
 import { UpcomingPosts } from "./components/UpcomingPosts";
-import { useQuery } from "@tanstack/react-query";
 import { apiCall } from "@/lib/api/core";
 import type { SolicitudesListResponse } from "./types/solicitudes";
 

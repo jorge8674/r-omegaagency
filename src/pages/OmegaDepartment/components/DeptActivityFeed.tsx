@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Activity } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { SentinelHistoryFeed } from "./SentinelHistoryFeed";
 
 const TYPE_BADGE: Record<string, string> = {
   content_generated: "bg-orange-500/15 text-orange-400 border-orange-500/30",

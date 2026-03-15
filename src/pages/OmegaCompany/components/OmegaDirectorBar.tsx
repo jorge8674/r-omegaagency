@@ -68,7 +68,7 @@ export function OmegaDirectorBar() {
     .filter((d): d is NonNullable<typeof d> => d !== undefined);
 
   return (
-    <div className="flex items-start gap-3 overflow-x-auto pb-2 scrollbar-thin">
+    <div className="flex items-start gap-3 overflow-x-auto pb-2 pt-2 scrollbar-thin">
       {/* NOVA CEO */}
       {ceo && (
         <div className="shrink-0 flex flex-col items-center gap-2 rounded-xl border-2 border-yellow-500/60 bg-yellow-500/8 shadow-lg shadow-yellow-500/10 px-5 py-3 min-w-[110px] cursor-default">
@@ -100,10 +100,10 @@ export function OmegaDirectorBar() {
           <button
             key={d.id}
             onClick={() => navigate(`/omega/department/${dept}`)}
-            className={`relative shrink-0 flex flex-col items-center gap-1.5 rounded-xl border ${style.border} ${bg} shadow-sm ${style.glow} px-4 py-2.5 min-w-[100px] transition-all duration-150 hover:scale-[1.03] cursor-pointer`}
+            className={`relative overflow-visible shrink-0 flex flex-col items-center gap-1.5 rounded-xl border ${style.border} ${bg} shadow-sm ${style.glow} px-4 py-2.5 min-w-[100px] transition-all duration-150 hover:scale-[1.03] cursor-pointer`}
           >
             {dept === "security" && hasSecurityAlert && (
-              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-destructive text-[9px] font-bold text-white flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 z-10 h-4 w-4 rounded-full bg-destructive text-[9px] font-bold text-white flex items-center justify-center">
                 !
               </span>
             )}

@@ -13,7 +13,7 @@ interface ScanIssue {
 
 interface ScanEntry {
   scan_type?: string;
-  score?: number;
+  security_score?: number;
   created_at?: string;
   triggered_by?: string;
   issues?: ScanIssue[];
@@ -38,24 +38,24 @@ function triggerLabel(t?: string): string {
   return t.includes("cron") ? "cron automático" : "manual";
 }
 
-function scoreColor(score?: number): string {
-  if (score == null) return "text-muted-foreground";
-  if (score >= 100) return "text-emerald-400";
-  if (score >= 85) return "text-yellow-400";
+function scoreColor(s?: number): string {
+  if (s == null) return "text-muted-foreground";
+  if (s >= 100) return "text-emerald-400";
+  if (s >= 85) return "text-yellow-400";
   return "text-red-400";
 }
 
-function scoreBorder(score?: number): string {
-  if (score == null) return "border-border/30";
-  if (score >= 100) return "border-emerald-500/20";
-  if (score >= 85) return "border-yellow-500/20";
+function scoreBorder(s?: number): string {
+  if (s == null) return "border-border/30";
+  if (s >= 100) return "border-emerald-500/20";
+  if (s >= 85) return "border-yellow-500/20";
   return "border-red-500/20";
 }
 
-function scoreBg(score?: number): string {
-  if (score == null) return "bg-muted/5";
-  if (score >= 100) return "bg-emerald-500/5";
-  if (score >= 85) return "bg-yellow-500/5";
+function scoreBg(s?: number): string {
+  if (s == null) return "bg-muted/5";
+  if (s >= 100) return "bg-emerald-500/5";
+  if (s >= 85) return "bg-yellow-500/5";
   return "bg-red-500/5";
 }
 
@@ -96,7 +96,7 @@ export function SentinelHistoryFeed() {
       {scans.map((scan, i) => (
         <div
           key={i}
-          className={`flex flex-col gap-1 rounded-lg border ${scoreBorder(scan.score)} ${scoreBg(scan.score)} px-3 py-2`}
+          className={`flex flex-col gap-1 rounded-lg border ${scoreBorder(scan.security_score)} ${scoreBg(scan.security_score)} px-3 py-2`}
         >
           <div className="flex items-start gap-2.5">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
@@ -104,8 +104,8 @@ export function SentinelHistoryFeed() {
               <p className="text-xs text-foreground leading-snug">
                 <span className="font-semibold">{scanLabel(scan.scan_type)}</span>
                 {" — Score: "}
-                <span className={`font-bold ${scoreColor(scan.score)}`}>
-                  {scan.score ?? "—"}/100
+                <span className={`font-bold ${scoreColor(scan.security_score)}`}>
+                  {scan.security_score ?? "—"}/100
                 </span>
                 <span className="ml-1.5 text-muted-foreground text-[10px]">
                   ({triggerLabel(scan.triggered_by)})
@@ -118,7 +118,7 @@ export function SentinelHistoryFeed() {
               </span>
             )}
           </div>
-          {scan.score != null && scan.score < 100 && scan.issues && scan.issues.length > 0 && (
+          {scan.security_score != null && scan.security_score < 100 && scan.issues && scan.issues.length > 0 && (
             <div className="ml-6 space-y-0.5">
               {scan.issues.slice(0, 3).map((issue, j) => (
                 <p key={j} className="text-[10px] text-muted-foreground">

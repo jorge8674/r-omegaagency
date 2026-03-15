@@ -23,7 +23,7 @@ export const resellersApi = {
     apiCall<ResellerBase>(`/resellers/${id}/status`, "PATCH", update as unknown as Record<string, unknown>),
 
   delete: (id: string) =>
-    apiCall<void>(`/resellers/${id}/`, "DELETE"),
+    apiCall<void>(`/reseller/${id}/`, "DELETE"),
 
   // ─── Dashboard ──────────────────────────────────────
   getDashboard: (id: string) =>

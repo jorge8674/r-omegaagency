@@ -1,25 +1,21 @@
-import { useState, useCallback } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, BarChart2, Network, Activity, FileText, Brain, Bell } from "lucide-react";
+import { useState } from "react";
+import { BarChart2, Network, Activity, FileText, Brain, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { apiCall } from "@/lib/api/core";
 import { useOmegaDashboard } from "./hooks/useOmegaDashboard";
+import { OmegaCompanyHeader } from "./components/OmegaCompanyHeader";
 import { RevenueCards } from "./components/RevenueCards";
 import { ResellersTable } from "./components/ResellersTable";
 import { ClientsList } from "./components/ClientsList";
 import { ContentAgentsStats } from "./components/ContentAgentsStats";
 import { OmegaActivityFeed } from "./components/OmegaActivityFeed";
 import { OmegaOrgChart } from "./components/OmegaOrgChart";
-import { OmegaDirectorBar } from "./components/OmegaDirectorBar";
 import { ReportsTab } from "./components/ReportsTab";
 import { AgentMemoryViewer } from "./components/AgentMemoryViewer";
 import { SolicitudesPanel } from "./components/SolicitudesPanel";
 import { UpcomingPosts } from "./components/UpcomingPosts";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { saveReport } from "@/pages/OmegaDepartment/hooks/useOmegaDepartment";
+import { useQuery } from "@tanstack/react-query";
+import { apiCall } from "@/lib/api/core";
 import type { SolicitudesListResponse } from "./types/solicitudes";
 
 type Section = "resumen" | "organizacion" | "actividad" | "reportes" | "memoria" | "solicitudes";
@@ -31,18 +27,6 @@ const SECTIONS: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "reportes",      label: "Reportes",      icon: FileText  },
   { id: "memoria",       label: "Memorias IA",   icon: Brain     },
   { id: "solicitudes",   label: "Solicitudes",   icon: Bell      },
-];
-
-const QUERY_KEYS_TO_REFRESH = [
-  ["omega-system"],
-  ["admin-solicitudes"],
-  ["admin-solicitudes-badge"],
-  ["reseller-home"],
-  ["omega-stats"],
-  ["omega-resellers"],
-  ["omega-activity"],
-  ["omega-revenue"],
-  ["omega-sentinel"],
 ];
 
 export default function OmegaCompany() {

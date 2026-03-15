@@ -37,11 +37,17 @@ const DEPT_BG: Record<string, string> = {
   people:     "bg-pink-500/5 hover:bg-pink-500/10",
   security:   "bg-rose-500/5 hover:bg-rose-500/10",
 };
+function getSentinelBadgeColor(score: number): string | null {
+  if (score === 100) return null;
+  if (score >= 85) return "bg-yellow-400 animate-pulse";
+  if (score >= 70) return "bg-orange-500 animate-pulse";
+  return "bg-red-600 animate-pulse";
+}
 
 export function OmegaDirectorBar() {
   const navigate = useNavigate();
   const { status: sentinelStatus } = useSentinel();
-  const hasSecurityAlert = (sentinelStatus?.security_score ?? 100) < 100;
+  const sentinelBadgeColor = getSentinelBadgeColor(sentinelStatus?.security_score ?? 100);
   const { data, isLoading } = useQuery({
     queryKey: ["omega-org-chart"],
     queryFn: () => omegaApi.getOrgChart(),

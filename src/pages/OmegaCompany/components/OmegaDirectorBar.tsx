@@ -108,8 +108,8 @@ export function OmegaDirectorBar() {
             onClick={() => navigate(`/omega/department/${dept}`)}
             className={`relative overflow-visible shrink-0 flex flex-col items-center gap-1.5 rounded-xl border ${style.border} ${bg} shadow-sm ${style.glow} px-4 py-2.5 min-w-[100px] transition-all duration-150 hover:scale-[1.03] cursor-pointer`}
           >
-            {dept === "security" && hasSecurityAlert && (
-              <span className="absolute -top-2 -right-2 z-10 h-4 w-4 rounded-full bg-destructive text-[9px] font-bold text-white flex items-center justify-center">
+            {dept === "security" && sentinelBadgeColor && (
+              <span className={`absolute -top-2 -right-2 z-10 h-4 w-4 rounded-full ${sentinelBadgeColor} text-[9px] font-bold text-white flex items-center justify-center`}>
                 !
               </span>
             )}
